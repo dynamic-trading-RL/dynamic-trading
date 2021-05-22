@@ -6,10 +6,127 @@ Created on Fri May 21 14:35:31 2021
 """
 
 import numpy as np
+import pandas as pd
+from statsmodels.tsa.ar_model import AutoReg
 import matplotlib.pyplot as plt
+
 
 # Seed
 np.random.seed(19051991)
+
+
+# Import data
+path = 'Databases/Commodities/GASALLW_csv_2/data/'
+n_ = 0
+li = []
+
+# BRENT
+data_brent = pd.read_csv(path + 'DCOILBRENTEU.csv', index_col=0,
+                         na_values='.').fillna(method='pad')
+data_brent.columns = ['BRENT']
+data_brent.index = pd.to_datetime(data_brent.index)
+n_ = n_+1
+li.append(data_brent)
+
+# WTI
+data_wti = pd.read_csv(path + 'DCOILWTICO.csv', index_col=0,
+                       na_values='.').fillna(method='pad')
+data_wti.columns = ['WTI']
+data_wti.index = pd.to_datetime(data_wti.index)
+n_ = n_+1
+li.append(data_wti)
+
+# Gold
+data_gold = pd.read_csv(path + 'GOLDAMGBD228NLBM.csv', index_col=0,
+                        na_values='.').fillna(method='pad')
+data_gold.columns = ['Gold']
+data_gold.index = pd.to_datetime(data_gold.index)
+n_ = n_+1
+li.append(data_gold)
+
+# Henry Hub Natural Gas
+data_hhng = pd.read_csv(path + 'DHHNGSP.csv', index_col=0,
+                        na_values='.').fillna(method='pad')
+data_hhng.columns = ['Henry Hub Natural Gas']
+data_hhng.index = pd.to_datetime(data_hhng.index)
+n_ = n_+1
+li.append(data_hhng)
+
+# Kerosene-Type Jet Fuel
+data_ktjf = pd.read_csv(path + 'DJFUELUSGULF.csv', index_col=0,
+                        na_values='.').fillna(method='pad')
+data_ktjf.columns = ['Kerosene-Type Jet Fuel']
+data_ktjf.index = pd.to_datetime(data_ktjf.index)
+n_ = n_+1
+li.append(data_ktjf)
+
+# Propane
+data_propane = pd.read_csv(path + 'DPROPANEMBTX.csv', index_col=0,
+                           na_values='.').fillna(method='pad')
+data_propane.columns = ['Propane']
+data_propane.index = pd.to_datetime(data_propane.index)
+n_ = n_+1
+li.append(data_propane)
+
+# Conventional Gasoline Prices: New York Harbor
+data_gpny = pd.read_csv(path + 'DGASNYH.csv', index_col=0,
+                        na_values='.').fillna(method='pad')
+data_gpny.columns = ['Conventional Gasoline Prices: New York Harbor']
+data_gpny.index = pd.to_datetime(data_gpny.index)
+n_ = n_+1
+li.append(data_gpny)
+
+# Conventional Gasoline Prices: U.S. Gulf Coast
+data_gpusg = pd.read_csv(path + 'DGASUSGULF.csv', index_col=0,
+                         na_values='.').fillna(method='pad')
+data_gpusg.columns = ['Conventional Gasoline Prices: U.S. Gulf Coast']
+data_gpusg.index = pd.to_datetime(data_gpusg.index)
+n_ = n_+1
+li.append(data_gpusg)
+
+# Merge dataframes
+names = ['Brent', 'WTI', 'Gold',
+         'Henry Hub Natural Gas', 'Kerosene-Type Jet Fuel',
+         'Propane', 'Conventional Gasoline Prices: New York Harbor',
+         'Conventional Gasoline Prices: U.S. Gulf Coast']
+
+df = pd.concat(li, axis=1)
+df.dropna(inplace=True)
+
+# Factors
+window = 5
+df_factor = df.diff().rolling(window=window).mean()
+df_factor.dropna(inplace=True)
+dates = df_factor.index
+df = df.loc[dates]
+
+# Plots
+for column in df.columns:
+    plt.figure()
+    plt.plot(df[column], label='Value')
+    plt.plot(df_factor[column], label='Factor')
+    plt.title(column)
+    plt.legend()
+
+
+# Fit
+fits = {}
+for column in df_factor.columns:
+    res = AutoReg(df_factor[column], lags=1).fit()
+    fits[column] = res
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Time series parameters
 t_ = 1000  # length of the time series
