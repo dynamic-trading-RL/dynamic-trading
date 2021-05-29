@@ -6,6 +6,16 @@ Created on Fri May 28 17:16:57 2021
 """
 
 import numpy as np
+from scipy.optimize import (dual_annealing, shgo, differential_evolution,
+                            basinhopping)
+
+
+# -----------------------------------------------------------------------------
+# draw_optimizer
+# -----------------------------------------------------------------------------
+
+def draw_optimizer(optimizers):
+    return(optimizers[np.random.randint(len(optimizers))])
 
 
 # -----------------------------------------------------------------------------
@@ -52,15 +62,47 @@ def reward(x_tm1, x_t, f_t,
 # maxAction
 # -----------------------------------------------------------------------------
 
-def maxAction(q_value, state, actions):
+def maxAction(q_value, state, lot_size, optimizers, draw_opt):
     """
     This function determines the q-greedy action for a given
-    q-value function, state, and action space
+    q-value function and state
     """
 
-    values = [q_value(state, a) for a in actions]
-    action_index = values.index(max(values))
-    return actions[action_index]
+    # function
+    def fun(a): return -q_value(state, a)
+
+    if draw_opt:
+        optimizer = draw_optimizer(optimizers)
+        optimizers.append(optimizer)
+        if optimizer == 'shgo':
+            res = shgo(fun, bounds=[(-lot_size, lot_size)])
+        elif optimizer == 'dual_annealing':
+            res = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
+        elif optimizer == 'differential_evolution':
+            res = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
+        else:
+            res = basinhopping(fun, x0=0)
+
+        return np.round(res.x), optimizers
+
+    else:
+        res = ['shgo', 'dual_annealing', 'differential_evolution',
+               'basinhopping']
+
+        # optimizations
+        res1 = shgo(fun, bounds=[(-lot_size, lot_size)])
+        res2 = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
+        res3 = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
+        res4 = basinhopping(fun, x0=0)
+
+        res_x = np.array([res1.x, res2.x, res3.x, res4.x])
+        res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
+
+        i = np.argmax(res_fun)
+
+        optimizers.append(res[i])
+
+        return np.round(res_x[i]), optimizers
 
 
 # -----------------------------------------------------------------------------
@@ -75,14 +117,13 @@ def generate_episode(
                      # market simulations
                      f,
                      # RL parameters
-                     eps, rho, q_value, alpha, eta, gamma
+                     eps, rho, q_value, alpha, gamma, lot_size,
+                     optimizers, draw_opt
                      ):
     """
     Given a market simulation f, this function generates an episode for the
     reinforcement learning agent training
     """
-
-    lot_size = 100  # ???
 
     reward_total = 0
     cost_total = 0
@@ -96,11 +137,11 @@ def generate_episode(
     state = np.array([0, f[j, 0]])
 
     # choose action
-    actions = np.array([n for n in np.arange(0, lot_size+1, 1)])
     if np.random.rand() < eps:
-        action = actions[np.random.randint(0, len(actions))]
+        action = np.random.randint(-lot_size, lot_size, dtype=np.int64)
     else:
-        action = maxAction(q_value, state, actions)
+        action, optimizers = maxAction(q_value, state, lot_size, optimizers,
+                                       draw_opt)
 
     for i in range(1, t_):
 
@@ -108,16 +149,12 @@ def generate_episode(
         state_ = [state[0] + action, f[j, i]]
 
         # Choose a' from s' using policy derived from q_value
-        # update actions space
-        actions =\
-            np.array([n for n in np.arange(-lot_size,
-                                           lot_size+1,
-                                           1)])
 
         if np.random.rand() < eps:
-            action_ = actions[np.random.randint(0, len(actions))]
+            action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
         else:
-            action_ = maxAction(q_value, state_, actions)
+            action_, optimizers = maxAction(q_value, state_, lot_size,
+                                            optimizers, draw_opt)
 
         # Observe r
 
@@ -130,7 +167,7 @@ def generate_episode(
         # Update value function
         y = q_value(state, action) +\
             alpha*(reward_t +
-                   eta*q_value(state_, action_) -
+                   (1-rho)*q_value(state_, action_) -
                    q_value(state, action))
 
         # update pairs
@@ -141,7 +178,7 @@ def generate_episode(
         state = state_
         action = action_
 
-    return x_episode, y_episode, j, reward_total, cost_total
+    return x_episode, y_episode, j, reward_total, cost_total, optimizers
 
 
 # -----------------------------------------------------------------------------
