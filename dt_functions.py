@@ -33,12 +33,14 @@ def simulate_market(j_, t_, n_batches,
     f[:, :, 0] = df_factor.iloc[0]
     for t in range(1, t_-1):
         f[:, :, t] =\
-            mu_eps + (1 - Phi)*f[:, :, t-1] + np.sqrt(Omega)*np.random.randn(j_, n_batches)
+            mu_eps + (1 - Phi)*f[:, :, t-1] +\
+            np.sqrt(Omega)*np.random.randn(j_, n_batches)
 
     r = np.zeros((j_, n_batches, t_))
     r[:, :, 0] = df_return.iloc[0]
     r[:, :, 1] = df_return.iloc[1]
-    r[:, :, 2:] = mu_u + B*f[:, :, 1:-1] + np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-2)
+    r[:, :, 2:] = mu_u + B*f[:, :, 1:-1] +\
+        np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-2)
 
     return r, f
 
@@ -193,24 +195,36 @@ def q_hat(state, action,
     action pair. The other parameters are given to include the cases of
     model averaging and data rescaling.
     """
+
     res = 0.
     is_simulation = (np.ndim(state) > 1)
 
     if flag_qaverage:
+
         if n_models is None or n_models > len(qb_list):
             n_models = len(qb_list)
+
         for b in range(1, n_models+1):
+
             qb = qb_list[-b]
+
             if is_simulation:
                 res = 0.5*(res + qb.predict(np.c_[state, action]))
+
             else:
-                res = 0.5*(res + qb.predict(np.r_[state,
-                                                  action].reshape(1, -1)))
+                res = 0.5*(res +
+                           qb.predict(np.r_[state, action].reshape(1, -1)))
+
         return res
+
     else:
+
         qb = qb_list[-1]
+
         if is_simulation:
             res = res + qb.predict(np.c_[state, action])
+
         else:
             res = res + qb.predict(np.r_[state, action].reshape(1, -1))
+
         return res

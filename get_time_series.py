@@ -18,7 +18,8 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 
-# Import data
+# ------------------------------------- IMPORT DATA ---------------------------
+
 path = 'Databases/Commodities/GASALLW_csv_2/data/'
 n_ = 0
 li = []
@@ -99,7 +100,9 @@ df_values = pd.concat(li, axis=1).iloc[-t_:]
 df_returns = df_values.diff().copy()
 df_returns.dropna(inplace=True)
 
-# Factors
+
+# ------------------------------------- BUILD FACTORS -------------------------
+
 window = 5
 df_factors = df_returns.rolling(window=window).mean().copy()
 df_factors.dropna(inplace=True)
@@ -121,7 +124,8 @@ for column in df_factors.columns:
         best = column
 
 
-# Select best time series for the experiment
+# --------------------- SELECT BEST TIME SERIES FOR THE EXPERIMENT ------------
+
 df_return = df_returns[best].copy()
 df_factor = df_factors[best].copy()
 
@@ -150,7 +154,7 @@ Lambda = lam*Sigma
 gamma = 10**-9
 rho = 1-np.exp(-0.02/260)
 
-# Export data
+# ------------------------------------- EXPORT PARAMETERS ---------------------
 dump(df_return, 'data/df_return.joblib')
 dump(df_factor, 'data/df_factor.joblib')
 dump(t_, 'data/t_.joblib')
