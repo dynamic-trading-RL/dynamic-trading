@@ -11,36 +11,24 @@ from scipy.optimize import (dual_annealing, shgo, differential_evolution,
 
 
 # -----------------------------------------------------------------------------
-# draw_optimizer
-# -----------------------------------------------------------------------------
-
-def draw_optimizer(optimizers):
-    return(optimizers[np.random.randint(len(optimizers))])
-
-
-# -----------------------------------------------------------------------------
 # simulate_market
 # -----------------------------------------------------------------------------
 
 
 def simulate_market(j_, t_, n_batches,
-                    df_factor,
                     B, mu_u, Sigma,
-                    df_return,
                     Phi, mu_eps, Omega):
 
     f = np.zeros((j_, n_batches, t_))
-    f[:, :, 0] = df_factor.iloc[0]
+    f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
     for t in range(1, t_-1):
-        f[:, :, t] =\
-            mu_eps + (1 - Phi)*f[:, :, t-1] +\
-            np.sqrt(Omega)*np.random.randn(j_, n_batches)
+        f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
+                np.sqrt(Omega)*np.random.randn(j_, n_batches)
 
     r = np.zeros((j_, n_batches, t_))
-    r[:, :, 0] = df_return.iloc[0]
-    r[:, :, 1] = df_return.iloc[1]
-    r[:, :, 2:] = mu_u + B*f[:, :, 1:-1] +\
-        np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-2)
+    r[:, :, 0] = 0.
+    r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
+        np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
 
     return r, f
 
@@ -64,7 +52,7 @@ def reward(x_tm1, x_t, f_t,
 # maxAction
 # -----------------------------------------------------------------------------
 
-def maxAction(q_value, state, lot_size, optimizers, draw_opt):
+def maxAction(q_value, state, lot_size, optimizers, t):
     """
     This function determines the q-greedy action for a given
     q-value function and state
@@ -73,38 +61,24 @@ def maxAction(q_value, state, lot_size, optimizers, draw_opt):
     # function
     def fun(a): return -q_value(state, a)
 
-    if draw_opt:
-        optimizer = draw_optimizer(optimizers)
-        optimizers.append(optimizer)
-        if optimizer == 'shgo':
-            res = shgo(fun, bounds=[(-lot_size, lot_size)])
-        elif optimizer == 'dual_annealing':
-            res = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
-        elif optimizer == 'differential_evolution':
-            res = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-        else:
-            res = basinhopping(fun, x0=0)
+    res = ['shgo', 'dual_annealing', 'differential_evolution',
+           'basinhopping']
 
-        return np.round(res.x), optimizers
+    # optimizations
+    res1 = shgo(fun, bounds=[(-lot_size, lot_size)])
+    res2 = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
+    res3 = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
+    res4 = basinhopping(fun, x0=0)
 
-    else:
-        res = ['shgo', 'dual_annealing', 'differential_evolution',
-               'basinhopping']
+    res_x = np.array([res1.x, res2.x, res3.x, res4.x])
+    res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
 
-        # optimizations
-        res1 = shgo(fun, bounds=[(-lot_size, lot_size)])
-        res2 = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
-        res3 = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-        res4 = basinhopping(fun, x0=0)
+    i = np.argmax(res_fun)
 
-        res_x = np.array([res1.x, res2.x, res3.x, res4.x])
-        res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
+    optimizers[res[i]]['n'] += 1
+    optimizers[res[i]]['times'].append(t)
 
-        i = np.argmax(res_fun)
-
-        optimizers.append(res[i])
-
-        return np.round(res_x[i]), optimizers
+    return np.round(res_x[i]), optimizers
 
 
 # -----------------------------------------------------------------------------
@@ -120,8 +94,7 @@ def generate_episode(
                      f,
                      # RL parameters
                      eps, rho, q_value, alpha, gamma, lot_size,
-                     optimizers, draw_opt
-                     ):
+                     optimizers):
     """
     Given a market simulation f, this function generates an episode for the
     reinforcement learning agent training
@@ -142,13 +115,12 @@ def generate_episode(
     if np.random.rand() < eps:
         action = np.random.randint(-lot_size, lot_size, dtype=np.int64)
     else:
-        action, optimizers = maxAction(q_value, state, lot_size, optimizers,
-                                       draw_opt)
+        action, optimizers = maxAction(q_value, state, lot_size, optimizers, 0)
 
-    for i in range(1, t_):
+    for t in range(1, t_):
 
         # Observe s'
-        state_ = [state[0] + action, f[j, i]]
+        state_ = [state[0] + action, f[j, t]]
 
         # Choose a' from s' using policy derived from q_value
 
@@ -156,11 +128,11 @@ def generate_episode(
             action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
         else:
             action_, optimizers = maxAction(q_value, state_, lot_size,
-                                            optimizers, draw_opt)
+                                            optimizers, t)
 
         # Observe r
 
-        reward_t = reward(state[0], state_[0], f[j, i], Lambda, B, mu_u, Sigma,
+        reward_t = reward(state[0], state_[0], f[j, t], Lambda, B, mu_u, Sigma,
                           rho, gamma)
         reward_total += reward_t
         cost_total += -0.5*((state_[0]-state[0])*Lambda*(state_[0]-state[0]) +
@@ -173,8 +145,8 @@ def generate_episode(
                    q_value(state, action))
 
         # update pairs
-        x_episode[i-1] = np.r_[state, action]
-        y_episode[i-1] = y
+        x_episode[t-1] = np.r_[state, action]
+        y_episode[t-1] = y
 
         # update state and action
         state = state_
@@ -195,36 +167,24 @@ def q_hat(state, action,
     action pair. The other parameters are given to include the cases of
     model averaging and data rescaling.
     """
-
     res = 0.
     is_simulation = (np.ndim(state) > 1)
 
     if flag_qaverage:
-
         if n_models is None or n_models > len(qb_list):
             n_models = len(qb_list)
-
         for b in range(1, n_models+1):
-
             qb = qb_list[-b]
-
             if is_simulation:
                 res = 0.5*(res + qb.predict(np.c_[state, action]))
-
             else:
-                res = 0.5*(res +
-                           qb.predict(np.r_[state, action].reshape(1, -1)))
-
+                res = 0.5*(res + qb.predict(np.r_[state,
+                                                  action].reshape(1, -1)))
         return res
-
     else:
-
         qb = qb_list[-1]
-
         if is_simulation:
             res = res + qb.predict(np.c_[state, action])
-
         else:
             res = res + qb.predict(np.r_[state, action].reshape(1, -1))
-
         return res

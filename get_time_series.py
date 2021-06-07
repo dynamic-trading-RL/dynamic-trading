@@ -18,8 +18,7 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 
-# ------------------------------------- IMPORT DATA ---------------------------
-
+# Import data
 path = 'Databases/Commodities/GASALLW_csv_2/data/'
 n_ = 0
 li = []
@@ -94,15 +93,13 @@ names = ['Brent', 'WTI', 'Gold',
          'Propane', 'Conventional Gasoline Prices: New York Harbor',
          'Conventional Gasoline Prices: U.S. Gulf Coast']
 
-t_ = 50
+t_ = 30
 
 df_values = pd.concat(li, axis=1).iloc[-t_:]
 df_returns = df_values.diff().copy()
 df_returns.dropna(inplace=True)
 
-
-# ------------------------------------- BUILD FACTORS -------------------------
-
+# Factors
 window = 5
 df_factors = df_returns.rolling(window=window).mean().copy()
 df_factors.dropna(inplace=True)
@@ -124,8 +121,7 @@ for column in df_factors.columns:
         best = column
 
 
-# --------------------- SELECT BEST TIME SERIES FOR THE EXPERIMENT ------------
-
+# Select best time series for the experiment
 df_return = df_returns[best].copy()
 df_factor = df_factors[best].copy()
 
@@ -149,12 +145,12 @@ mu_eps = params[best][0]
 Omega = sig2[best]
 
 # Model parameters
-lam = 3*10**(-7)
+lam = 1
 Lambda = lam*Sigma
-gamma = 10**-9
+gamma = 1
 rho = 1-np.exp(-0.02/260)
 
-# ------------------------------------- EXPORT PARAMETERS ---------------------
+# Export data
 dump(df_return, 'data/df_return.joblib')
 dump(df_factor, 'data/df_factor.joblib')
 dump(t_, 'data/t_.joblib')

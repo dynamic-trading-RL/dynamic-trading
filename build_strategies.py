@@ -21,14 +21,12 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
 
-# ------------------------------------- PARAMETERS ---------------------------
-
 # Set parameters
 parallel_computing = True     # True for parallel computing
-n_batches = 5                 # number of batches
+n_batches = 3                 # number of batches
 eps = 0.5                     # eps greedy
 alpha = 1                     # learning rate
-j_ = 1000                     # number of episodes
+j_ = 10000                     # number of episodes
 
 # RL model
 sup_model = 'ann_fast'
@@ -67,14 +65,14 @@ gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
 
 
-# ------------------------------------- MARKOVITZ PORTFOLIO -------------------
+# Markovitz portfolio
 Markovitz = np.zeros(t_)
 for t in range(t_):
     Markovitz[t] = (gamma*Sigma)**(-1)*B*df_factor.iloc[t]
 Markovitz = np.round(Markovitz)
 
 
-# ------------------------------------- OPTIMAL PORTFOLIO ---------------------
+# Optimal portfolio
 a = (-(gamma*(1 - rho) + lam*rho) +
      np.sqrt((gamma*(1-rho) + lam*rho)**2 +
              4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
@@ -97,6 +95,8 @@ sup_Markovitz = Markovitz.mean() + Markovitz.std()
 
 lot_size = int(max(np.abs(inf_Markovitz), np.abs(sup_Markovitz)))
 
+print('lot_size =', lot_size)
+
 qb_list = []  # list to store models
 
 r, f = simulate_market(j_, t_, n_batches, df_factor, B, mu_u, Sigma, df_return,
@@ -107,7 +107,7 @@ if parallel_computing:
     n_cores = min(mp.cpu_count(), 40)
     print('Number of cores used: %d' % n_cores)
 
-optimizers = []
+optimizers = {'shgo': {'n': 0, 'times': []}}
 
 for b in range(n_batches):  # loop on batches
     print('Creating batch %d of %d; eps=%f' % (b+1, n_batches, eps))
@@ -121,6 +121,8 @@ for b in range(n_batches):  # loop on batches
         draw_opt = False
     else:
         draw_opt = True
+
+    draw_opt = False  # ???
 
     # definition of value function:
     if b == 0:  # initialize q_value arbitrarily
@@ -232,13 +234,11 @@ for t in range(t_):
 
     if t == 0:
         state = np.array([0, df_factor.iloc[t]])
-        action, optimizers = maxAction(q_value, state, lot_size, optimizers,
-                                       draw_opt=True)
+        action, optimizers = maxAction(q_value, state, lot_size, optimizers, t)
         shares[t] = state[0] + action
     else:
         state = np.array([shares[t-1], df_factor.iloc[t]])
-        action, optimizers = maxAction(q_value, state, lot_size, optimizers,
-                                       draw_opt=True)
+        action, optimizers = maxAction(q_value, state, lot_size, optimizers, t)
         shares[t] = state[0] + action
 
 dump(optimizers, 'data/optimizers.joblib')
@@ -252,9 +252,6 @@ df_strategies = pd.DataFrame(data=np.c_[x, np.r_[0, np.diff(x)],
 df_strategies.columns = ['Optimal shares', 'Optimal trades',
                          'Markovitz shares', 'Markovitz trades',
                          'RL shares', 'RL trades']
-
-
-# ------------------------------------- STORING RESULTS -----------------------
 
 # Value
 value = np.zeros(t_)
@@ -290,19 +287,17 @@ for t in range(1, t_):
 
 
 # Wealth
-df_wealth = pd.DataFrame(data=np.c_[np.cumsum(value), np.cumsum(value_m),
-                                    np.cumsum(value_rl),
-                                    np.cumsum(cost), np.cumsum(cost_m),
-                                    np.cumsum(cost_rl),
+df_wealth = pd.DataFrame(data=np.c_[np.cumsum(value), np.cumsum(value_m), np.cumsum(value_rl),
+                                    np.cumsum(cost), np.cumsum(cost_m), np.cumsum(cost_rl),
                                     np.cumsum(value) - np.cumsum(cost),
                                     np.cumsum(value_m) - np.cumsum(cost_m),
                                     np.cumsum(value_rl) - np.cumsum(cost_rl)])
 df_wealth.columns = ['Value (optimal)', 'Value (Markovitz)', 'Value (RL)',
-                     'Costs (optimal)', 'Costs (Markovitz)', 'Costs (RL)',
-                     'Wealth (optimal)', 'Wealth (Markovitz)', 'Wealth (RL)']
+                      'Costs (optimal)', 'Costs (Markovitz)', 'Costs (RL)',
+                      'Wealth (optimal)', 'Wealth (Markovitz)', 'Wealth (RL)']
 
 
-# ------------------------------------- PLOTS ---------------------------------
+# Plots
 
 def human_format(num, pos):
     magnitude = 0
