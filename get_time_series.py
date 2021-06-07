@@ -93,7 +93,7 @@ names = ['Brent', 'WTI', 'Gold',
          'Propane', 'Conventional Gasoline Prices: New York Harbor',
          'Conventional Gasoline Prices: U.S. Gulf Coast']
 
-t_ = 30
+t_ = 50
 
 df_values = pd.concat(li, axis=1).iloc[-t_:]
 df_returns = df_values.diff().copy()
@@ -120,6 +120,7 @@ for column in df_factors.columns:
     if aic[column] < aic[best]:
         best = column
 
+best = 'WTI'  # ??? picked for testing
 
 # Select best time series for the experiment
 df_return = df_returns[best].copy()
@@ -145,9 +146,9 @@ mu_eps = params[best][0]
 Omega = sig2[best]
 
 # Model parameters
-lam = 1
+lam = 10**-2  # ??? should be calibrated
 Lambda = lam*Sigma
-gamma = 1
+gamma = 10**-3  # 1/gamma is the magnitude of money under management
 rho = 1-np.exp(-0.02/260)
 
 # Export data

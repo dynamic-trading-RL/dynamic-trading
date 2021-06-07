@@ -22,11 +22,11 @@ from matplotlib.ticker import FuncFormatter
 
 
 # Set parameters
-parallel_computing = True     # True for parallel computing
-n_batches = 3                 # number of batches
-eps = 0.5                     # eps greedy
-alpha = 1                     # learning rate
-j_ = 10000                     # number of episodes
+parallel_computing = True      # True for parallel computing
+n_batches = 5                  # number of batches
+eps = 0.5                      # eps greedy
+alpha = 1                      # learning rate
+j_ = 1500                      # number of episodes
 
 # RL model
 sup_model = 'ann_fast'
@@ -35,9 +35,6 @@ if sup_model == 'random_forest':
 elif sup_model == 'ann_fast':
     from sklearn.neural_network import MLPRegressor
     hidden_layer_sizes = (64, 32, 8)
-    # max_iter = 200  # these are sklearn default settings for MLPRegressor
-    # n_iter_no_change = 10
-    # alpha_ann = 0.001
     max_iter = 10
     n_iter_no_change = 2
     alpha_ann = 0.0001
@@ -64,21 +61,21 @@ lam = load('data/lam.joblib')
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
 
+# ------------------------------------- Markovitz portfolio -------------------
 
-# Markovitz portfolio
 Markovitz = np.zeros(t_)
-for t in range(t_):
+for t in range(1, t_):
     Markovitz[t] = (gamma*Sigma)**(-1)*B*df_factor.iloc[t]
 Markovitz = np.round(Markovitz)
 
 
-# Optimal portfolio
+# ------------------------------------- Optimal portfolio ---------------------
+
 a = (-(gamma*(1 - rho) + lam*rho) +
      np.sqrt((gamma*(1-rho) + lam*rho)**2 +
              4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
 
 x = np.zeros(t_)
-x[0] = Markovitz[0]
 for t in range(1, t_):
     x[t] = (1 - a/lam)*x[t-1] +\
         a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*df_factor.iloc[t]
@@ -90,8 +87,8 @@ x = np.round(x)
 print('##### Training RL agent')
 
 
-inf_Markovitz = Markovitz.mean() - Markovitz.std()
-sup_Markovitz = Markovitz.mean() + Markovitz.std()
+inf_Markovitz = np.diff(Markovitz).min()
+sup_Markovitz = np.diff(Markovitz).max()
 
 lot_size = int(max(np.abs(inf_Markovitz), np.abs(sup_Markovitz)))
 
@@ -99,7 +96,7 @@ print('lot_size =', lot_size)
 
 qb_list = []  # list to store models
 
-r, f = simulate_market(j_, t_, n_batches, df_factor, B, mu_u, Sigma, df_return,
+r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
                        Phi, mu_eps, Omega)
 
 if parallel_computing:
@@ -107,7 +104,10 @@ if parallel_computing:
     n_cores = min(mp.cpu_count(), 40)
     print('Number of cores used: %d' % n_cores)
 
-optimizers = {'shgo': {'n': 0, 'times': []}}
+optimizers = {'shgo': {'n': 0},
+              'dual_annealing': {'n': 0},
+              'differential_evolution': {'n': 0},
+              'basinhopping': {'n': 0}}
 
 for b in range(n_batches):  # loop on batches
     print('Creating batch %d of %d; eps=%f' % (b+1, n_batches, eps))
@@ -116,13 +116,6 @@ for b in range(n_batches):  # loop on batches
     j_sort = []
     reward_sort = []
     cost_sort = []
-
-    if b == 0 or b == 1:
-        draw_opt = False
-    else:
-        draw_opt = True
-
-    draw_opt = False  # ???
 
     # definition of value function:
     if b == 0:  # initialize q_value arbitrarily
@@ -150,7 +143,7 @@ for b in range(n_batches):  # loop on batches
                           # RL parameters
                           eps=eps, rho=rho, q_value=q_value, alpha=alpha,
                           gamma=gamma, lot_size=lot_size,
-                          optimizers=optimizers, draw_opt=draw_opt)
+                          optimizers=optimizers)
 
     if parallel_computing:
         if __name__ == '__main__':
@@ -166,6 +159,7 @@ for b in range(n_batches):  # loop on batches
             reward_sort.append(episodes[j][3])
             cost_sort.append(episodes[j][4])
             optimizers.append(episodes[j][5])
+
     else:
         for j in range(j_):
             print('Computing episode '+str(j+1)+' on '+str(j_))
@@ -234,15 +228,17 @@ for t in range(t_):
 
     if t == 0:
         state = np.array([0, df_factor.iloc[t]])
+        shares[t] = state[0]
         action, optimizers = maxAction(q_value, state, lot_size, optimizers, t)
-        shares[t] = state[0] + action
     else:
-        state = np.array([shares[t-1], df_factor.iloc[t]])
+        state = np.array([shares[t-1] + action, df_factor.iloc[t]])
+        shares[t] = state[0]
         action, optimizers = maxAction(q_value, state, lot_size, optimizers, t)
-        shares[t] = state[0] + action
 
 dump(optimizers, 'data/optimizers.joblib')
 
+
+# ------------------------------------- Results -------------------------------
 
 df_strategies = pd.DataFrame(data=np.c_[x, np.r_[0, np.diff(x)],
                                         Markovitz,

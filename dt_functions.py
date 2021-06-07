@@ -15,9 +15,7 @@ from scipy.optimize import (dual_annealing, shgo, differential_evolution,
 # -----------------------------------------------------------------------------
 
 
-def simulate_market(j_, t_, n_batches,
-                    B, mu_u, Sigma,
-                    Phi, mu_eps, Omega):
+def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega):
 
     f = np.zeros((j_, n_batches, t_))
     f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
@@ -76,7 +74,6 @@ def maxAction(q_value, state, lot_size, optimizers, t):
     i = np.argmax(res_fun)
 
     optimizers[res[i]]['n'] += 1
-    optimizers[res[i]]['times'].append(t)
 
     return np.round(res_x[i]), optimizers
 
