@@ -1,0 +1,67 @@
+##### Training RL agent
+lot_size = 101
+Number of cores available: 144
+Number of cores used: 40
+Creating batch 1 of 5; eps=0.500000
+Fitting model 1 of 5
+    Score: 0.977
+    Average reward: -7771.388
+Creating batch 2 of 5; eps=0.166667
+Fitting model 2 of 5
+    Score: 0.741
+    Average reward: -46.927
+Creating batch 3 of 5; eps=0.055556
+Fitting model 3 of 5
+    Score: 0.695
+    Average reward: 296.657
+Creating batch 4 of 5; eps=0.018519
+Fitting model 4 of 5
+    Score: 0.662
+    Average reward: 441.050
+Creating batch 5 of 5; eps=0.006173
+Fitting model 5 of 5
+    Score: 0.652
+    Average reward: 473.982
+##### Computing RL strategy
+    Progress: 0.00 %
+    Progress: 2.38 %
+    Progress: 4.76 %
+    Progress: 7.14 %
+    Progress: 9.52 %
+    Progress: 11.90 %
+    Progress: 14.29 %
+    Progress: 16.67 %
+    Progress: 19.05 %
+    Progress: 21.43 %
+    Progress: 23.81 %
+    Progress: 26.19 %
+    Progress: 28.57 %
+    Progress: 30.95 %
+    Progress: 33.33 %
+    Progress: 35.71 %
+    Progress: 38.10 %
+    Progress: 40.48 %
+    Progress: 42.86 %
+    Progress: 45.24 %
+    Progress: 47.62 %
+    Progress: 50.00 %
+    Progress: 52.38 %
+    Progress: 54.76 %
+    Progress: 57.14 %
+    Progress: 59.52 %
+    Progress: 61.90 %
+    Progress: 64.29 %
+    Progress: 66.67 %
+    Progress: 69.05 %
+    Progress: 71.43 %
+    Progress: 73.81 %
+    Progress: 76.19 %
+    Progress: 78.57 %
+    Progress: 80.95 %
+    Progress: 83.33 %
+    Progress: 85.71 %
+    Progress: 88.10 %
+    Progress: 90.48 %
+    Progress: 92.86 %
+    Progress: 95.24 %
+    Progress: 97.62 %

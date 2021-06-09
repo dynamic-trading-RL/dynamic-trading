@@ -93,9 +93,7 @@ names = ['Brent', 'WTI', 'Gold',
          'Propane', 'Conventional Gasoline Prices: New York Harbor',
          'Conventional Gasoline Prices: U.S. Gulf Coast']
 
-t_ = 50
-
-df_values = pd.concat(li, axis=1).iloc[-t_:]
+df_values = pd.concat(li, axis=1)
 df_returns = df_values.diff().copy()
 df_returns.dropna(inplace=True)
 
@@ -133,7 +131,9 @@ reg = LinearRegression().fit(X=np.array(df_factor[:-1]).reshape(-1, 1),
 
 
 # Time series parameters
-t_ = len(df_return)
+t_ = 50
+df_return = df_return.iloc[-t_:]
+df_factor = df_factor.iloc[-t_:]
 
 B = reg.coef_[0, 0]
 mu_u = reg.intercept_[0]

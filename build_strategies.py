@@ -26,7 +26,7 @@ parallel_computing = True      # True for parallel computing
 n_batches = 5                  # number of batches
 eps = 0.5                      # eps greedy
 alpha = 1                      # learning rate
-j_ = 1500                      # number of episodes
+j_ = 15000                      # number of episodes
 
 # RL model
 sup_model = 'ann_fast'
@@ -158,7 +158,7 @@ for b in range(n_batches):  # loop on batches
             j_sort.append(episodes[j][2])
             reward_sort.append(episodes[j][3])
             cost_sort.append(episodes[j][4])
-            optimizers.append(episodes[j][5])
+            optimizers.update(episodes[j][5])
 
     else:
         for j in range(j_):
@@ -169,7 +169,7 @@ for b in range(n_batches):  # loop on batches
             j_sort.append(episodes[2])
             reward_sort.append(episodes[3])
             cost_sort.append(episodes[4])
-            optimizers = episodes[5]
+            optimizers.update(episodes[5])
 
     X = np.array(X).reshape((j_*(t_-1), 3))
     Y = np.array(Y).reshape((j_*(t_-1)))
