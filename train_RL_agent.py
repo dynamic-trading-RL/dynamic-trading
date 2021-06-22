@@ -71,12 +71,11 @@ rho = load('data/rho.joblib')
 Markovitz = np.zeros(t_)
 for t in range(1, t_):
     Markovitz[t] = (gamma*Sigma)**(-1)*B*df_factor.iloc[t]
-Markovitz = np.round(Markovitz)
 
 inf_Markovitz = np.diff(Markovitz).min()
 sup_Markovitz = np.diff(Markovitz).max()
 
-lot_size = int(max(np.abs(inf_Markovitz), np.abs(sup_Markovitz)))
+lot_size = max(np.abs(inf_Markovitz), np.abs(sup_Markovitz))
 dump(lot_size, 'data/lot_size.joblib')
 
 print('lot_size =', lot_size)

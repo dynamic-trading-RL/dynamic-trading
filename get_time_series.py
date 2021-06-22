@@ -102,7 +102,7 @@ df_returns.dropna(inplace=True)
 
 # Factors
 window = 5
-df_factors = df_returns.rolling(window=window).mean().copy()
+df_factors = (df_returns.rolling(window=window).mean() / df_returns.rolling(window=window).std()).copy()
 df_factors.dropna(inplace=True)
 dates = df_factors.index
 df_returns = df_returns.loc[dates].copy()

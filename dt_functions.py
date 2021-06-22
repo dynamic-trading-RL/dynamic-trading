@@ -112,23 +112,23 @@ def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
         else:
             print('Wrong optimizer')
 
-        return np.round(res_x[i])
+        return res_x[i]
 
     elif optimizer == 'shgo':
         res = shgo(fun, bounds=[(-lot_size, lot_size)])
-        return np.round(res.x)
+        return res.x
 
     elif optimizer == 'dual_annealing':
         res = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
-        return np.round(res.x)
+        return res.x
 
     elif optimizer == 'differential_evolution':
         res = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-        return np.round(res.x)
+        return res.x
 
     elif optimizer == 'basinhopping':
         res = basinhopping(fun, x0=0)
-        return np.round(res.x)
+        return res.x
 
     else:
         print('Wrong optimizer')

@@ -12,7 +12,8 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 import numpy as np
-from joblib import load, dump
+from joblib import load
+from scipy.stats import iqr
 from dt_functions import (simulate_market, q_hat, maxAction)
 import matplotlib.pyplot as plt
 
@@ -45,7 +46,6 @@ f = f.squeeze()
 Markovitz = np.zeros((j_, t_))
 for t in range(t_):
     Markovitz[:, t] = (gamma*Sigma)**(-1)*B*f[:, t]
-Markovitz = np.round(Markovitz)
 
 
 # Optimal portfolio
@@ -58,7 +58,6 @@ x[:, 0] = Markovitz[:, 0]
 for t in range(1, t_):
     x[:, t] = (1 - a/lam)*x[:, t-1] +\
         a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
-x = np.round(x)
 
 
 # RL portfolio
@@ -147,15 +146,15 @@ plt.hist(np.sum(wealth_m, axis=1), 50, label='Markovitz', alpha=0.5)
 plt.hist(np.sum(wealth_rl, axis=1), 50, label='RL', alpha=0.5)
 plt.hist(np.sum(wealth, axis=1), 50, label='Optimal', alpha=0.5)
 
-results_str = 'Markovitz (mean, std) = (' +\
-    '{:.2f}'.format(np.mean(np.sum(wealth_m, axis=1))).format('.2f') + ',' +\
-    '{:.2f}'.format(np.std(np.sum(wealth_m, axis=1))) + ') \n' +\
-    'RL (mean, std) = (' +\
-    '{:.2f}'.format(np.mean(np.sum(wealth_rl, axis=1))).format('.2f') + ',' +\
-    '{:.2f}'.format(np.std(np.sum(wealth_rl, axis=1))) + ')\n' +\
-    'Optimal (mean, std) = (' +\
-    '{:.2f}'.format(np.mean(np.sum(wealth, axis=1))).format('.2f') + ',' +\
-    '{:.2f}'.format(np.std(np.sum(wealth, axis=1))) + ')'
+results_str = 'Markovitz (med, iqr) = (' +\
+    '{:.2f}'.format(np.median(np.sum(wealth_m, axis=1))).format('.2f') + ', ' +\
+    '{:.2f}'.format(iqr(np.sum(wealth_m, axis=1))) + ') \n' +\
+    'RL (med, iqr) = (' +\
+    '{:.2f}'.format(np.median(np.sum(wealth_rl, axis=1))).format('.2f') + ', ' +\
+    '{:.2f}'.format(iqr(np.sum(wealth_rl, axis=1))) + ')\n' +\
+    'Optimal (med, iqr) = (' +\
+    '{:.2f}'.format(np.median(np.sum(wealth, axis=1))).format('.2f') + ', ' +\
+    '{:.2f}'.format(iqr(np.sum(wealth, axis=1))) + ')'
 
 plt.annotate(results_str, xy=(0, 1), xytext=(12, -12), va='top',
              xycoords='axes fraction', textcoords='offset points')

@@ -45,7 +45,6 @@ print('#### Computing Markovitz strategy')
 Markovitz = np.zeros(t_)
 for t in range(1, t_):
     Markovitz[t] = (gamma*Sigma)**(-1)*B*df_factor.iloc[t]
-Markovitz = np.round(Markovitz)
 
 
 # ------------------------------------- Optimal portfolio ---------------------
@@ -60,7 +59,6 @@ x = np.zeros(t_)
 for t in range(1, t_):
     x[t] = (1 - a/lam)*x[t-1] +\
         a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*df_factor.iloc[t]
-x = np.round(x)
 
 
 # ------------------------------------- RL portfolio ---------------------
