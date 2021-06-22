@@ -1,0 +1,87 @@
+##### Training RL agent
+lot_size = 36
+Number of cores available: 144
+Number of cores used: 80
+Creating batch 1 of 8; eps=0.500000
+Fitting model 1 of 8
+    Score: 0.982
+    Average reward: -1362.914
+Creating batch 2 of 8; eps=0.166667
+Fitting model 2 of 8
+    Score: 0.848
+    Average reward: -104.148
+Creating batch 3 of 8; eps=0.055556
+Fitting model 3 of 8
+    Score: 0.732
+    Average reward: -35.281
+Creating batch 4 of 8; eps=0.018519
+Fitting model 4 of 8
+    Score: 0.500
+    Average reward: -10.699
+Creating batch 5 of 8; eps=0.006173
+Fitting model 5 of 8
+    Score: 0.517
+    Average reward: 0.295
+Creating batch 6 of 8; eps=0.002058
+Fitting model 6 of 8
+    Score: 0.890
+    Average reward: -9.940
+Creating batch 7 of 8; eps=0.000686
+Fitting model 7 of 8
+    Score: 0.520
+    Average reward: -0.680
+Creating batch 8 of 8; eps=0.000229
+Fitting model 8 of 8
+    Score: 0.998
+    Average reward: -508.305
+##### Computing RL strategy
+    Progress: 0.00 %
+    Progress: 2.00 %
+    Progress: 4.00 %
+    Progress: 6.00 %
+    Progress: 8.00 %
+    Progress: 10.00 %
+    Progress: 12.00 %
+    Progress: 14.00 %
+    Progress: 16.00 %
+    Progress: 18.00 %
+    Progress: 20.00 %
+    Progress: 22.00 %
+    Progress: 24.00 %
+    Progress: 26.00 %
+    Progress: 28.00 %
+    Progress: 30.00 %
+    Progress: 32.00 %
+    Progress: 34.00 %
+    Progress: 36.00 %
+    Progress: 38.00 %
+    Progress: 40.00 %
+    Progress: 42.00 %
+    Progress: 44.00 %
+    Progress: 46.00 %
+    Progress: 48.00 %
+    Progress: 50.00 %
+    Progress: 52.00 %
+    Progress: 54.00 %
+    Progress: 56.00 %
+    Progress: 58.00 %
+    Progress: 60.00 %
+    Progress: 62.00 %
+    Progress: 64.00 %
+    Progress: 66.00 %
+    Progress: 68.00 %
+    Progress: 70.00 %
+    Progress: 72.00 %
+    Progress: 74.00 %
+    Progress: 76.00 %
+    Progress: 78.00 %
+    Progress: 80.00 %
+    Progress: 82.00 %
+    Progress: 84.00 %
+    Progress: 86.00 %
+    Progress: 88.00 %
+    Progress: 90.00 %
+    Progress: 92.00 %
+    Progress: 94.00 %
+    Progress: 96.00 %
+    Progress: 98.00 %

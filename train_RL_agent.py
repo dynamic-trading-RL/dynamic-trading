@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun  7 14:34:45 2021
+Created on Fri May 28 23:41:04 2021
 
 @author: Giorgi
 """
@@ -12,22 +12,25 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 import numpy as np
-import pandas as pd
 from joblib import load, dump
 import multiprocessing as mp
 from functools import partial
-from dt_functions import (simulate_market, q_hat, generate_episode, maxAction)
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
+from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers)
 
 
 # Set parameters
-parallel_computing = False     # True for parallel computing
-n_batches = 2                 # number of batches
+parallel_computing = True      # True for parallel computing
+if parallel_computing:
+    print('Number of cores available: %d' % mp.cpu_count())
+    n_cores = min(mp.cpu_count(), 80)
+    print('Number of cores used: %d' % n_cores)
+
+n_batches = 8                  # number of batches
 dump(n_batches, 'data/n_batches.joblib')
-eps = 0.5                     # eps greedy
-alpha = 1                     # learning rate
-j_ = 1                     # number of episodes
+
+eps = 0.5                      # eps greedy
+alpha = 1                      # learning rate
+j_ = 1000                      # number of episodes
 
 # RL model
 sup_model = 'ann_fast'
@@ -36,9 +39,6 @@ if sup_model == 'random_forest':
 elif sup_model == 'ann_fast':
     from sklearn.neural_network import MLPRegressor
     hidden_layer_sizes = (64, 32, 8)
-    # max_iter = 200  # these are sklearn default settings for MLPRegressor
-    # n_iter_no_change = 10
-    # alpha_ann = 0.001
     max_iter = 10
     n_iter_no_change = 2
     alpha_ann = 0.0001
@@ -51,6 +51,7 @@ elif sup_model == 'ann_deep':
 
 
 # Import parameters
+df_factor = load('data/df_factor.joblib')
 t_ = load('data/t_.joblib')
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
@@ -64,28 +65,33 @@ gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
 
 
-# ------------------------------------- REINFORCEMENT LEARNING ----------------
+# ------------------------------------- Markovitz portfolio -------------------
+# used only to determine bounds for RL optimization
 
-print('##### Training RL agent')
+Markovitz = np.zeros(t_)
+for t in range(1, t_):
+    Markovitz[t] = (gamma*Sigma)**(-1)*B*df_factor.iloc[t]
+Markovitz = np.round(Markovitz)
 
-lot_size = 200  # ???
+inf_Markovitz = np.diff(Markovitz).min()
+sup_Markovitz = np.diff(Markovitz).max()
+
+lot_size = int(max(np.abs(inf_Markovitz), np.abs(sup_Markovitz)))
 dump(lot_size, 'data/lot_size.joblib')
 
 print('lot_size =', lot_size)
 
+
+# ------------------------------------- REINFORCEMENT LEARNING ----------------
+
+print('######## Training RL agent')
+
 qb_list = []  # list to store models
 
-r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega)
+r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
+                       Phi, mu_eps, Omega)
 
-if parallel_computing:
-    print('Number of cores available: %d' % mp.cpu_count())
-    n_cores = min(mp.cpu_count(), 40)
-    print('Number of cores used: %d' % n_cores)
-
-optimizers = {'shgo': {'n': 0, 'times': []},
-              'dual_annealing': {'n': 0, 'times': []},
-              'differential_evolution': {'n': 0, 'times': []},
-              'basinhopping': {'n': 0, 'times': []}}
+optimizers = Optimizers()
 
 for b in range(n_batches):  # loop on batches
     print('Creating batch %d of %d; eps=%f' % (b+1, n_batches, eps))
@@ -106,7 +112,8 @@ for b in range(n_batches):  # loop on batches
         qb_list.append(load('models/q%d.joblib' % (b-1)))  # import regressors
 
         def q_value(state, action):
-            return q_hat(state, action, n_batches, qb_list, flag_qaverage=True,
+            return q_hat(state, action, n_batches, qb_list,
+                         flag_qaverage=False,
                          n_models=None)
 
     # generate episodes
@@ -136,7 +143,7 @@ for b in range(n_batches):  # loop on batches
             j_sort.append(episodes[j][2])
             reward_sort.append(episodes[j][3])
             cost_sort.append(episodes[j][4])
-            optimizers.append(episodes[j][5])
+
     else:
         for j in range(j_):
             print('Computing episode '+str(j+1)+' on '+str(j_))
@@ -146,7 +153,6 @@ for b in range(n_batches):  # loop on batches
             j_sort.append(episodes[2])
             reward_sort.append(episodes[3])
             cost_sort.append(episodes[4])
-            optimizers = episodes[5]
 
     X = np.array(X).reshape((j_*(t_-1), 3))
     Y = np.array(Y).reshape((j_*(t_-1)))
@@ -184,6 +190,6 @@ for b in range(n_batches):  # loop on batches
     print('    Score: %.3f' % model.score(X, Y))
     print('    Average reward: %.3f' % np.mean(reward))
 
-    eps = max(eps/3, 10**-6)  # update epsilon
+    eps = max(eps/3, 0.001)  # update epsilon
 
-dump(optimizers, 'data/optimizers.joblib')
+    dump(optimizers, 'data/optimizers.joblib')

@@ -11,6 +11,19 @@ from scipy.optimize import (dual_annealing, shgo, differential_evolution,
 
 
 # -----------------------------------------------------------------------------
+# class: Optimizers
+# -----------------------------------------------------------------------------
+
+class Optimizers:
+
+    def __init__(self):
+        self._shgo = 0
+        self._dual_annealing = 0
+        self._differential_evolution = 0
+        self._basinhopping = 0
+
+
+# -----------------------------------------------------------------------------
 # simulate_market
 # -----------------------------------------------------------------------------
 
@@ -50,7 +63,7 @@ def reward(x_tm1, x_t, f_t,
 # maxAction
 # -----------------------------------------------------------------------------
 
-def maxAction(q_value, state, lot_size, optimizers, t):
+def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
     """
     This function determines the q-greedy action for a given
     q-value function and state
@@ -59,23 +72,66 @@ def maxAction(q_value, state, lot_size, optimizers, t):
     # function
     def fun(a): return -q_value(state, a)
 
-    res = ['shgo', 'dual_annealing', 'differential_evolution',
-           'basinhopping']
+    if optimizer == 'best':
+        n = np.array([optimizers._shgo, optimizers._dual_annealing,
+                      optimizers._differential_evolution,
+                     optimizers._basinhopping])
+        i = np.argmax(n)
+        if i == 0:
+            optimizer = 'shgo'
+        elif i == 1:
+            optimizer = 'dual_annealing'
+        elif i == 2:
+            optimizer = 'differential_evolution'
+        elif i == 3:
+            optimizer = 'basinhopping'
+        else:
+            print('Wrong optimizer')
 
-    # optimizations
-    res1 = shgo(fun, bounds=[(-lot_size, lot_size)])
-    res2 = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
-    res3 = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-    res4 = basinhopping(fun, x0=0)
+    if optimizer is None:
 
-    res_x = np.array([res1.x, res2.x, res3.x, res4.x])
-    res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
+        # optimizations
+        res1 = shgo(fun, bounds=[(-lot_size, lot_size)])
+        res2 = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
+        res3 = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
+        res4 = basinhopping(fun, x0=0)
 
-    i = np.argmax(res_fun)
+        res_x = np.array([res1.x, res2.x, res3.x, res4.x])
+        res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
 
-    optimizers[res[i]]['n'] += 1
+        i = np.argmax(res_fun)
 
-    return np.round(res_x[i]), optimizers
+        if i == 0:
+            optimizers._shgo += 1
+        elif i == 1:
+            optimizers._dual_annealing += 1
+        elif i == 2:
+            optimizers._differential_evolution += 1
+        elif i == 3:
+            optimizers._basinhopping += 1
+        else:
+            print('Wrong optimizer')
+
+        return np.round(res_x[i])
+
+    elif optimizer == 'shgo':
+        res = shgo(fun, bounds=[(-lot_size, lot_size)])
+        return np.round(res.x)
+
+    elif optimizer == 'dual_annealing':
+        res = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
+        return np.round(res.x)
+
+    elif optimizer == 'differential_evolution':
+        res = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
+        return np.round(res.x)
+
+    elif optimizer == 'basinhopping':
+        res = basinhopping(fun, x0=0)
+        return np.round(res.x)
+
+    else:
+        print('Wrong optimizer')
 
 
 # -----------------------------------------------------------------------------
@@ -112,7 +168,7 @@ def generate_episode(
     if np.random.rand() < eps:
         action = np.random.randint(-lot_size, lot_size, dtype=np.int64)
     else:
-        action, optimizers = maxAction(q_value, state, lot_size, optimizers, 0)
+        action = maxAction(q_value, state, lot_size, optimizers)
 
     for t in range(1, t_):
 
@@ -124,8 +180,7 @@ def generate_episode(
         if np.random.rand() < eps:
             action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
         else:
-            action_, optimizers = maxAction(q_value, state_, lot_size,
-                                            optimizers, t)
+            action_ = maxAction(q_value, state_, lot_size, optimizers)
 
         # Observe r
 
@@ -149,7 +204,7 @@ def generate_episode(
         state = state_
         action = action_
 
-    return x_episode, y_episode, j, reward_total, cost_total, optimizers
+    return x_episode, y_episode, j, reward_total, cost_total
 
 
 # -----------------------------------------------------------------------------

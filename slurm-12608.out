@@ -1,0 +1,6 @@
+##### Training RL agent
+lot_size = 36
+Number of cores available: 144
+Number of cores used: 40
+Creating batch 1 of 5; eps=0.500000
+slurmstepd: error: *** JOB 12608 ON emmy CANCELLED AT 2021-06-16T16:32:33 ***

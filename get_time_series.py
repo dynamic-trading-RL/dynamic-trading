@@ -18,6 +18,9 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 
+print('######## Analizing time series')
+
+
 # Import data
 path = 'Databases/Commodities/GASALLW_csv_2/data/'
 n_ = 0
@@ -119,6 +122,8 @@ for column in df_factors.columns:
         best = column
 
 best = 'WTI'  # ??? picked for testing
+
+print('Using time series:', best)
 
 # Select best time series for the experiment
 df_return = df_returns[best].copy()

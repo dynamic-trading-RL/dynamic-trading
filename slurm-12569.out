@@ -1,0 +1,18 @@
+##### Training RL agent
+lot_size = 36
+Number of cores available: 144
+Number of cores used: 40
+Creating batch 1 of 5; eps=0.500000
+Fitting model 1 of 5
+    Score: 0.950
+    Average reward: -1021.283
+Creating batch 2 of 5; eps=0.166667
+Fitting model 2 of 5
+    Score: 0.799
+    Average reward: -62.207
+Creating batch 3 of 5; eps=0.055556
+Fitting model 3 of 5
+    Score: 0.651
+    Average reward: -20.247
+Creating batch 4 of 5; eps=0.018519
+slurmstepd: error: *** JOB 12569 ON emmy CANCELLED AT 2021-06-16T15:27:12 DUE TO TIME LIMIT ***
