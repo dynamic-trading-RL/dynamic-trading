@@ -21,6 +21,19 @@ if not sys.warnoptions:
 print('######## Analizing time series')
 
 
+# ------------------------------------- Parameters ----------------------------
+
+to_analyze = 'WTI'  # set != None if you want to analyze a specific time series
+t_ = 50             # length of the time series to save and use for backtesting
+
+# Model parameters
+lam = 10**-2               # costs factor: ??? should be calibrated
+gamma = 10**-3             # 1/gamma is the magnitude of money under management
+rho = 1-np.exp(-0.02/260)  # discount factor (2% annualized)
+
+
+# ------------------------------------- Import --------------------------------
+
 # Import data
 path = 'Databases/Commodities/GASALLW_csv_2/data/'
 n_ = 0
@@ -102,13 +115,15 @@ df_returns.dropna(inplace=True)
 
 # Factors
 window = 5
-df_factors = (df_returns.rolling(window=window).mean() / df_returns.rolling(window=window).std()).copy()
+df_factors = (df_returns.rolling(window=window).mean() /
+              df_returns.rolling(window=window).std()).copy()
 df_factors.dropna(inplace=True)
 dates = df_factors.index
 df_returns = df_returns.loc[dates].copy()
 
 
-# Fit of factors dynamics
+# ------------------------------------- Fit of dynamics -----------------------
+
 params = {}
 aic = {}
 sig2 = {}
@@ -121,7 +136,8 @@ for column in df_factors.columns:
     if aic[column] < aic[best]:
         best = column
 
-best = 'WTI'  # ??? picked for testing
+if to_analyze is not None:
+    best = to_analyze
 
 print('Using time series:', best)
 
@@ -136,7 +152,6 @@ reg = LinearRegression().fit(X=np.array(df_factor[:-1]).reshape(-1, 1),
 
 
 # Time series parameters
-t_ = 50
 df_return = df_return.iloc[-t_:]
 df_factor = df_factor.iloc[-t_:]
 
@@ -150,13 +165,11 @@ Phi = 1 - params[best][1]
 mu_eps = params[best][0]
 Omega = sig2[best]
 
-# Model parameters
-lam = 10**-2  # ??? should be calibrated
 Lambda = lam*Sigma
-gamma = 10**-3  # 1/gamma is the magnitude of money under management
-rho = 1-np.exp(-0.02/260)
 
-# Export data
+
+# ------------------------------------- Dump data -----------------------------
+
 dump(df_return, 'data/df_return.joblib')
 dump(df_factor, 'data/df_factor.joblib')
 dump(t_, 'data/t_.joblib')

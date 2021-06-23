@@ -15,25 +15,47 @@ import numpy as np
 from joblib import load, dump
 import multiprocessing as mp
 from functools import partial
-from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers)
+from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers,
+                          compute_markovitz)
 
 
-# Set parameters
+print('######## Training RL agent')
+
+# ------------------------------------- Parameters ----------------------------
+
 parallel_computing = True      # True for parallel computing
-if parallel_computing:
-    print('Number of cores available: %d' % mp.cpu_count())
-    n_cores = min(mp.cpu_count(), 80)
-    print('Number of cores used: %d' % n_cores)
-
+n_cores_max = 80               # maximum number of cores if parallel_computing
 n_batches = 8                  # number of batches
-dump(n_batches, 'data/n_batches.joblib')
-
 eps = 0.5                      # eps greedy
 alpha = 1                      # learning rate
 j_ = 1000                      # number of episodes
 
 # RL model
-sup_model = 'ann_fast'
+sup_model = 'ann_fast'  # or random_forest or ann_deep
+
+# Import parameters from previous scripts
+df_factor = load('data/df_factor.joblib')
+t_ = load('data/t_.joblib')
+B = load('data/B.joblib')
+mu_u = load('data/mu_u.joblib')
+Sigma = load('data/Sigma.joblib')
+Phi = load('data/Phi.joblib')
+mu_eps = load('data/mu_eps.joblib')
+Omega = load('data/Omega.joblib')
+Lambda = load('data/Lambda.joblib')
+lam = load('data/lam.joblib')
+gamma = load('data/gamma.joblib')
+rho = load('data/rho.joblib')
+
+
+# ------------------------------------- Printing ------------------------------
+
+if parallel_computing:
+    print('Number of cores available: %d' % mp.cpu_count())
+    n_cores = min(mp.cpu_count(), n_cores_max)
+    print('Number of cores used: %d' % n_cores)
+
+
 if sup_model == 'random_forest':
     from sklearn.ensemble import RandomForestRegressor
 elif sup_model == 'ann_fast':
@@ -50,40 +72,16 @@ elif sup_model == 'ann_deep':
     alpha_ann = 0.001
 
 
-# Import parameters
-df_factor = load('data/df_factor.joblib')
-t_ = load('data/t_.joblib')
-B = load('data/B.joblib')
-mu_u = load('data/mu_u.joblib')
-Sigma = load('data/Sigma.joblib')
-Phi = load('data/Phi.joblib')
-mu_eps = load('data/mu_eps.joblib')
-Omega = load('data/Omega.joblib')
-Lambda = load('data/Lambda.joblib')
-lam = load('data/lam.joblib')
-gamma = load('data/gamma.joblib')
-rho = load('data/rho.joblib')
-
-
 # ------------------------------------- Markovitz portfolio -------------------
 # used only to determine bounds for RL optimization
 
-Markovitz = np.zeros(t_)
-for t in range(1, t_):
-    Markovitz[t] = (gamma*Sigma)**(-1)*B*df_factor.iloc[t]
+Markovitz = compute_markovitz(df_factor.to_numpy(), gamma, B, Sigma)
 
-inf_Markovitz = np.diff(Markovitz).min()
-sup_Markovitz = np.diff(Markovitz).max()
-
-lot_size = max(np.abs(inf_Markovitz), np.abs(sup_Markovitz))
-dump(lot_size, 'data/lot_size.joblib')
-
+lot_size = np.max(np.abs(np.diff(Markovitz)))
 print('lot_size =', lot_size)
 
 
-# ------------------------------------- REINFORCEMENT LEARNING ----------------
-
-print('######## Training RL agent')
+# ------------------------------------- Reinforcement learning ----------------
 
 qb_list = []  # list to store models
 
@@ -189,6 +187,11 @@ for b in range(n_batches):  # loop on batches
     print('    Score: %.3f' % model.score(X, Y))
     print('    Average reward: %.3f' % np.mean(reward))
 
-    eps = max(eps/3, 0.001)  # update epsilon
+    eps = max(eps/3, 0.0001)  # update epsilon
 
-    dump(optimizers, 'data/optimizers.joblib')
+
+# ------------------------------------- Dump data -----------------------------
+
+dump(lot_size, 'data/lot_size.joblib')
+dump(n_batches, 'data/n_batches.joblib')
+dump(optimizers, 'data/optimizers.joblib')

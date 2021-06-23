@@ -41,7 +41,7 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega):
     r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
         np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
 
-    return r, f
+    return r.squeeze(), f.squeeze()
 
 
 # -----------------------------------------------------------------------------
@@ -240,3 +240,124 @@ def q_hat(state, action,
         else:
             res = res + qb.predict(np.r_[state, action].reshape(1, -1))
         return res
+
+
+# -----------------------------------------------------------------------------
+# compute_markovitz
+# -----------------------------------------------------------------------------
+
+def compute_markovitz(f, gamma, B, Sigma):
+
+    if f.ndim == 1:
+        t_ = f.shape[0]
+        j_ = 1
+        f = f.reshape((j_, t_))
+    elif f.ndim == 2:
+        j_, t_ = f.shape
+
+    Markovitz = np.zeros((j_, t_))
+    for t in range(t_):
+        Markovitz[:, t] = (gamma*Sigma)**(-1)*B*f[:, t]
+
+    return Markovitz.squeeze()
+
+
+# -----------------------------------------------------------------------------
+# compute_optimal
+# -----------------------------------------------------------------------------
+
+def compute_optimal(f, gamma, lam, rho, B, Sigma, Phi):
+
+    if f.ndim == 1:
+        t_ = f.shape[0]
+        j_ = 1
+        f = f.reshape((j_, t_))
+    elif f.ndim == 2:
+        j_, t_ = f.shape
+
+    a = (-(gamma*(1 - rho) + lam*rho) +
+         np.sqrt((gamma*(1-rho) + lam*rho)**2 +
+                 4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
+
+    x = np.zeros((j_, t_))
+    for t in range(t_):
+        if t == 0:
+            x[:, t] = a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+
+        else:
+            x[:, t] = (1 - a/lam)*x[:, t-1] +\
+                a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+
+    return x.squeeze()
+
+
+# -----------------------------------------------------------------------------
+# compute_rl
+# -----------------------------------------------------------------------------
+
+def compute_rl(f, q_value, lot_size, optimizers, optimizer=None):
+
+    if f.ndim == 1:
+        t_ = f.shape[0]
+        j_ = 1
+        f = f.reshape((j_, t_))
+    elif f.ndim == 2:
+        j_, t_ = f.shape
+
+    shares = np.zeros((j_, t_))
+
+    for j in range(j_):
+        print('Path: ', j+1, 'on', j_)
+
+        for t in range(t_):
+            if j_ == 1:
+                progress = t/t_*100
+                print('    Progress: %.2f %%' % progress)
+
+            if t == 0:
+                state = np.array([0, f[j, t]])
+                action = maxAction(q_value, state, lot_size, optimizers,
+                                   optimizer=optimizer)
+                shares[j, t] = state[0] + action
+            else:
+                state = np.array([shares[j, t-1], f[j, t]])
+                action = maxAction(q_value, state, lot_size, optimizers,
+                                   optimizer=optimizer)
+                shares[j, t] = state[0] + action
+
+    return shares.squeeze()
+
+
+# -----------------------------------------------------------------------------
+# compute_wealth
+# -----------------------------------------------------------------------------
+
+def compute_wealth(r, strat, gamma, Lambda, rho, B, Sigma, Phi):
+
+    if r.ndim == 1:
+        t_ = r.shape[0]
+        j_ = 1
+        r = r.reshape((j_, t_))
+        strat = strat.reshape((j_, t_))
+    elif r.ndim == 2:
+        j_, t_ = r.shape
+
+    # Value
+    value = np.zeros((j_, t_))
+    for t in range(t_ - 1):
+        value[:, t] = (1 - rho)**(t + 1) * strat[:, t] * r[:, t+1]
+    value = np.cumsum(value, axis=1)
+
+    # Costs
+    cost = np.zeros((j_, t_))
+    for t in range(1, t_):
+        delta_strat = strat[:, t] - strat[:, t-1]
+        cost[:, t] =\
+            gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*Sigma*strat[:, t] +\
+            0.5*(1 - rho)**t * delta_strat*Lambda*delta_strat
+    cost = np.cumsum(cost, axis=1)
+
+    # Wealth
+    wealth = value - cost
+
+    return wealth.squeeze(), value.squeeze(), cost.squeeze()
