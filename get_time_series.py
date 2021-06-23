@@ -124,20 +124,27 @@ df_returns = df_returns.loc[dates].copy()
 
 # ------------------------------------- Fit of dynamics -----------------------
 
-params = {}
-aic = {}
-sig2 = {}
-best = df_factors.columns[0]
-for column in df_factors.columns:
-    res = AutoReg(df_factors[column], lags=1).fit()
-    params[column] = [res.params.iloc[0], res.params.iloc[1]]
-    sig2[column] = res.sigma2
-    aic[column] = res.aic
-    if aic[column] < aic[best]:
-        best = column
-
 if to_analyze is not None:
     best = to_analyze
+    params = {}
+    aic = {}
+    sig2 = {}
+    res = AutoReg(df_factors[best], lags=1).fit()
+    params[best] = [res.params.iloc[0], res.params.iloc[1]]
+    sig2[best] = res.sigma2
+
+else:
+    params = {}
+    aic = {}
+    sig2 = {}
+    best = df_factors.columns[0]
+    for column in df_factors.columns:
+        res = AutoReg(df_factors[column], lags=1).fit()
+        params[column] = [res.params.iloc[0], res.params.iloc[1]]
+        sig2[column] = res.sigma2
+        aic[column] = res.aic
+        if aic[column] < aic[best]:
+            best = column
 
 print('Using time series:', best)
 
