@@ -23,12 +23,12 @@ print('######## Training RL agent')
 
 # ------------------------------------- Parameters ----------------------------
 
-parallel_computing = True      # True for parallel computing
+parallel_computing = False      # True for parallel computing
 n_cores_max = 80               # maximum number of cores if parallel_computing
 n_batches = 8                  # number of batches
 eps = 0.5                      # eps greedy
 alpha = 1                      # learning rate
-j_ = 1000                      # number of episodes
+j_ = 100                      # number of episodes
 
 # RL model
 sup_model = 'ann_fast'  # or random_forest or ann_deep
@@ -186,6 +186,7 @@ for b in range(n_batches):  # loop on batches
     dump(model.fit(X, Y), 'models/q%d.joblib' % b)  # export regressor
     print('    Score: %.3f' % model.score(X, Y))
     print('    Average reward: %.3f' % np.mean(reward))
+    print(optimizers)
 
     eps = max(eps/3, 0.0001)  # update epsilon
 

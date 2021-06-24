@@ -22,6 +22,22 @@ class Optimizers:
         self._differential_evolution = 0
         self._basinhopping = 0
 
+    def __repr__(self):
+
+        return 'Used optimizers:\n' +\
+            '  shgo: ' + str(self._shgo) + '\n' +\
+            '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
+            '  differential_evolution: ' + str(self._differential_evolution) +\
+            '\n' + '  basinhopping: ' + str(self._basinhopping)
+
+    def __str__(self):
+
+        return 'Used optimizers:\n' +\
+            '  shgo: ' + str(self._shgo) + '\n' +\
+            '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
+            '  differential_evolution: ' + str(self._differential_evolution) +\
+            '\n' + '  basinhopping: ' + str(self._basinhopping)
+
 
 # -----------------------------------------------------------------------------
 # simulate_market

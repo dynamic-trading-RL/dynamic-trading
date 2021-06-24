@@ -23,7 +23,7 @@ print('######## Out of sample')
 
 # ------------------------------------- Parameters ----------------------------
 
-j_ = 1000  # number of out-of-sample paths
+j_ = 100  # number of out-of-sample paths
 
 # Import parameters from previous scripts
 t_ = load('data/t_.joblib')
@@ -69,7 +69,7 @@ def q_value(state, action):
     return q_hat(state, action, B, qb_list, flag_qaverage=False, n_models=None)
 
 
-shares = compute_rl(f, q_value, lot_size, optimizers, optimizer=None)
+shares = compute_rl(f, q_value, lot_size, optimizers, optimizer='best')
 
 # Wealth
 wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho, B,

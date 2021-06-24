@@ -68,7 +68,7 @@ def q_value(state, action):
 
 
 shares = compute_rl(df_factor.to_numpy(), q_value, lot_size, optimizers,
-                    optimizer=None)
+                    optimizer='best')
 
 
 # ------------------------------------- Results -------------------------------
