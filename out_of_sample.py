@@ -23,7 +23,8 @@ print('######## Out of sample')
 
 # ------------------------------------- Parameters ----------------------------
 
-j_ = 100  # number of out-of-sample paths
+j_ = 1000  # number of out-of-sample paths
+optimizer = None
 
 # Import parameters from previous scripts
 t_ = load('data/t_.joblib')
@@ -69,7 +70,7 @@ def q_value(state, action):
     return q_hat(state, action, B, qb_list, flag_qaverage=False, n_models=None)
 
 
-shares = compute_rl(f, q_value, lot_size, optimizers, optimizer='best')
+shares = compute_rl(f, q_value, lot_size, optimizers, optimizer=optimizer)
 
 # Wealth
 wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho, B,
@@ -86,19 +87,19 @@ wealth_rl, value_rl, cost_rl = compute_wealth(r, shares, gamma, Lambda, rho, B,
 
 plt.figure(figsize=(1280.0/72.0, 720.0/72.0), dpi=72.0)
 
-plt.hist(wealth_m[:, -1], 50, label='Markovitz', alpha=0.5)
-plt.hist(wealth_rl[:, -1], 50, label='RL', alpha=0.5)
-plt.hist(wealth_opt[:, -1], 50, label='Optimal', alpha=0.5)
+plt.hist(wealth_m[:, -1], 90, label='Markovitz', density=True, alpha=0.5)
+plt.hist(wealth_rl[:, -1], 90, label='RL', density=True, alpha=0.5)
+plt.hist(wealth_opt[:, -1], 90, label='Optimal', density=True, alpha=0.5)
 
-results_str = 'Markovitz (med, iqr) = (' +\
-    '{:.2f}'.format(np.median(wealth_m[:, -1])).format('.2f') + ', ' +\
-    '{:.2f}'.format(iqr(wealth_m[:, -1])) + ') \n' +\
-    'RL (med, iqr) = (' +\
-    '{:.2f}'.format(np.median(wealth_rl[:, -1])).format('.2f') + ', ' +\
-    '{:.2f}'.format(iqr(wealth_rl[:, -1])) + ')\n' +\
-    'Optimal (med, iqr) = (' +\
-    '{:.2f}'.format(np.median(wealth_opt[:, -1])).format('.2f') + ', ' +\
-    '{:.2f}'.format(iqr(wealth_opt[:, -1])) + ')'
+results_str = 'Markovitz (mean, std) = (' +\
+    '{:.2f}'.format(np.mean(wealth_m[:, -1])).format('.2f') + ', ' +\
+    '{:.2f}'.format(np.std(wealth_m[:, -1])) + ') \n' +\
+    'RL (mean, std) = (' +\
+    '{:.2f}'.format(np.mean(wealth_rl[:, -1])).format('.2f') + ', ' +\
+    '{:.2f}'.format(np.std(wealth_rl[:, -1])) + ')\n' +\
+    'Optimal (mean, std) = (' +\
+    '{:.2f}'.format(np.mean(wealth_opt[:, -1])).format('.2f') + ', ' +\
+    '{:.2f}'.format(np.std(wealth_opt[:, -1])) + ')'
 
 plt.annotate(results_str, xy=(0, 1), xytext=(12, -12), va='top',
              xycoords='axes fraction', textcoords='offset points')

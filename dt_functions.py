@@ -20,23 +20,20 @@ class Optimizers:
         self._shgo = 0
         self._dual_annealing = 0
         self._differential_evolution = 0
-        self._basinhopping = 0
 
     def __repr__(self):
 
         return 'Used optimizers:\n' +\
             '  shgo: ' + str(self._shgo) + '\n' +\
             '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
-            '  differential_evolution: ' + str(self._differential_evolution) +\
-            '\n' + '  basinhopping: ' + str(self._basinhopping)
+            '  differential_evolution: ' + str(self._differential_evolution)
 
     def __str__(self):
 
         return 'Used optimizers:\n' +\
             '  shgo: ' + str(self._shgo) + '\n' +\
             '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
-            '  differential_evolution: ' + str(self._differential_evolution) +\
-            '\n' + '  basinhopping: ' + str(self._basinhopping)
+            '  differential_evolution: ' + str(self._differential_evolution)
 
 
 # -----------------------------------------------------------------------------
@@ -90,8 +87,7 @@ def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
 
     if optimizer == 'best':
         n = np.array([optimizers._shgo, optimizers._dual_annealing,
-                      optimizers._differential_evolution,
-                     optimizers._basinhopping])
+                      optimizers._differential_evolution])
         i = np.argmax(n)
         if i == 0:
             optimizer = 'shgo'
@@ -99,8 +95,6 @@ def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
             optimizer = 'dual_annealing'
         elif i == 2:
             optimizer = 'differential_evolution'
-        elif i == 3:
-            optimizer = 'basinhopping'
         else:
             print('Wrong optimizer')
 
@@ -110,10 +104,9 @@ def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
         res1 = shgo(fun, bounds=[(-lot_size, lot_size)])
         res2 = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
         res3 = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-        res4 = basinhopping(fun, x0=0)
 
-        res_x = np.array([res1.x, res2.x, res3.x, res4.x])
-        res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
+        res_x = np.array([res1.x, res2.x, res3.x])
+        res_fun = np.array([res1.fun, res2.fun, res3.fun])
 
         i = np.argmax(res_fun)
 
@@ -123,8 +116,6 @@ def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
             optimizers._dual_annealing += 1
         elif i == 2:
             optimizers._differential_evolution += 1
-        elif i == 3:
-            optimizers._basinhopping += 1
         else:
             print('Wrong optimizer')
 
@@ -140,10 +131,6 @@ def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
 
     elif optimizer == 'differential_evolution':
         res = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-        return res.x
-
-    elif optimizer == 'basinhopping':
-        res = basinhopping(fun, x0=0)
         return res.x
 
     else:
@@ -163,7 +150,8 @@ def generate_episode(
                      f,
                      # RL parameters
                      eps, rho, q_value, alpha, gamma, lot_size,
-                     optimizers):
+                     optimizers,
+                     optimizer):
     """
     Given a market simulation f, this function generates an episode for the
     reinforcement learning agent training
@@ -184,7 +172,7 @@ def generate_episode(
     if np.random.rand() < eps:
         action = np.random.randint(-lot_size, lot_size, dtype=np.int64)
     else:
-        action = maxAction(q_value, state, lot_size, optimizers)
+        action = maxAction(q_value, state, lot_size, optimizers, optimizer)
 
     for t in range(1, t_):
 
@@ -196,7 +184,7 @@ def generate_episode(
         if np.random.rand() < eps:
             action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
         else:
-            action_ = maxAction(q_value, state_, lot_size, optimizers)
+            action_ = maxAction(q_value, state_, lot_size, optimizers, optimizer)
 
         # Observe r
 

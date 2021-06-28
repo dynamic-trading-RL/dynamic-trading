@@ -24,6 +24,8 @@ print('######## Backtesting')
 
 # ------------------------------------- Parameters ----------------------------
 
+optimizer = None
+
 # Import parameters from previos scripts
 df_return = load('data/df_return.joblib')
 df_factor = load('data/df_factor.joblib')
@@ -68,7 +70,7 @@ def q_value(state, action):
 
 
 shares = compute_rl(df_factor.to_numpy(), q_value, lot_size, optimizers,
-                    optimizer='best')
+                    optimizer=optimizer)
 
 
 # ------------------------------------- Results -------------------------------

@@ -23,12 +23,13 @@ print('######## Training RL agent')
 
 # ------------------------------------- Parameters ----------------------------
 
-parallel_computing = False      # True for parallel computing
+parallel_computing = True      # True for parallel computing
 n_cores_max = 80               # maximum number of cores if parallel_computing
-n_batches = 8                  # number of batches
-eps = 0.5                      # eps greedy
+n_batches = 5                  # number of batches
+eps = 0.1                      # eps greedy
 alpha = 1                      # learning rate
-j_ = 100                      # number of episodes
+j_ = 15000                      # number of episodes
+optimizer = None
 
 # RL model
 sup_model = 'ann_fast'  # or random_forest or ann_deep
@@ -125,7 +126,8 @@ for b in range(n_batches):  # loop on batches
                           # RL parameters
                           eps=eps, rho=rho, q_value=q_value, alpha=alpha,
                           gamma=gamma, lot_size=lot_size,
-                          optimizers=optimizers)
+                          optimizers=optimizers,
+                          optimizer=optimizer)
 
     if parallel_computing:
         if __name__ == '__main__':
@@ -188,7 +190,7 @@ for b in range(n_batches):  # loop on batches
     print('    Average reward: %.3f' % np.mean(reward))
     print(optimizers)
 
-    eps = max(eps/3, 0.0001)  # update epsilon
+    eps = max(eps/3, 0.00001)  # update epsilon
 
 
 # ------------------------------------- Dump data -----------------------------

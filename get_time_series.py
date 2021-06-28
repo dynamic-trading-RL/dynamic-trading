@@ -25,6 +25,7 @@ print('######## Analizing time series')
 
 to_analyze = 'WTI'  # set != None if you want to analyze a specific time series
 t_ = 50             # length of the time series to save and use for backtesting
+standardize = False  # set to true if you want to standardize the factors
 
 # Model parameters
 lam = 10**-2               # costs factor: ??? should be calibrated
@@ -115,8 +116,13 @@ df_returns.dropna(inplace=True)
 
 # Factors
 window = 5
-df_factors = (df_returns.rolling(window=window).mean() /
-              df_returns.rolling(window=window).std()).copy()
+
+if standardize:
+    df_factors = (df_returns.rolling(window=window).mean() /
+                  df_returns.rolling(window=window).std()).copy()
+else:
+    df_factors = df_returns.rolling(window=window).mean().copy()
+
 df_factors.dropna(inplace=True)
 dates = df_factors.index
 df_returns = df_returns.loc[dates].copy()
