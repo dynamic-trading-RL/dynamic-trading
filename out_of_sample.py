@@ -13,7 +13,8 @@ if not sys.warnoptions:
 
 import numpy as np
 from joblib import load
-from scipy.stats import iqr
+import multiprocessing as mp
+from functools import partial
 from dt_functions import (simulate_market, q_hat, compute_markovitz,
                           compute_optimal, compute_rl, compute_wealth)
 import matplotlib.pyplot as plt
@@ -23,8 +24,10 @@ print('######## Out of sample')
 
 # ------------------------------------- Parameters ----------------------------
 
-j_ = 1000  # number of out-of-sample paths
+j_ = 10000  # number of out-of-sample paths
 optimizer = None
+parallel_computing = True  # set to True if you want to use parallel computing
+n_cores_max = 80               # maximum number of cores if parallel_computing
 
 # Import parameters from previous scripts
 t_ = load('data/t_.joblib')
@@ -41,6 +44,11 @@ rho = load('data/rho.joblib')
 n_batches = load('data/n_batches.joblib')
 lot_size = load('data/lot_size.joblib')
 optimizers = load('data/optimizers.joblib')
+
+if parallel_computing:
+    print('Number of cores available: %d' % mp.cpu_count())
+    n_cores = min(mp.cpu_count(), n_cores_max)
+    print('Number of cores used: %d' % n_cores)
 
 
 # ------------------------------------- Simulate ------------------------------
@@ -70,7 +78,22 @@ def q_value(state, action):
     return q_hat(state, action, B, qb_list, flag_qaverage=False, n_models=None)
 
 
-shares = compute_rl(f, q_value, lot_size, optimizers, optimizer=optimizer)
+if parallel_computing:
+    if __name__ == '__main__':
+
+        compute_rl_part = partial(compute_rl, f=f, q_value=q_value,
+                                  lot_size=lot_size, optimizers=optimizers,
+                                  optimizer=optimizer)
+
+        p = mp.Pool(n_cores)
+        shares = p.map(compute_rl_part, range(j_))
+        p.close()
+        p.join()
+    shares = np.array(shares)
+
+else:
+    shares = compute_rl(f, q_value, lot_size, optimizers, optimizer=optimizer)
+
 
 # Wealth
 wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho, B,

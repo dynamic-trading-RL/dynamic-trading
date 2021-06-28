@@ -299,7 +299,7 @@ def compute_optimal(f, gamma, lam, rho, B, Sigma, Phi):
 # compute_rl
 # -----------------------------------------------------------------------------
 
-def compute_rl(f, q_value, lot_size, optimizers, optimizer=None):
+def compute_rl(j, f, q_value, lot_size, optimizers, optimizer=None):
 
     if f.ndim == 1:
         t_ = f.shape[0]
@@ -310,24 +310,18 @@ def compute_rl(f, q_value, lot_size, optimizers, optimizer=None):
 
     shares = np.zeros((j_, t_))
 
-    for j in range(j_):
-        print('Path: ', j+1, 'on', j_)
+    for t in range(t_):
 
-        for t in range(t_):
-            if j_ == 1:
-                progress = t/t_*100
-                print('    Progress: %.2f %%' % progress)
-
-            if t == 0:
-                state = np.array([0, f[j, t]])
-                action = maxAction(q_value, state, lot_size, optimizers,
-                                   optimizer=optimizer)
-                shares[j, t] = state[0] + action
-            else:
-                state = np.array([shares[j, t-1], f[j, t]])
-                action = maxAction(q_value, state, lot_size, optimizers,
-                                   optimizer=optimizer)
-                shares[j, t] = state[0] + action
+        if t == 0:
+            state = np.array([0, f[j, t]])
+            action = maxAction(q_value, state, lot_size, optimizers,
+                               optimizer=optimizer)
+            shares[j, t] = state[0] + action
+        else:
+            state = np.array([shares[j, t-1], f[j, t]])
+            action = maxAction(q_value, state, lot_size, optimizers,
+                               optimizer=optimizer)
+            shares[j, t] = state[0] + action
 
     return shares.squeeze()
 

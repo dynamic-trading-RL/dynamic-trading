@@ -69,7 +69,7 @@ def q_value(state, action):
     return q_hat(state, action, B, qb_list, flag_qaverage=False, n_models=None)
 
 
-shares = compute_rl(df_factor.to_numpy(), q_value, lot_size, optimizers,
+shares = compute_rl(0, df_factor.to_numpy(), q_value, lot_size, optimizers,
                     optimizer=optimizer)
 
 
