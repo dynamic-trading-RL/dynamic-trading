@@ -270,14 +270,29 @@ def compute_markovitz(f, gamma, B, Sigma):
 # compute_optimal
 # -----------------------------------------------------------------------------
 
-def compute_optimal(f, gamma, lam, rho, B, Sigma, Phi):
+def compute_optimal(f, gamma, lam, rho, B, Sigma, Phi, k_=1):
+    """
+    Optimal trading strategy as in Garleanu-Pedersen.
 
-    if f.ndim == 1:
-        t_ = f.shape[0]
-        j_ = 1
-        f = f.reshape((j_, t_))
-    elif f.ndim == 2:
-        j_, t_ = f.shape
+    x_{t} = x_{t-1} + Lambda^(-1) A_xx (aim_t - x_{t-1})
+    aim_t = A_xx^(-1) A_xf f_t
+
+    """
+
+    if k_ == 1:  # 1 factor
+        if f.ndim == 1:
+            t_ = f.shape[0]
+            j_ = 1
+            f = f.reshape((j_, t_))
+        elif f.ndim == 2:
+            j_, t_ = f.shape
+    else:  # k_ factors
+        if f.ndim == 2:
+            t_, k_ = f.shape
+            j_ = 1
+            f = f.reshape((j_, k_, t_))
+        else:
+            j_, k_, t_ = f.shape
 
     a = (-(gamma*(1 - rho) + lam*rho) +
          np.sqrt((gamma*(1-rho) + lam*rho)**2 +
