@@ -250,18 +250,37 @@ def q_hat(state, action,
 # compute_markovitz
 # -----------------------------------------------------------------------------
 
-def compute_markovitz(f, gamma, B, Sigma):
+def compute_markovitz(f, gamma, B, Sigma, k_=1):
 
-    if f.ndim == 1:
-        t_ = f.shape[0]
-        j_ = 1
-        f = f.reshape((j_, t_))
-    elif f.ndim == 2:
-        j_, t_ = f.shape
+    if k_ == 1:  # 1 factor
+        if f.ndim == 1:
+            t_ = f.shape[0]
+            j_ = 1
+        elif f.ndim == 2:
+            j_, t_ = f.shape
+
+    else:  # k_ factors
+        if f.ndim == 2:
+            t_, k_ = f.shape
+            j_ = 1
+        else:
+            j_, k_, t_ = f.shape
+
+    f = f.reshape((j_, k_, t_))
+
+    # Parameters
+    if Sigma.ndim == 0:
+        Sigma = np.array([[Sigma]])
+    if B.ndim == 0:
+        B = np.array([[B]])
+
+    Sigma_inv = np.linalg.inv(Sigma)
+
+    factor = ((gamma)**(-1) * Sigma_inv @ B).T
 
     Markovitz = np.zeros((j_, t_))
     for t in range(t_):
-        Markovitz[:, t] = (gamma*Sigma)**(-1)*B*f[:, t]
+        Markovitz[:, t] = ((f[:, :, t] @ factor).T).squeeze()
 
     return Markovitz.squeeze()
 
@@ -270,42 +289,80 @@ def compute_markovitz(f, gamma, B, Sigma):
 # compute_optimal
 # -----------------------------------------------------------------------------
 
-def compute_optimal(f, gamma, lam, rho, B, Sigma, Phi, k_=1):
+def compute_optimal(f, gamma, Lambda, rho, B, Sigma, Phi, k_=1):
     """
     Optimal trading strategy as in Garleanu-Pedersen.
-
-    x_{t} = x_{t-1} + Lambda^(-1) A_xx (aim_t - x_{t-1})
-    aim_t = A_xx^(-1) A_xf f_t
-
     """
 
     if k_ == 1:  # 1 factor
         if f.ndim == 1:
             t_ = f.shape[0]
             j_ = 1
-            f = f.reshape((j_, t_))
         elif f.ndim == 2:
             j_, t_ = f.shape
+
     else:  # k_ factors
         if f.ndim == 2:
             t_, k_ = f.shape
             j_ = 1
-            f = f.reshape((j_, k_, t_))
         else:
             j_, k_, t_ = f.shape
 
-    a = (-(gamma*(1 - rho) + lam*rho) +
-         np.sqrt((gamma*(1-rho) + lam*rho)**2 +
-                 4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
+    f = f.reshape((j_, k_, t_))
+
+    # Parameters
+
+    if Lambda.ndim == 0:
+        Lambda = np.array([[Lambda]])
+    if Sigma.ndim == 0:
+        Sigma = np.array([[Sigma]])
+    if B.ndim == 0:
+        B = np.array([[B]])
+
+    rho_ = 1-rho
+    Lambda_ = rho_**(-1) * Lambda
+    Lambda_sqrt = riccati(Lambda_)  # here it is correct Lambda_
+    Lambda_inv = np.linalg.inv(Lambda)  # here it is correct Lambda
+    eye = np.eye(k_)
+
+    A_xx = riccati(rho_*gamma*Lambda_sqrt@Sigma@Lambda_sqrt +
+                   0.25*(rho**2*Lambda_**2
+                         + 2*rho*gamma*Lambda_sqrt@Sigma@Lambda_sqrt
+                         + gamma**2 *
+                         Lambda_sqrt@Sigma@Lambda_inv@Sigma@Lambda_sqrt)) -\
+        0.5*(rho*Lambda_ + gamma*Sigma)
+
+    A_xx_inv = np.linalg.inv(A_xx)
+
+    A_xf = inv_vec(rho_ *
+                   np.linalg.inv(eye - rho_*np.kron((eye - Phi).T,
+                                                    eye - A_xx@Lambda_inv)) @
+                   vec((eye - A_xx@Lambda_inv)@B))
+
+    # Strategy
+    A_xx_inv_A_xf = A_xx_inv @ A_xf
+    Lambda_inv_A_xx = Lambda_inv @ A_xx
 
     x = np.zeros((j_, t_))
-    for t in range(t_):
-        if t == 0:
-            x[:, t] = a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+    x[:, 0] = ((f[:, :, 0] @ Lambda_inv_A_xx.T).T).squeeze()
 
-        else:
-            x[:, t] = (1 - a/lam)*x[:, t-1] +\
-                a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+    for t in range(1, t_):
+        aim_t = ((f[:, :, t] @ A_xx_inv_A_xf.T).T).squeeze()
+        x[:, t] = x[:, t-1] + Lambda_inv_A_xx * (aim_t - x[:, t-1])
+
+    # Old: assumption Lambda = lam*Sigma and k_=1
+    # a = (-(gamma*(1 - rho) + lam*rho) +
+    #      np.sqrt((gamma*(1-rho) + lam*rho)**2 +
+    #              4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
+
+    # x = np.zeros((j_, t_))
+    # for t in range(t_):
+    #     if t == 0:
+    #         x[:, t] = a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+
+    #     else:
+    #         x[:, t] = (1 - a/lam)*x[:, t-1] +\
+    #             a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
 
     return x.squeeze()
 
@@ -318,12 +375,11 @@ def compute_rl(j, f, q_value, lot_size, optimizers, optimizer=None):
 
     if f.ndim == 1:
         t_ = f.shape[0]
-        j_ = 1
-        f = f.reshape((j_, t_))
+        f = f.reshape((1, t_))
     elif f.ndim == 2:
-        j_, t_ = f.shape
+        _, t_ = f.shape
 
-    shares = np.zeros((j_, t_))
+    shares = np.zeros(t_)
 
     for t in range(t_):
 
@@ -331,14 +387,14 @@ def compute_rl(j, f, q_value, lot_size, optimizers, optimizer=None):
             state = np.array([0, f[j, t]])
             action = maxAction(q_value, state, lot_size, optimizers,
                                optimizer=optimizer)
-            shares[j, t] = state[0] + action
+            shares[t] = state[0] + action
         else:
-            state = np.array([shares[j, t-1], f[j, t]])
+            state = np.array([shares[t-1], f[j, t]])
             action = maxAction(q_value, state, lot_size, optimizers,
                                optimizer=optimizer)
-            shares[j, t] = state[0] + action
+            shares[t] = state[0] + action
 
-    return shares.squeeze()
+    return shares
 
 
 # -----------------------------------------------------------------------------
@@ -374,3 +430,37 @@ def compute_wealth(r, strat, gamma, Lambda, rho, B, Sigma, Phi):
     wealth = value - cost
 
     return wealth.squeeze(), value.squeeze(), cost.squeeze()
+
+
+# -----------------------------------------------------------------------------
+# riccati
+# -----------------------------------------------------------------------------
+
+def riccati(s2):
+
+    lambda2, e = np.linalg.eigh(s2)
+    s = e @ np.diag(np.sqrt(lambda2)) @ e.T
+
+    return s
+
+
+# -----------------------------------------------------------------------------
+# vec
+# -----------------------------------------------------------------------------
+
+def vec(x):
+
+    n_ = x.shape[0]
+
+    return np.reshape(x, (n_**2, 1), 'F')
+
+
+# -----------------------------------------------------------------------------
+# inv_vec
+# -----------------------------------------------------------------------------
+
+def inv_vec(x):
+
+    n_ = int(np.sqrt(x.shape[0]))
+
+    return np.reshape(x, (n_, n_), 'F')

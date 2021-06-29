@@ -63,7 +63,7 @@ Markovitz = compute_markovitz(f, gamma, B, Sigma)
 
 # Optimal portfolio
 print('#### Computing optimal strategy')
-x = compute_optimal(f, gamma, lam, rho, B, Sigma, Phi)
+x = compute_optimal(f, gamma, Lambda, rho, B, Sigma, Phi)
 
 
 # RL portfolio
@@ -92,8 +92,11 @@ if parallel_computing:
     shares = np.array(shares)
 
 else:
-    shares = compute_rl(f, q_value, lot_size, optimizers, optimizer=optimizer)
-
+    shares = np.zeros((j_, t_))
+    for j in range(j_):
+        print('Simulation', j+1, 'on', j_)
+        shares[j, :] = compute_rl(j, f, q_value, lot_size, optimizers,
+                                  optimizer=optimizer)
 
 # Wealth
 wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho, B,

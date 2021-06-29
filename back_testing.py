@@ -53,7 +53,7 @@ Markovitz = compute_markovitz(df_factor.to_numpy(), gamma, B, Sigma)
 
 print('#### Computing optimal strategy')
 
-x = compute_optimal(df_factor.to_numpy(), gamma, lam, rho, B, Sigma, Phi)
+x = compute_optimal(df_factor.to_numpy(), gamma, Lambda, rho, B, Sigma, Phi)
 
 
 # ------------------------------------- RL portfolio ---------------------
