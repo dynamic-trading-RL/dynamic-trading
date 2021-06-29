@@ -1,9 +1,0 @@
-##### Training RL agent
-lot_size = 36
-Number of cores available: 144
-Number of cores used: 40
-Creating batch 1 of 8; eps=0.500000
-Fitting model 1 of 8
-    Score: 0.984
-    Average reward: -1167.248
-Creating batch 2 of 8; eps=0.166667

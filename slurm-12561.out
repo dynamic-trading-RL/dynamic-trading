@@ -1,9 +1,0 @@
-##### Training RL agent
-lot_size = 101
-Number of cores available: 144
-Number of cores used: 40
-Creating batch 1 of 5; eps=0.500000
-Traceback (most recent call last):
-  File "build_strategies.py", line 161, in <module>
-    optimizers.append(episodes[j][5])
-AttributeError: 'dict' object has no attribute 'append'
