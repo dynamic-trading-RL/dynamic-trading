@@ -28,9 +28,11 @@ j_ = 10000  # number of out-of-sample paths
 optimizer = None
 parallel_computing = True  # set to True if you want to use parallel computing
 n_cores_max = 80               # maximum number of cores if parallel_computing
+nonlinear = True
 
 # Import parameters from previous scripts
 t_ = load('data/t_.joblib')
+nn = load('data/nn.joblib')
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
@@ -54,7 +56,8 @@ if parallel_computing:
 # ------------------------------------- Simulate ------------------------------
 
 # Simulate market
-r, f = simulate_market(j_, t_, 1, B, mu_u, Sigma, Phi, mu_eps, Omega)
+r, f = simulate_market(j_, t_, 1, B, mu_u, Sigma, Phi, mu_eps, Omega,
+                       nonlinear=nonlinear, nn=nn)
 
 # Markovitz portfolio
 print('#### Computing Markovitz strategy')

@@ -6,8 +6,17 @@ Created on Fri May 28 17:16:57 2021
 """
 
 import numpy as np
-from scipy.optimize import (dual_annealing, shgo, differential_evolution,
-                            basinhopping)
+from sklearn.linear_model import LinearRegression
+from scipy.optimize import (dual_annealing, shgo, differential_evolution)
+
+
+# -----------------------------------------------------------------------------
+# cPY_FAIL
+# -----------------------------------------------------------------------------
+
+def PY_FAIL(msg):
+
+    raise Exception("PULIB EX: " + msg)
 
 
 # -----------------------------------------------------------------------------
@@ -41,7 +50,8 @@ class Optimizers:
 # -----------------------------------------------------------------------------
 
 
-def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega):
+def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
+                    nonlinear=False, nn=None):
 
     f = np.zeros((j_, n_batches, t_))
     f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
@@ -51,8 +61,15 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega):
 
     r = np.zeros((j_, n_batches, t_))
     r[:, :, 0] = 0.
-    r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
-        np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
+
+    if nonlinear:
+        ff = f[:, :, :-1].flatten()
+        rr = nn.predict(ff.reshape((-1, 1)))
+        r[:, :, 1:] = rr.reshape((j_, n_batches, t_-1))
+
+    else:
+        r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
+            np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
 
     return r.squeeze(), f.squeeze()
 
@@ -464,3 +481,68 @@ def inv_vec(x):
     n_ = int(np.sqrt(x.shape[0]))
 
     return np.reshape(x, (n_, n_), 'F')
+
+
+# -----------------------------------------------------------------------------
+# fit_cointegration
+# -----------------------------------------------------------------------------
+
+def fit_cointegration(x, *, b_threshold=0.99):
+
+    t_ = x.shape[0]
+    if len(x.shape) == 1:
+        x = x.reshape((t_, 1))
+        d_ = 1
+    else:
+        d_ = x.shape[1]
+
+    p = np.ones(t_)/t_
+
+    # Step 1: estimate HFP covariance matrix
+
+    sigma2_hat = np.cov(x.T)
+
+    # Step 2: find eigenvectors
+
+    lambda2_hat, e_hat = np.linalg.eigh(sigma2_hat)
+    idx = np.argsort(-lambda2_hat)
+    e_hat = e_hat[:, idx]
+
+    # Step 3: detect cointegration vectors
+
+    c_hat = []
+    b_hat = []
+    p = p[:-1]
+
+    for d in np.arange(0, d_):
+
+        # Step 4: Define series
+
+        y_t = e_hat[:, d] @ x.T
+
+        # Step 5: fit AR(1)
+
+        yt = y_t[1:].reshape((-1, 1))
+        ytm1 = y_t[:-1].reshape((-1, 1))
+        reg = LinearRegression().fit(X=ytm1, y=yt)
+        b = reg.coef_[0, 0]
+        if np.ndim(b) < 2:
+            b = np.array(b).reshape(-1, 1)
+
+        # Step 6: check stationarity
+
+        if abs(b[0, 0]) <= b_threshold:
+            c_hat.append(list(e_hat[:, d]))
+            b_hat.append(b[0, 0])
+
+    # Output
+
+    c_hat = np.array(c_hat).T
+    b_hat = np.array(b_hat)
+
+    # Step 7: Sort according to the AR(1) parameters beta_hat
+
+    c_hat = c_hat[:, np.argsort(b_hat)]
+    b_hat = np.sort(b_hat)
+
+    return c_hat, b_hat

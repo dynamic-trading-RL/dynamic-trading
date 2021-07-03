@@ -23,13 +23,15 @@ print('######## Training RL agent')
 
 # ------------------------------------- Parameters ----------------------------
 
-parallel_computing = True      # True for parallel computing
-n_cores_max = 80               # maximum number of cores if parallel_computing
-n_batches = 5                  # number of batches
-eps = 0.1                      # eps greedy
-alpha = 1                      # learning rate
+parallel_computing = True       # True for parallel computing
+n_cores_max = 80                # maximum number of cores if parallel_computing
+n_batches = 5                   # number of batches
+eps = 0.1                       # eps greedy
+alpha = 1                       # learning rate
 j_ = 15000                      # number of episodes
 optimizer = None
+nonlinear = True
+
 
 # RL model
 sup_model = 'ann_fast'  # or random_forest or ann_deep
@@ -37,6 +39,7 @@ sup_model = 'ann_fast'  # or random_forest or ann_deep
 # Import parameters from previous scripts
 df_factor = load('data/df_factor.joblib')
 t_ = load('data/t_.joblib')
+nn = load('data/nn.joblib')
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
@@ -78,7 +81,7 @@ elif sup_model == 'ann_deep':
 
 Markovitz = compute_markovitz(df_factor.to_numpy(), gamma, B, Sigma)
 
-lot_size = np.max(np.abs(np.diff(Markovitz)))
+lot_size = np.max(np.abs(np.diff(Markovitz)))*1.5
 print('lot_size =', lot_size)
 
 
@@ -87,7 +90,7 @@ print('lot_size =', lot_size)
 qb_list = []  # list to store models
 
 r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
-                       Phi, mu_eps, Omega)
+                       Phi, mu_eps, Omega, nonlinear=nonlinear, nn=nn)
 
 optimizers = Optimizers()
 
