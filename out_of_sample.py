@@ -36,6 +36,7 @@ nn = load('data/nn.joblib')
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
+sig_nn = load('data/sig_nn.joblib')
 Phi = load('data/Phi.joblib')
 mu_eps = load('data/mu_eps.joblib')
 Omega = load('data/Omega.joblib')
@@ -57,7 +58,7 @@ if parallel_computing:
 
 # Simulate market
 r, f = simulate_market(j_, t_, 1, B, mu_u, Sigma, Phi, mu_eps, Omega,
-                       nonlinear=nonlinear, nn=nn)
+                       nonlinear=nonlinear, nn=nn, sig_nn=sig_nn)
 
 # Markovitz portfolio
 print('#### Computing Markovitz strategy')

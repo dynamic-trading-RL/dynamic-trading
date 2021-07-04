@@ -117,9 +117,10 @@ df_values = pd.concat(li, axis=1)
 df_returns = df_values.diff().copy()
 df_returns.dropna(inplace=True)
 
-# Factors
-window = 1
+# ------------------------------------- Factors -------------------------------
+window = 5
 
+# Compute moving average
 if standardize:
     df_mov_av = (df_returns.rolling(window=window).mean() /
                  df_returns.rolling(window=window).std()).copy()
@@ -130,6 +131,7 @@ df_mov_av.dropna(inplace=True)
 dates = df_mov_av.index
 df_returns = df_returns.loc[dates].copy()
 
+# Determine factors
 if cointegration:
     c_hat, b_hat = fit_cointegration(df_returns.to_numpy())
     df_factors = df_mov_av.copy()@c_hat[:, 0]
@@ -139,74 +141,73 @@ else:
 
 # ------------------------------------- Fit of dynamics -----------------------
 
-if cointegration:
-    if to_analyze is not None:
-        print('Using time series:', to_analyze)
-        best = to_analyze
-        df_return = df_returns[best].copy()
-        df_factor = df_factors.copy()
-        params = {}
-        aic = {}
-        sig2 = {}
-        res = AutoReg(df_factors, lags=1).fit()
-        params[best] = [res.params.iloc[0], res.params.iloc[1]]
-        sig2[best] = res.sigma2
+params = {}
+aic = {}
+sig2 = {}
 
+if to_analyze is not None:
+    print('Using time series:', to_analyze)
+    best = to_analyze
+
+    if cointegration:
+        res = AutoReg(df_factors, lags=1).fit()
     else:
-        PY_FAIL('If using cointegration, you must select a to_analyze series')
+        res = AutoReg(df_factors[best], lags=1).fit()
+
+    params[best] = [res.params.iloc[0], res.params.iloc[1]]
+    sig2[best] = res.sigma2
+
+    # Select best time series for the experiment
+    df_return = df_returns[best].copy()
+    if cointegration:
+        df_factor = df_factors.copy()
+    else:
+        df_factor = df_factors[best].copy()
 
 else:
-    if to_analyze is not None:
-        print('Using time series:', to_analyze)
-        best = to_analyze
-        params = {}
-        aic = {}
-        sig2 = {}
-        res = AutoReg(df_factors[best], lags=1).fit()
-        params[best] = [res.params.iloc[0], res.params.iloc[1]]
-        sig2[best] = res.sigma2
 
-    else:
-        params = {}
-        aic = {}
-        sig2 = {}
-        best = df_factors.columns[0]
-        for column in df_factors.columns:
-            res = AutoReg(df_factors[column], lags=1).fit()
-            params[column] = [res.params.iloc[0], res.params.iloc[1]]
-            sig2[column] = res.sigma2
-            aic[column] = res.aic
-            if aic[column] < aic[best]:
-                best = column
+    if cointegration:
+        PY_FAIL('cointegration should be False if to_analyze is None')
+
+    best = df_factors.columns[0]
+    for column in df_factors.columns:
+        res = AutoReg(df_factors[column], lags=1).fit()
+        params[column] = [res.params.iloc[0], res.params.iloc[1]]
+        sig2[column] = res.sigma2
+        aic[column] = res.aic
+        if aic[column] < aic[best]:
+            best = column
 
     # Select best time series for the experiment
     df_return = df_returns[best].copy()
     df_factor = df_factors[best].copy()
 
+# Factors parameters
+Phi = 1 - params[best][1]
+mu_eps = params[best][0]
+Omega = sig2[best]
+
 # Fit linear model for the returns
 reg = LinearRegression().fit(X=np.array(df_factor.iloc[:-1]).reshape(-1, 1),
                              y=np.array(df_return.iloc[1:]).reshape(-1, 1))
-
-# Fit non-linear model for the returns
-nn =\
-    MLPRegressor(hidden_layer_sizes=(100, 80, 30)).fit(X=np.array(df_factor.iloc[:-1]).reshape(-1, 1),
-                                                       y=np.array(df_return.iloc[1:]).reshape(-1, 1))
-
-# Time series parameters
-df_return = df_return.iloc[-t_:]
-df_factor = df_factor.iloc[-t_:]
 
 B = reg.coef_[0, 0]
 mu_u = reg.intercept_[0]
 Sigma = (np.array(df_return.iloc[1:]) -
          B*np.array(df_factor.iloc[:-1]) -
          mu_u).var()
-
-Phi = 1 - params[best][1]
-mu_eps = params[best][0]
-Omega = sig2[best]
-
 Lambda = lam*Sigma
+
+# Fit non-linear model for the returns
+nn =\
+    MLPRegressor(hidden_layer_sizes=(100, 80, 30)).fit(X=np.array(df_factor.iloc[:-1]).reshape(-1, 1),
+                                                       y=np.array(df_return.iloc[1:]).reshape(-1, 1))
+sig_nn = (np.array(df_return.iloc[1:]) -
+          nn.predict(np.array(df_factor.iloc[:-1]).reshape((-1, 1)))).var()
+
+# shorten time series
+df_return = df_return.iloc[-t_:]
+df_factor = df_factor.iloc[-t_:]
 
 
 # ------------------------------------- Dump data -----------------------------
@@ -223,5 +224,6 @@ dump(mu_eps, 'data/mu_eps.joblib')
 dump(Omega, 'data/Omega.joblib')
 dump(lam, 'data/lam.joblib')
 dump(Lambda, 'data/Lambda.joblib')
+dump(sig_nn, 'data/sig_nn.joblib')
 dump(gamma, 'data/gamma.joblib')
 dump(rho, 'data/rho.joblib')

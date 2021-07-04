@@ -51,7 +51,7 @@ class Optimizers:
 
 
 def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
-                    nonlinear=False, nn=None):
+                    nonlinear=False, nn=None, sig_nn=None):
 
     f = np.zeros((j_, n_batches, t_))
     f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
@@ -64,7 +64,8 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
 
     if nonlinear:
         ff = f[:, :, :-1].flatten()
-        rr = nn.predict(ff.reshape((-1, 1)))
+        rr = nn.predict(ff.reshape((-1, 1))) +\
+            np.sqrt(sig_nn)*np.random.randn(j_*n_batches*(t_-1))
         r[:, :, 1:] = rr.reshape((j_, n_batches, t_-1))
 
     else:
