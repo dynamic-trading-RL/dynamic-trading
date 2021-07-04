@@ -11,7 +11,7 @@ from scipy.optimize import (dual_annealing, shgo, differential_evolution)
 
 
 # -----------------------------------------------------------------------------
-# cPY_FAIL
+# PY_FAIL
 # -----------------------------------------------------------------------------
 
 def PY_FAIL(msg):
@@ -51,7 +51,7 @@ class Optimizers:
 
 
 def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
-                    nonlinear=False, nn=None, sig_nn=None):
+                    nonlinear=False, nn=None, sig_nn=None, nonlineartype='nn'):
 
     f = np.zeros((j_, n_batches, t_))
     f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
@@ -63,10 +63,18 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
     r[:, :, 0] = 0.
 
     if nonlinear:
-        ff = f[:, :, :-1].flatten()
-        rr = nn.predict(ff.reshape((-1, 1))) +\
-            np.sqrt(sig_nn)*np.random.randn(j_*n_batches*(t_-1))
-        r[:, :, 1:] = rr.reshape((j_, n_batches, t_-1))
+        if nonlineartype == 'nn':
+            ff = f[:, :, :-1].flatten()
+            rr = nn.predict(ff.reshape((-1, 1))) +\
+                np.sqrt(sig_nn)*np.random.randn(j_*n_batches*(t_-1))
+            r[:, :, 1:] = rr.reshape((j_, n_batches, t_-1))
+
+        elif nonlineartype == 'quadratic':
+            r[:, :, 1:] = mu_u + B*f[:, :, :-1]**2 +\
+                np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
+
+        else:
+            PY_FAIL('Invalid nonlineartype:' + str(nonlineartype))
 
     else:
         r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
@@ -287,6 +295,8 @@ def compute_markovitz(f, gamma, B, Sigma, k_=1):
     f = f.reshape((j_, k_, t_))
 
     # Parameters
+    Sigma = np.array(Sigma)
+    B = np.array(B)
     if Sigma.ndim == 0:
         Sigma = np.array([[Sigma]])
     if B.ndim == 0:
@@ -330,6 +340,9 @@ def compute_optimal(f, gamma, Lambda, rho, B, Sigma, Phi, k_=1):
 
     # Parameters
 
+    Lambda = np.array(Lambda)
+    Sigma = np.array(Sigma)
+    B = np.array(B)
     if Lambda.ndim == 0:
         Lambda = np.array([[Lambda]])
     if Sigma.ndim == 0:
