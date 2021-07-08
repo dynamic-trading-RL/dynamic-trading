@@ -23,34 +23,49 @@ from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers,
 
 # ------------------------------------- Parameters ----------------------------
 
-df_factor = load('data/df_factor.joblib')
-t_ = load('data/t_.joblib')
-nn = load('data/nn.joblib')
-B = 1
-mu_u = load('data/mu_u.joblib')
-Sigma = load('data/Sigma.joblib')
-sig_nn = load('data/sig_nn.joblib')
-Phi = load('data/Phi.joblib')
-mu_eps = load('data/mu_eps.joblib')
-Omega = load('data/Omega.joblib')
-lam = load('data/lam.joblib')
-Lambda = lam*Sigma
-gamma = load('data/gamma.joblib')
-rho = load('data/rho.joblib')
-
-
 parallel_computing = True       # True for parallel computing
 n_cores_max = 80                # maximum number of cores if parallel_computing
 n_batches = 5                   # number of batches
 eps = 0.1                       # eps greedy
 alpha = 1                       # learning rate
-j_ = 15000                      # number of episodes
+t_ = 50
+j_ = 1500                      # number of episodes
 optimizer = None
 nonlinear = True
-nonlineartype = 'quadratic'
 
 # RL model
 sup_model = 'ann_fast'  # or random_forest or ann_deep
+
+Phi = 0.23
+mu_eps = 0.
+Omega = 0.13
+
+B = 0.07
+B2 = 0.1
+B3 = -0.04
+mu_u = 0.
+Sigma = 0.02
+
+lam = load('data/lam.joblib')
+Lambda = lam*Sigma
+gamma = 0.5
+rho = load('data/rho.joblib')
+
+
+# ------------------------------------- Mkt simulations -----------------------
+
+r = np.zeros((j_, n_batches, t_))
+f = np.zeros((j_, n_batches, t_))
+eps = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
+u = mu_u + np.sqrt(Sigma)*np.random.randn(j_, n_batches)
+r[:, :, 0] = u
+f[:, :, 0] = eps
+
+for t in range(t_ - 1):
+    eps = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
+    u = mu_u + np.sqrt(Sigma)*np.random.randn(j_, n_batches)
+    f[:, :, t+1] = (1 - Phi) * f[:, :, t] + eps
+    r[:, :, t+1] = B*f[:, :, t] + B2*f[:, :, t]**2 + B3*f[:, :, t]**3 + u
 
 
 # ------------------------------------- Printing ------------------------------
@@ -79,17 +94,12 @@ elif sup_model == 'ann_deep':
     alpha_ann = 0.001
 
 
-r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
-                       Phi, mu_eps, Omega, nonlinear=nonlinear, nn=nn,
-                       sig_nn=sig_nn, nonlineartype=nonlineartype)
-
-
 # ------------------------------------- Markovitz portfolio -------------------
-# used only to determine bounds for RL optimization
+# used only to determine decent bounds for the RL optimization
 
-Markovitz = compute_markovitz(df_factor.to_numpy(), gamma, B, Sigma)
+Markovitz = compute_markovitz(f[:, 0, :].flatten(), gamma, B, Sigma)
 
-lot_size = np.max(np.abs(np.diff(Markovitz)))*1.5
+lot_size = np.max(np.abs(np.diff(Markovitz)))
 print('lot_size =', lot_size)
 
 
@@ -118,7 +128,7 @@ for b in range(n_batches):  # loop on batches
         qb_list.append(load('models/q%d.joblib' % (b-1)))  # import regressors
 
         def q_value(state, action):
-            return q_hat(state, action, n_batches, qb_list,
+            return q_hat(state, action, qb_list,
                          flag_qaverage=False,
                          n_models=None)
 
@@ -128,7 +138,7 @@ for b in range(n_batches):  # loop on batches
 
     gen_ep_part = partial(generate_episode,
                           # market parameters
-                          Lambda=Lambda, B=B, mu_u=mu_u, Sigma=Sigma,
+                          Lambda=Lambda, next_step=next_step, Sigma=Sigma,
                           # market simulations
                           f=f[:, b, :],
                           # RL parameters
@@ -269,7 +279,7 @@ for b in range(n_batches):
 
 
 def q_value(state, action):
-    return q_hat(state, action, B, qb_list, flag_qaverage=False, n_models=None)
+    return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
 
 
 if parallel_computing:

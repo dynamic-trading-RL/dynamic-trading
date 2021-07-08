@@ -79,7 +79,7 @@ for b in range(n_batches):
 
 
 def q_value(state, action):
-    return q_hat(state, action, B, qb_list, flag_qaverage=False, n_models=None)
+    return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
 
 
 if parallel_computing:

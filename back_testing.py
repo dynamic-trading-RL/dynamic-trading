@@ -31,6 +31,7 @@ df_return = load('data/df_return.joblib')
 df_factor = load('data/df_factor.joblib')
 t_ = load('data/t_.joblib')
 B = load('data/B.joblib')
+mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
 Phi = load('data/Phi.joblib')
 Lambda = load('data/Lambda.joblib')
@@ -66,7 +67,7 @@ for b in range(n_batches):
 
 
 def q_value(state, action):
-    return q_hat(state, action, B, qb_list, flag_qaverage=False, n_models=None)
+    return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
 
 
 shares = compute_rl(0, df_factor.to_numpy(), q_value, lot_size, optimizers,

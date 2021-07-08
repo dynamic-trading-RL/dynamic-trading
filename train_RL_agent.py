@@ -37,20 +37,38 @@ nonlinear = True
 sup_model = 'ann_fast'  # or random_forest or ann_deep
 
 # Import parameters from previous scripts
+
 df_factor = load('data/df_factor.joblib')
 t_ = load('data/t_.joblib')
-nn = load('data/nn.joblib')
+
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
+
+nn = load('data/nn.joblib')
 sig_nn = load('data/sig_nn.joblib')
+
 Phi = load('data/Phi.joblib')
 mu_eps = load('data/mu_eps.joblib')
 Omega = load('data/Omega.joblib')
-Lambda = load('data/Lambda.joblib')
+
 lam = load('data/lam.joblib')
+Lambda = load('data/Lambda.joblib')
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
+
+
+if nonlinear:
+
+    def next_step(f_t):
+
+        return nn.predict(f_t)
+
+else:
+
+    def next_step(f_t):
+
+        return B*f_t + mu_u
 
 
 # ------------------------------------- Printing ------------------------------
@@ -77,22 +95,25 @@ elif sup_model == 'ann_deep':
     alpha_ann = 0.001
 
 
+# ------------------------------------- Market simulations --------------------
+
+r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
+                       Phi, mu_eps, Omega, nonlinear=nonlinear, nn=nn,
+                       sig_nn=sig_nn)  # ??? use next step
+
+
 # ------------------------------------- Markovitz portfolio -------------------
 # used only to determine bounds for RL optimization
 
-Markovitz = compute_markovitz(df_factor.to_numpy(), gamma, B, Sigma)
+Markovitz = compute_markovitz(f[:, 0, :].flatten(), gamma, B, Sigma)
 
-lot_size = np.max(np.abs(np.diff(Markovitz)))*1.5
+lot_size = np.max(np.abs(np.diff(Markovitz)))
 print('lot_size =', lot_size)
 
 
 # ------------------------------------- Reinforcement learning ----------------
 
 qb_list = []  # list to store models
-
-r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
-                       Phi, mu_eps, Omega, nonlinear=nonlinear, nn=nn,
-                       sig_nn=sig_nn)
 
 optimizers = Optimizers()
 
@@ -115,7 +136,7 @@ for b in range(n_batches):  # loop on batches
         qb_list.append(load('models/q%d.joblib' % (b-1)))  # import regressors
 
         def q_value(state, action):
-            return q_hat(state, action, n_batches, qb_list,
+            return q_hat(state, action, qb_list,
                          flag_qaverage=False,
                          n_models=None)
 
@@ -125,7 +146,7 @@ for b in range(n_batches):  # loop on batches
 
     gen_ep_part = partial(generate_episode,
                           # market parameters
-                          Lambda=Lambda, B=B, mu_u=mu_u, Sigma=Sigma,
+                          Lambda=Lambda, next_step=next_step, Sigma=Sigma,
                           # market simulations
                           f=f[:, b, :],
                           # RL parameters

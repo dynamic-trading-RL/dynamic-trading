@@ -89,13 +89,13 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
 
 
 def reward(x_tm1, x_t, f_t,
-           Lambda, B, mu_u, Sigma,
+           Lambda, next_step, Sigma,
            rho, gamma):
 
     delta_x = x_t - x_tm1
 
     return -0.5*delta_x*Lambda*delta_x +\
-        (1 - rho)*(x_t*(B*f_t + mu_u) - 0.5*gamma*x_t*Sigma*x_t)
+        (1 - rho)*(x_t*next_step(f_t) - 0.5*gamma*x_t*Sigma*x_t)
 
 
 # -----------------------------------------------------------------------------
@@ -171,7 +171,7 @@ def generate_episode(
                      # dummy for parallel computing
                      j,
                      # market parameters
-                     Lambda, B, mu_u, Sigma,
+                     Lambda, next_step, Sigma,
                      # market simulations
                      f,
                      # RL parameters
@@ -214,8 +214,8 @@ def generate_episode(
 
         # Observe r
 
-        reward_t = reward(state[0], state_[0], f[j, t], Lambda, B, mu_u, Sigma,
-                          rho, gamma)
+        reward_t = reward(state[0], state_[0], f[j, t], Lambda, next_step,
+                          Sigma, rho, gamma)
         reward_total += reward_t
         cost_total += -0.5*((state_[0]-state[0])*Lambda*(state_[0]-state[0]) +
                             (1 - rho)*gamma*state_[0]*Sigma*state_[0])
@@ -242,7 +242,7 @@ def generate_episode(
 # -----------------------------------------------------------------------------
 
 def q_hat(state, action,
-          B, qb_list,
+          qb_list,
           flag_qaverage=True, n_models=None):
     """
     This function evaluates the estimated q-value function in a given state and

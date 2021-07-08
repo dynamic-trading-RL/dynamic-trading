@@ -214,16 +214,21 @@ df_factor = df_factor.iloc[-t_:]
 
 dump(df_return, 'data/df_return.joblib')
 dump(df_factor, 'data/df_factor.joblib')
+
 dump(t_, 'data/t_.joblib')
-dump(nn, 'data/nn.joblib')
+
 dump(B, 'data/B.joblib')
 dump(mu_u, 'data/mu_u.joblib')
 dump(Sigma, 'data/Sigma.joblib')
+
+dump(nn, 'data/nn.joblib')
+dump(sig_nn, 'data/sig_nn.joblib')
+
 dump(Phi, 'data/Phi.joblib')
 dump(mu_eps, 'data/mu_eps.joblib')
 dump(Omega, 'data/Omega.joblib')
+
 dump(lam, 'data/lam.joblib')
 dump(Lambda, 'data/Lambda.joblib')
-dump(sig_nn, 'data/sig_nn.joblib')
 dump(gamma, 'data/gamma.joblib')
 dump(rho, 'data/rho.joblib')
