@@ -28,22 +28,31 @@ j_ = 10000  # number of out-of-sample paths
 optimizer = None
 parallel_computing = True  # set to True if you want to use parallel computing
 n_cores_max = 80               # maximum number of cores if parallel_computing
-nonlinear = True
 
 # Import parameters from previous scripts
+nonlinear = load('data/nonlinear.joblib')
+
 t_ = load('data/t_.joblib')
-nn = load('data/nn.joblib')
+
+
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
-sig_nn = load('data/sig_nn.joblib')
+
+reg_pol = load('data/reg_pol.joblib')
+B_list_fitted = load('data/B_list_fitted.joblib')
+sig_pol_fitted = load('data/sig_pol_fitted.joblib')
+
 Phi = load('data/Phi.joblib')
 mu_eps = load('data/mu_eps.joblib')
 Omega = load('data/Omega.joblib')
+
 Lambda = load('data/Lambda.joblib')
 lam = load('data/lam.joblib')
+
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
+
 n_batches = load('data/n_batches.joblib')
 lot_size = load('data/lot_size.joblib')
 optimizers = load('data/optimizers.joblib')
@@ -57,8 +66,19 @@ if parallel_computing:
 # ------------------------------------- Simulate ------------------------------
 
 # Simulate market
-r, f = simulate_market(j_, t_, 1, B, mu_u, Sigma, Phi, mu_eps, Omega,
-                       nonlinear=nonlinear, nn=nn, sig_nn=sig_nn)
+if nonlinear:
+    r, f = simulate_market(j_, t_, 1, 0, 0, 0, Phi, mu_eps, Omega,
+                           nonlinear=nonlinear,
+                           nonlineartype='polynomial',
+                           nn=None, sig_nn=None,
+                           B_list=B_list_fitted, sig_pol=sig_pol_fitted)
+else:
+    r, f = simulate_market(j_, t_, 1, B, mu_u, Sigma, Phi, mu_eps, Omega,
+                           nonlinear=nonlinear,
+                           nonlineartype=None,
+                           nn=None, sig_nn=None,
+                           B_list=None, sig_pol=None)
+
 
 # Markovitz portfolio
 print('#### Computing Markovitz strategy')
@@ -103,14 +123,16 @@ else:
                                   optimizer=optimizer)
 
 # Wealth
-wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho, B,
-                                                 Sigma, Phi)
+if nonlinear:
+    sig = sig_pol_fitted
+else:
+    sig = Sigma
 
-wealth_m, value_m, cost_m = compute_wealth(r, Markovitz, gamma, Lambda, rho, B,
-                                           Sigma, Phi)
+wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho, sig)
 
-wealth_rl, value_rl, cost_rl = compute_wealth(r, shares, gamma, Lambda, rho, B,
-                                              Sigma, Phi)
+wealth_m, value_m, cost_m = compute_wealth(r, Markovitz, gamma, Lambda, rho, sig)
+
+wealth_rl, value_rl, cost_rl = compute_wealth(r, shares, gamma, Lambda, rho, sig)
 
 
 # ------------------------------------- Plots ---------------------------------

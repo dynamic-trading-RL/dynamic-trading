@@ -27,17 +27,30 @@ print('######## Backtesting')
 optimizer = None
 
 # Import parameters from previos scripts
+
+nonlinear = load('data/nonlinear.joblib')
+
 df_return = load('data/df_return.joblib')
 df_factor = load('data/df_factor.joblib')
+
 t_ = load('data/t_.joblib')
+
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
+
+reg_pol = load('data/reg_pol.joblib')
+B_list_fitted = load('data/B_list_fitted.joblib')
+sig_pol_fitted = load('data/sig_pol_fitted.joblib')
+
 Phi = load('data/Phi.joblib')
+
 Lambda = load('data/Lambda.joblib')
 lam = load('data/lam.joblib')
+
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
+
 n_batches = load('data/n_batches.joblib')
 lot_size = load('data/lot_size.joblib')
 optimizers = load('data/optimizers.joblib')
@@ -89,17 +102,19 @@ df_strategies.columns = ['Optimal shares', 'Optimal trades',
 
 # Wealth
 
+if nonlinear:
+    sig = sig_pol_fitted
+else:
+    sig = Sigma
+
 wealth_opt, value_opt, cost_opt = compute_wealth(df_return.to_numpy(), x,
-                                                 gamma, Lambda, rho, B, Sigma,
-                                                 Phi)
+                                                 gamma, Lambda, rho, sig)
 
 wealth_m, value_m, cost_m = compute_wealth(df_return.to_numpy(), Markovitz,
-                                           gamma, Lambda, rho, B, Sigma,
-                                           Phi)
+                                           gamma, Lambda, rho, sig)
 
 wealth_rl, value_rl, cost_rl = compute_wealth(df_return.to_numpy(), shares,
-                                              gamma, Lambda, rho, B, Sigma,
-                                              Phi)
+                                              gamma, Lambda, rho, sig)
 
 df_wealth = pd.DataFrame(data=np.c_[value_opt, value_m, value_rl,
                                     cost_opt, cost_m, cost_rl,

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
 from sklearn.linear_model import LinearRegression
-from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import PolynomialFeatures
 from joblib import dump
 from dt_functions import fit_cointegration, PY_FAIL
 
@@ -118,6 +118,7 @@ df_returns = df_values.diff().copy()
 df_returns.dropna(inplace=True)
 
 # ------------------------------------- Factors -------------------------------
+
 window = 5
 
 # Compute moving average
@@ -129,7 +130,7 @@ else:
 
 df_mov_av.dropna(inplace=True)
 dates = df_mov_av.index
-df_returns = df_returns.loc[dates].copy()
+df_returns = df_returns.loc[dates]
 
 # Determine factors
 if cointegration:
@@ -196,14 +197,22 @@ mu_u = reg.intercept_[0]
 Sigma = (np.array(df_return.iloc[1:]) -
          B*np.array(df_factor.iloc[:-1]) -
          mu_u).var()
-Lambda = lam*Sigma
 
-# Fit non-linear model for the returns
-nn =\
-    MLPRegressor(hidden_layer_sizes=(100, 80, 30)).fit(X=np.array(df_factor.iloc[:-1]).reshape(-1, 1),
-                                                       y=np.array(df_return.iloc[1:]).reshape(-1, 1))
-sig_nn = (np.array(df_return.iloc[1:]) -
-          nn.predict(np.array(df_factor.iloc[:-1]).reshape((-1, 1)))).var()
+# Fit non-linear models for the returns
+poly = PolynomialFeatures(3, include_bias=False)
+X = poly.fit_transform(np.array(df_factor.iloc[:-1]).reshape(-1, 1))
+
+reg_pol = LinearRegression().fit(X=X,
+                                 y=np.array(df_return.iloc[1:]).reshape(-1, 1))
+
+B_list_fitted = [reg_pol.intercept_[0]] + list(reg_pol.coef_[0])
+
+sig_pol_fitted = (np.array(df_return.iloc[1:]).reshape(-1, 1) -
+                  reg_pol.predict(X)).var()
+
+Lambda = lam*sig_pol_fitted  # Lambda is the true cost multiplier;
+                             # the polynomial one is the best possible when
+                             # dealing with data with unknown distribution
 
 # shorten time series
 df_return = df_return.iloc[-t_:]
@@ -221,8 +230,9 @@ dump(B, 'data/B.joblib')
 dump(mu_u, 'data/mu_u.joblib')
 dump(Sigma, 'data/Sigma.joblib')
 
-dump(nn, 'data/nn.joblib')
-dump(sig_nn, 'data/sig_nn.joblib')
+dump(reg_pol, 'data/reg_pol.joblib')
+dump(B_list_fitted, 'data/B_list_fitted.joblib')
+dump(sig_pol_fitted, 'data/sig_pol_fitted.joblib')
 
 dump(Phi, 'data/Phi.joblib')
 dump(mu_eps, 'data/mu_eps.joblib')

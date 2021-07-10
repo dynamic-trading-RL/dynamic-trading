@@ -51,7 +51,11 @@ class Optimizers:
 
 
 def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
-                    nonlinear=False, nn=None, sig_nn=None, nonlineartype='nn'):
+                    nonlinear=False,   # if True, the parameters below are used
+                    nonlineartype='nn',  # can be 'nn' or 'polynomial'
+                    nn=None, sig_nn=None,  # nn parameters
+                    B_list=None, sig_pol=None  # polynomial parameters
+                    ):
 
     f = np.zeros((j_, n_batches, t_))
     f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
@@ -60,8 +64,6 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
                 np.sqrt(Omega)*np.random.randn(j_, n_batches)
 
     r = np.zeros((j_, n_batches, t_))
-    r[:, :, 0] = 0.
-
     if nonlinear:
         if nonlineartype == 'nn':
             ff = f[:, :, :-1].flatten()
@@ -69,9 +71,10 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
                 np.sqrt(sig_nn)*np.random.randn(j_*n_batches*(t_-1))
             r[:, :, 1:] = rr.reshape((j_, n_batches, t_-1))
 
-        elif nonlineartype == 'quadratic':
-            r[:, :, 1:] = mu_u + B*f[:, :, :-1]**2 +\
-                np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
+        elif nonlineartype == 'polynomial':
+            for n in range(len(B_list)):
+                r[:, :, 1:] += B_list[n]*f[:, :, :-1]**n
+            r[:, :, 1:] += np.sqrt(sig_pol)*np.random.randn(j_, n_batches, t_-1)
 
         else:
             PY_FAIL('Invalid nonlineartype:' + str(nonlineartype))
@@ -89,13 +92,13 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
 
 
 def reward(x_tm1, x_t, f_t,
-           Lambda, next_step, Sigma,
+           Lambda, next_step, sig,
            rho, gamma):
 
     delta_x = x_t - x_tm1
 
     return -0.5*delta_x*Lambda*delta_x +\
-        (1 - rho)*(x_t*next_step(f_t) - 0.5*gamma*x_t*Sigma*x_t)
+        (1 - rho)*(x_t*next_step(f_t) - 0.5*gamma*x_t*sig*x_t)
 
 
 # -----------------------------------------------------------------------------
@@ -171,7 +174,7 @@ def generate_episode(
                      # dummy for parallel computing
                      j,
                      # market parameters
-                     Lambda, next_step, Sigma,
+                     Lambda, next_step, sig,
                      # market simulations
                      f,
                      # RL parameters
@@ -210,15 +213,16 @@ def generate_episode(
         if np.random.rand() < eps:
             action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
         else:
-            action_ = maxAction(q_value, state_, lot_size, optimizers, optimizer)
+            action_ = maxAction(q_value, state_, lot_size, optimizers,
+                                optimizer)
 
         # Observe r
 
         reward_t = reward(state[0], state_[0], f[j, t], Lambda, next_step,
-                          Sigma, rho, gamma)
+                          sig, rho, gamma)
         reward_total += reward_t
         cost_total += -0.5*((state_[0]-state[0])*Lambda*(state_[0]-state[0]) +
-                            (1 - rho)*gamma*state_[0]*Sigma*state_[0])
+                            (1 - rho)*gamma*state_[0]*sig*state_[0])
 
         # Update value function
         y = q_value(state, action) +\
@@ -432,7 +436,7 @@ def compute_rl(j, f, q_value, lot_size, optimizers, optimizer=None):
 # compute_wealth
 # -----------------------------------------------------------------------------
 
-def compute_wealth(r, strat, gamma, Lambda, rho, B, Sigma, Phi):
+def compute_wealth(r, strat, gamma, Lambda, rho, sig):
 
     if r.ndim == 1:
         t_ = r.shape[0]
@@ -453,7 +457,7 @@ def compute_wealth(r, strat, gamma, Lambda, rho, B, Sigma, Phi):
     for t in range(1, t_):
         delta_strat = strat[:, t] - strat[:, t-1]
         cost[:, t] =\
-            gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*Sigma*strat[:, t] +\
+            gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*sig*strat[:, t] +\
             0.5*(1 - rho)**t * delta_strat*Lambda*delta_strat
     cost = np.cumsum(cost, axis=1)
 
