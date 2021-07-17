@@ -26,9 +26,9 @@ print('######## Analizing time series')
 # ------------------------------------- Parameters ----------------------------
 
 to_analyze = 'WTI'  # set != None if you want to analyze a specific time series
-cointegration = False  # Set to true if you want to use the coint. ptf as signal
+cointegration = True  # Set to true if you want to use the coint. ptf as signal
 t_ = 50             # length of the time series to save and use for backtesting
-standardize = False  # set to true if you want to standardize the factors
+signal_type = 'MACD'
 
 # Model parameters
 lam = 10**-2               # costs factor: ??? should be calibrated
@@ -119,14 +119,14 @@ df_returns.dropna(inplace=True)
 
 # ------------------------------------- Factors -------------------------------
 
-window = 5
-
-# Compute moving average
-if standardize:
-    df_mov_av = (df_returns.rolling(window=window).mean() /
-                 df_returns.rolling(window=window).std()).copy()
-else:
+if signal_type == 'MA':
+    window = 5
+    # Compute moving average
     df_mov_av = df_returns.rolling(window=window).mean().copy()
+
+elif signal_type == 'MACD':
+    df_mov_av = df_returns.ewm(span=12).mean().copy() -\
+        df_returns.ewm(span=26).mean().copy()
 
 df_mov_av.dropna(inplace=True)
 dates = df_mov_av.index

@@ -130,9 +130,11 @@ else:
 
 wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho, sig)
 
-wealth_m, value_m, cost_m = compute_wealth(r, Markovitz, gamma, Lambda, rho, sig)
+wealth_m, value_m, cost_m = compute_wealth(r, Markovitz, gamma, Lambda, rho,
+                                           sig)
 
-wealth_rl, value_rl, cost_rl = compute_wealth(r, shares, gamma, Lambda, rho, sig)
+wealth_rl, value_rl, cost_rl = compute_wealth(r, shares, gamma, Lambda, rho,
+                                              sig)
 
 
 # ------------------------------------- Plots ---------------------------------
@@ -159,3 +161,20 @@ plt.legend(loc='upper right')
 plt.title('Total wealth')
 
 plt.savefig('figures/out-of-sample.png')
+
+
+plt.figure(figsize=(1280.0/72.0, 720.0/72.0), dpi=72.0)
+plt.scatter(wealth_opt[:, -1], wealth_rl[:, -1])
+xx = [min(wealth_opt[:, -1].min(), wealth_rl[:, -1].min()),
+      max(wealth_opt[:, -1].max(), wealth_rl[:, -1].max())]
+plt.plot(xx, xx, color='r')
+
+xlim = [min(np.quantile(wealth_opt[:, -1], 0.05),
+            np.quantile(wealth_rl[:, -1], 0.05)),
+        max(np.quantile(wealth_opt[:, -1], 0.95),
+            np.quantile(wealth_rl[:, -1], 0.95))]
+plt.xlim(xlim)
+plt.ylim(xlim)
+plt.title('GP vs RL')
+
+plt.savefig('figures/out-of-sample-gpvsrl.png')

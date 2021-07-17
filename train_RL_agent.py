@@ -111,7 +111,8 @@ if nonlinear:
                            nn=None, sig_nn=None,
                            B_list=B_list_fitted, sig_pol=sig_pol_fitted)
 else:
-    r, f = simulate_market(j_, t_, 1, B, mu_u, Sigma, Phi, mu_eps, Omega,
+    r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
+                           Phi, mu_eps, Omega,
                            nonlinear=nonlinear,
                            nonlineartype=None,
                            nn=None, sig_nn=None,

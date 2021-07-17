@@ -25,13 +25,13 @@ from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers,
 
 # ------------------------------------- Parameters ----------------------------
 
-parallel_computing = True       # True for parallel computing
+parallel_computing = False       # True for parallel computing
 n_cores_max = 80                # maximum number of cores if parallel_computing
 n_batches = 5                   # number of batches
 eps = 0.1                       # eps greedy
 alpha = 1                       # learning rate
 t_ = 50
-j_ = 15000                      # number of episodes
+j_ = 10000                      # number of episodes
 optimizer = None
 nonlinear = True
 
@@ -43,20 +43,22 @@ mu_eps = 0.
 Omega = 0.13
 
 # Real returns dynamics
-B1 = 0.07
-B2 = 0.1
-B3 = -0.04
-mu_u_pol = 0.
+B1 = 0.09
+B2 = -0.12
+B3 = -0.06
+mu_u_pol = 0.04
 B_list = [mu_u_pol, B1, B2, B3]
-sig_pol = 0.02
+sig_pol = 1.71
 
-lam = 1
+lam = 10**-2
 Lambda = lam*sig_pol  # Lambda is the true cost multiplier
-gamma = 0.1
+gamma = 10**-3
 rho = 1-np.exp(-0.02/260)
 
 
 # ------------------------------------- Mkt simulations -----------------------
+
+# Assume this is the TRUE market, i.e. driven by parameters B_list and sig_pol
 
 r, f = simulate_market(j_, t_, n_batches, 0, 0, 0, Phi, mu_eps, Omega,
                        nonlinear=True, # if True, the parameters below are used
@@ -65,8 +67,15 @@ r, f = simulate_market(j_, t_, n_batches, 0, 0, 0, Phi, mu_eps, Omega,
                        B_list=B_list, sig_pol=sig_pol  # polynomial parameters
                        )
 
+# ??? we can add stochastic volatility keeping a linear model:
+# r_{t+1} = mu_u + B*f_{t} + sig_{t+1}*u_{t+1}
+# ln(sig_{t+1}) = alpha + beta*ln(sig_{t}) + eta_{t+1}
+
 
 # ------------------------------------- Fit linear model ----------------------
+
+# A trader following Garleanu-Pedersen would use these fitted parameters
+
 # Fit linear model for the returns
 reg = LinearRegression().fit(X=f[:, :, :-1].flatten().reshape(-1, 1),
                              y=r[:, :, 1:].flatten().reshape(-1, 1))
@@ -78,6 +87,9 @@ Sigma = (r[:, :, 1:].flatten() -
 
 
 # ------------------------------------- Fit polynomial model ------------------
+
+# A trader following RL would use these fitted parameters
+
 # Fit non-linear model for the returns
 
 poly = PolynomialFeatures(3, include_bias=False)
@@ -119,6 +131,9 @@ elif sup_model == 'ann_deep':
 
 
 # ------------------------------------- Reinforcement learning ----------------
+
+# The trader using RL simulates the market according to B_list_fitted and
+# sig_pol_fitted
 
 r, f = simulate_market(j_, t_, n_batches, 0, 0, 0, Phi, mu_eps, Omega,
                        nonlinear=True,
@@ -258,10 +273,13 @@ dump(optimizers, 'data/optimizers.joblib')
 
 print('######## Out of sample')
 
-j_oos = 10000  # number of out-of-sample paths
+j_oos = 100  # number of out-of-sample paths
 
 
 # ------------------------------------- Simulate ------------------------------
+
+# To test out-of-sample, the trader uses the polynomial fit. However, we
+# compute the Markovitz and GP strategies using the linear fit
 
 # Simulate market
 r, f = simulate_market(j_oos, t_, 1, 0, 0, 0, Phi, mu_eps, Omega,
@@ -315,6 +333,7 @@ else:
                                   optimizer=optimizer)
 
 # Wealth
+# the wealth must be computed according to the simulated market
 wealth_opt, value_opt, cost_opt = compute_wealth(r, x, gamma, Lambda, rho,
                                                  sig_pol_fitted)
 
@@ -349,3 +368,20 @@ plt.legend(loc='upper right')
 plt.title('Total wealth')
 
 plt.savefig('figures/out-of-sample.png')
+
+
+plt.figure(figsize=(1280.0/72.0, 720.0/72.0), dpi=72.0)
+plt.scatter(wealth_opt[:, -1], wealth_rl[:, -1])
+xx = [min(wealth_opt[:, -1].min(), wealth_rl[:, -1].min()),
+      max(wealth_opt[:, -1].max(), wealth_rl[:, -1].max())]
+plt.plot(xx, xx, color='r')
+
+xlim = [min(np.quantile(wealth_opt[:, -1], 0.05),
+            np.quantile(wealth_rl[:, -1], 0.05)),
+        max(np.quantile(wealth_opt[:, -1], 0.95),
+            np.quantile(wealth_rl[:, -1], 0.95))]
+plt.xlim(xlim)
+plt.ylim(xlim)
+plt.title('GP vs RL')
+
+plt.savefig('figures/out-of-sample-gpvsrl.png')
