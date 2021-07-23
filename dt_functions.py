@@ -54,14 +54,25 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
                     nonlinear=False,   # if True, the parameters below are used
                     nonlineartype='nn',  # can be 'nn' or 'polynomial'
                     nn=None, sig_nn=None,  # nn parameters
-                    B_list=None, sig_pol=None  # polynomial parameters
-                    ):
+                    B_list=None, sig_pol=None,  # polynomial parameters
+                    factor_distr=None):
 
     f = np.zeros((j_, n_batches, t_))
-    f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
+    if factor_distr == 'student-t':
+        f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.standard_t(4,
+                                                                  size=(j_, n_batches))
+    else:
+        f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
+
     for t in range(1, t_-1):
-        f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
-                np.sqrt(Omega)*np.random.randn(j_, n_batches)
+
+        if factor_distr == 'student-t':
+            f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
+                    np.sqrt(Omega)*np.random.standard_t(4, size=(j_, n_batches))
+
+        else:
+            f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
+                    np.sqrt(Omega)*np.random.randn(j_, n_batches)
 
     r = np.zeros((j_, n_batches, t_))
     if nonlinear:

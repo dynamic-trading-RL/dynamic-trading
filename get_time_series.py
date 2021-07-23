@@ -7,6 +7,7 @@ Created on Fri May 28 23:34:59 2021
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from statsmodels.tsa.ar_model import AutoReg
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
@@ -214,7 +215,20 @@ Lambda = lam*sig_pol_fitted  # Lambda is the true cost multiplier;
                              # the polynomial one is the best possible when
                              # dealing with data with unknown distribution
 
-# shorten time series
+
+# ------------------------------------- Plot of fit ---------------------------
+
+
+plt.scatter(df_factor.iloc[:-1], df_return.iloc[1:], s=0.1)
+xx = np.linspace(-0.5, 0.7).reshape(-1, 1)
+XX = poly.fit_transform(xx)
+plt.plot(xx, reg_pol.predict(XX), label='poly')
+plt.plot(xx, reg.predict(xx), label='lin')
+plt.legend()
+
+
+# ------------------------------------- Shorten time series -------------------
+
 df_return = df_return.iloc[-t_:]
 df_factor = df_factor.iloc[-t_:]
 

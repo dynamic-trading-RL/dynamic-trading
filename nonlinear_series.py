@@ -25,7 +25,7 @@ from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers,
 
 # ------------------------------------- Parameters ----------------------------
 
-parallel_computing = False       # True for parallel computing
+parallel_computing = True       # True for parallel computing
 n_cores_max = 80                # maximum number of cores if parallel_computing
 n_batches = 5                   # number of batches
 eps = 0.1                       # eps greedy
@@ -38,21 +38,21 @@ nonlinear = True
 # RL model
 sup_model = 'ann_fast'  # or random_forest or ann_deep
 
-Phi = 0.23
+Phi = 0.49
 mu_eps = 0.
-Omega = 0.13
+Omega = 0.004
 
 # Real returns dynamics
-B1 = 0.09
-B2 = -0.12
-B3 = -0.06
-mu_u_pol = 0.04
+B1 = 0  # 2.71
+B2 = 3.69
+B3 = 0  # -32.86
+mu_u_pol = 0.
 B_list = [mu_u_pol, B1, B2, B3]
-sig_pol = 1.71
+sig_pol = 0.00173
 
 lam = 10**-2
 Lambda = lam*sig_pol  # Lambda is the true cost multiplier
-gamma = 10**-3
+gamma = 10**-2
 rho = 1-np.exp(-0.02/260)
 
 
@@ -64,12 +64,8 @@ r, f = simulate_market(j_, t_, n_batches, 0, 0, 0, Phi, mu_eps, Omega,
                        nonlinear=True, # if True, the parameters below are used
                        nonlineartype='polynomial',  # can be 'nn' or 'polynomial'
                        nn=None, sig_nn=None,  # nn parameters
-                       B_list=B_list, sig_pol=sig_pol  # polynomial parameters
-                       )
-
-# ??? we can add stochastic volatility keeping a linear model:
-# r_{t+1} = mu_u + B*f_{t} + sig_{t+1}*u_{t+1}
-# ln(sig_{t+1}) = alpha + beta*ln(sig_{t}) + eta_{t+1}
+                       B_list=B_list, sig_pol=sig_pol,  # polynomial parameters
+                       factor_distr=None)
 
 
 # ------------------------------------- Fit linear model ----------------------
@@ -103,6 +99,19 @@ B_list_fitted = [reg_pol.intercept_[0]] + list(reg_pol.coef_[0])
 sig_pol_fitted = (r[:, :, 1:].flatten().reshape(-1, 1) -
                   reg_pol.predict(X)).var()
 
+
+# ------------------------------------- Fit plot ------------------------------
+
+plt.figure(figsize=(1280.0/72.0, 720.0/72.0), dpi=72.0)
+plt.scatter(f[:, 0, :-1], r[:, 0, 1:], s=0.1, alpha=0.6)
+xx = np.linspace(-0.5, 0.5).reshape(-1, 1)
+XX = poly.fit_transform(xx)
+plt.plot(xx, reg_pol.predict(XX), color='k', label='poly')
+plt.plot(xx, reg.predict(xx), color='r', label='lin')
+plt.legend()
+plt.title('Factors vs Returns')
+
+plt.savefig('figures/factors-vs-returns.png')
 
 # ------------------------------------- Printing ------------------------------
 
@@ -144,7 +153,7 @@ r, f = simulate_market(j_, t_, n_batches, 0, 0, 0, Phi, mu_eps, Omega,
 
 # used only to determine decent bounds for the RL optimization
 Markovitz = compute_markovitz(f[:, 0, :].flatten(), gamma, B, Sigma)
-lot_size = np.max(np.abs(np.diff(Markovitz)))
+lot_size = np.max(np.abs(np.diff(Markovitz)))*3
 print('lot_size =', lot_size)
 
 qb_list = []  # list to store models
@@ -273,7 +282,7 @@ dump(optimizers, 'data/optimizers.joblib')
 
 print('######## Out of sample')
 
-j_oos = 100  # number of out-of-sample paths
+j_oos = 10000  # number of out-of-sample paths
 
 
 # ------------------------------------- Simulate ------------------------------
@@ -376,10 +385,8 @@ xx = [min(wealth_opt[:, -1].min(), wealth_rl[:, -1].min()),
       max(wealth_opt[:, -1].max(), wealth_rl[:, -1].max())]
 plt.plot(xx, xx, color='r')
 
-xlim = [min(np.quantile(wealth_opt[:, -1], 0.05),
-            np.quantile(wealth_rl[:, -1], 0.05)),
-        max(np.quantile(wealth_opt[:, -1], 0.95),
-            np.quantile(wealth_rl[:, -1], 0.95))]
+xlim = [min(np.quantile(wealth_opt[:, -1], 0.05), np.quantile(wealth_rl[:, -1], 0.05)),
+        max(np.quantile(wealth_opt[:, -1], 0.95), np.quantile(wealth_rl[:, -1], 0.95))]
 plt.xlim(xlim)
 plt.ylim(xlim)
 plt.title('GP vs RL')
