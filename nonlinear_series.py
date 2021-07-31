@@ -21,6 +21,8 @@ from functools import partial
 from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers,
                           compute_markovitz, compute_optimal, compute_rl,
                           compute_wealth)
+import random
+random.seed(789)
 
 
 # ------------------------------------- Parameters ----------------------------
@@ -31,7 +33,7 @@ n_batches = 5                   # number of batches
 eps = 0.1                       # eps greedy
 alpha = 1                       # learning rate
 t_ = 50
-j_ = 10000                      # number of episodes
+j_ = 15000                      # number of episodes
 optimizer = None
 nonlinear = True
 
@@ -43,16 +45,16 @@ mu_eps = 0.
 Omega = 0.004
 
 # Real returns dynamics
-B1 = 0  # 2.71
-B2 = 3.69
-B3 = 0  # -32.86
+B1 = -0.1  # 2.71
+B2 = 1.
+B3 = 1.2  # -32.86
 mu_u_pol = 0.
 B_list = [mu_u_pol, B1, B2, B3]
-sig_pol = 0.00173
+sig_pol = 0.0001
 
 lam = 10**-2
 Lambda = lam*sig_pol  # Lambda is the true cost multiplier
-gamma = 10**-2
+gamma = 1
 rho = 1-np.exp(-0.02/260)
 
 
@@ -64,8 +66,8 @@ r, f = simulate_market(j_, t_, n_batches, 0, 0, 0, Phi, mu_eps, Omega,
                        nonlinear=True, # if True, the parameters below are used
                        nonlineartype='polynomial',  # can be 'nn' or 'polynomial'
                        nn=None, sig_nn=None,  # nn parameters
-                       B_list=B_list, sig_pol=sig_pol,  # polynomial parameters
-                       factor_distr=None)
+                       B_list=B_list, sig_pol=sig_pol  # polynomial parameters
+                       )
 
 
 # ------------------------------------- Fit linear model ----------------------
@@ -110,7 +112,7 @@ plt.plot(xx, reg_pol.predict(XX), color='k', label='poly')
 plt.plot(xx, reg.predict(xx), color='r', label='lin')
 plt.legend()
 plt.title('Factors vs Returns')
-
+plt.axis('equal')
 plt.savefig('figures/factors-vs-returns.png')
 
 # ------------------------------------- Printing ------------------------------
@@ -127,9 +129,9 @@ if sup_model == 'random_forest':
     from sklearn.ensemble import RandomForestRegressor
 elif sup_model == 'ann_fast':
     from sklearn.neural_network import MLPRegressor
-    hidden_layer_sizes = (64, 32, 8)
-    max_iter = 10
-    n_iter_no_change = 2
+    hidden_layer_sizes = (100,)
+    max_iter = 50
+    n_iter_no_change = 10
     alpha_ann = 0.0001
 elif sup_model == 'ann_deep':
     from sklearn.neural_network import MLPRegressor
@@ -268,7 +270,7 @@ for b in range(n_batches):  # loop on batches
     print('    Average reward: %.3f' % np.mean(reward))
     print(optimizers)
 
-    eps = max(eps/3, 0.00001)  # update epsilon
+    eps = max(eps/3, 0.01)  # update epsilon
 
 
 # ------------------------------------- Dump data -----------------------------
