@@ -246,8 +246,7 @@ for b in range(n_batches):  # loop on batches
     cost = np.array(cost_sort)[ind_sort]
     print('    Average reward: %.3f' % np.mean(reward))
     print(optimizers)
-    if b > 0:
-        dump(np.mean(reward), 'models/reward%d.joblib' % (b-1))  # exp reward
+    dump(np.mean(reward), 'models/reward%d.joblib' % b)  # exp reward
 
     print('Fitting model %d of %d' % (b+1, n_batches))
     if sup_model == 'random_forest':

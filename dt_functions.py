@@ -291,7 +291,9 @@ def q_hat(state, action,
     elif flag_qaverage == 'best':
 
         best_idx = np.argmax(np.array(reward_list))
-        qb = qb_list[best_idx]
+        if best_idx == 0:
+            best_idx = 1
+        qb = qb_list[best_idx - 1]
 
         if is_simulation:
             res = res + qb.predict(np.c_[state, action])
