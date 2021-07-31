@@ -258,16 +258,17 @@ def generate_episode(
 
 def q_hat(state, action,
           qb_list,
-          flag_qaverage=True, n_models=None):
+          flag_qaverage='average', n_models=None, reward_list=None):
     """
     This function evaluates the estimated q-value function in a given state and
     action pair. The other parameters are given to include the cases of
     model averaging and data rescaling.
     """
+
     res = 0.
     is_simulation = (np.ndim(state) > 1)
 
-    if flag_qaverage:
+    if flag_qaverage == 'average':
         if n_models is None or n_models > len(qb_list):
             n_models = len(qb_list)
         for b in range(1, n_models+1):
@@ -278,8 +279,20 @@ def q_hat(state, action,
                 res = 0.5*(res + qb.predict(np.r_[state,
                                                   action].reshape(1, -1)))
         return res
-    else:
+
+    elif flag_qaverage == 'last':
         qb = qb_list[-1]
+        if is_simulation:
+            res = res + qb.predict(np.c_[state, action])
+        else:
+            res = res + qb.predict(np.r_[state, action].reshape(1, -1))
+        return res
+
+    elif flag_qaverage == 'best':
+
+        best_idx = np.argmax(np.array(reward_list))
+        qb = qb_list[best_idx]
+
         if is_simulation:
             res = res + qb.predict(np.c_[state, action])
         else:

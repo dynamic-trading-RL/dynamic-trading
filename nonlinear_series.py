@@ -63,8 +63,8 @@ rho = 1-np.exp(-0.02/260)
 # Assume this is the TRUE market, i.e. driven by parameters B_list and sig_pol
 
 r, f = simulate_market(j_, t_, n_batches, 0, 0, 0, Phi, mu_eps, Omega,
-                       nonlinear=True, # if True, the parameters below are used
-                       nonlineartype='polynomial',  # can be 'nn' or 'polynomial'
+                       nonlinear=True,  # if True, parameters below are used
+                       nonlineartype='polynomial',  # 'nn' or 'polynomial'
                        nn=None, sig_nn=None,  # nn parameters
                        B_list=B_list, sig_pol=sig_pol  # polynomial parameters
                        )
@@ -115,6 +115,7 @@ plt.title('Factors vs Returns')
 plt.axis('equal')
 plt.savefig('figures/factors-vs-returns.png')
 
+
 # ------------------------------------- Printing ------------------------------
 
 print('######## Training RL agent')
@@ -159,6 +160,7 @@ lot_size = np.max(np.abs(np.diff(Markovitz)))*3
 print('lot_size =', lot_size)
 
 qb_list = []  # list to store models
+reward_list = []  # list to store rewards
 
 optimizers = Optimizers()
 
@@ -187,11 +189,13 @@ for b in range(n_batches):  # loop on batches
     else:  # average models across previous batches
 
         qb_list.append(load('models/q%d.joblib' % (b-1)))  # import regressors
+        reward_list.append(load('models/reward%d.joblib' % (b-1)))  # imp. rew.
 
         def q_value(state, action):
             return q_hat(state, action, qb_list,
-                         flag_qaverage=False,
-                         n_models=None)
+                         flag_qaverage='best',
+                         n_models=None,
+                         reward_list=reward_list)
 
     # generate episodes
     # create alias for generate_episode that fixes all the parameters but j
@@ -240,14 +244,10 @@ for b in range(n_batches):  # loop on batches
     j_sort = np.sort(j_sort)
     reward = np.array(reward_sort)[ind_sort]
     cost = np.array(cost_sort)[ind_sort]
-
-    # used as ylim in plots below
-    if b == 0:
-        min_Y = np.min(Y)
-        max_Y = np.max(Y)
-    else:
-        min_Y = min(np.min(Y), min_Y)
-        max_Y = max(np.max(Y), max_Y)
+    print('    Average reward: %.3f' % np.mean(reward))
+    print(optimizers)
+    if b > 0:
+        dump(np.mean(reward), 'models/reward%d.joblib' % (b-1))  # exp reward
 
     print('Fitting model %d of %d' % (b+1, n_batches))
     if sup_model == 'random_forest':
@@ -265,10 +265,9 @@ for b in range(n_batches):  # loop on batches
                              n_iter_no_change=n_iter_no_change
                              )
 
-    dump(model.fit(X, Y), 'models/q%d.joblib' % b)  # export regressor
+    qb = model.fit(X, Y)
+    dump(qb, 'models/q%d.joblib' % b)  # export regressor
     print('    Score: %.3f' % model.score(X, Y))
-    print('    Average reward: %.3f' % np.mean(reward))
-    print(optimizers)
 
     eps = max(eps/3, 0.01)  # update epsilon
 
@@ -294,10 +293,10 @@ j_oos = 10000  # number of out-of-sample paths
 
 # Simulate market
 r, f = simulate_market(j_oos, t_, 1, 0, 0, 0, Phi, mu_eps, Omega,
-                       nonlinear=True, # if True, the parameters below are used
-                       nonlineartype='polynomial',  # can be 'nn' or 'polynomial'
+                       nonlinear=True,  # if True, parameters below are used
+                       nonlineartype='polynomial',  # 'nn' or 'polynomial'
                        nn=None, sig_nn=None,  # nn parameters
-                       B_list=B_list_fitted, sig_pol=sig_pol_fitted  # polynomial parameters
+                       B_list=B_list_fitted, sig_pol=sig_pol_fitted
                        )
 
 
@@ -315,12 +314,16 @@ x = compute_optimal(f, gamma, Lambda, rho, B, Sigma, Phi)
 print('##### Computing RL strategy')
 
 qb_list = []
+reward_list = []
 for b in range(n_batches):
     qb_list.append(load('models/q%d.joblib' % b))
+    if b < n_batches - 1:
+        reward_list.append(load('models/reward%d.joblib' % b))
 
 
 def q_value(state, action):
-    return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
+    return q_hat(state, action, qb_list, flag_qaverage='best', n_models=None,
+                 reward_list=reward_list)
 
 
 if parallel_computing:
@@ -387,8 +390,10 @@ xx = [min(wealth_opt[:, -1].min(), wealth_rl[:, -1].min()),
       max(wealth_opt[:, -1].max(), wealth_rl[:, -1].max())]
 plt.plot(xx, xx, color='r')
 
-xlim = [min(np.quantile(wealth_opt[:, -1], 0.05), np.quantile(wealth_rl[:, -1], 0.05)),
-        max(np.quantile(wealth_opt[:, -1], 0.95), np.quantile(wealth_rl[:, -1], 0.95))]
+xlim = [min(np.quantile(wealth_opt[:, -1], 0.05), np.quantile(wealth_rl[:, -1],
+                                                              0.05)),
+        max(np.quantile(wealth_opt[:, -1], 0.95), np.quantile(wealth_rl[:, -1],
+                                                              0.95))]
 plt.xlim(xlim)
 plt.ylim(xlim)
 plt.title('GP vs RL')
