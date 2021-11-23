@@ -10,6 +10,7 @@ import yfinance as yf
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from arch import arch_model
+from arch.univariate import ARX, GARCH
 from statsmodels.tsa.ar_model import AutoReg
 import matplotlib.pyplot as plt
 
@@ -22,11 +23,11 @@ snp500 = snp500.loc[first_valid_loc:]
 snp500.name = '^GSPC'
 snp500 = snp500.to_frame()
 df = snp500.copy().iloc[-8000:]
-df['r'] = np.log(df['^GSPC'])
+df['r'] = 1000*np.log(df['^GSPC']).diff()
 
 # Factors
 window = 5
-df['f'] = df['r'].diff().rolling(window).mean()
+df['f'] = df['r'].rolling(window).mean()
 
 df.dropna(inplace=True)
 
@@ -71,7 +72,7 @@ print(reg_1.summary())
 # ------------------ FACTORS
 
 # GARCH(1, 1) on factors
-garch = arch_model(df['f'].diff().dropna(), p=1, q=1, rescale=True)
+garch = arch_model(df['f'].diff().dropna(), p=1, q=1, rescale=False)
 res_garch = garch.fit()
 resid = res_garch.resid
 sigma_garch = res_garch.conditional_volatility
@@ -83,7 +84,7 @@ beta_garch = res_garch.params['beta[1]']
 print(res_garch.summary())
 
 # TARCH(1, 1, 1) on factors
-tarch = arch_model(df['f'].diff().dropna(), p=1, o=1, q=1, rescale=True)
+tarch = arch_model(df['f'].diff().dropna(), p=1, o=1, q=1, rescale=False)
 res_tarch = tarch.fit()
 resid = res_tarch.resid
 sigma_tarch = res_tarch.conditional_volatility
@@ -94,6 +95,19 @@ alpha_tarch = res_tarch.params['alpha[1]']
 gamma_tarch = res_tarch.params['gamma[1]']
 beta_tarch = res_tarch.params['beta[1]']
 print(res_tarch.summary())
+
+# AR-TARCH(1, 1, 1) on factors
+arx = ARX(df['f'], lags=1, rescale=False)
+arx.volatility = GARCH(p=1, o=1, q=1)
+res_arx = arx.fit()
+Phi_arx = 1 - res_arx.params['f[1]']
+mu_arx = res_arx.params['Const']
+omega_arx = res_arx.params['omega']
+alpha_arx = res_arx.params['alpha[1]']
+gamma_arx = res_arx.params['gamma[1]']
+beta_arx = res_arx.params['beta[1]']
+print(res_arx.summary())
+
 
 # AR(1) on factors
 res_ar = AutoReg(df['f'], lags=1, old_names=False).fit()
@@ -130,8 +144,8 @@ from dt_functions import (ReturnDynamics, FactorDynamics,
                           ReturnDynamicsType, FactorDynamicsType,
                           MarketDynamics, Market)
 
-returnDynamicsType = ReturnDynamicsType.R1
-factorDynamicsType = FactorDynamicsType.F3
+returnDynamicsType = ReturnDynamicsType.R2
+factorDynamicsType = FactorDynamicsType.F5
 
 returnDynamics = ReturnDynamics(returnDynamicsType)
 factorDynamics = FactorDynamics(factorDynamicsType)
@@ -161,7 +175,9 @@ elif factorDynamicsType == FactorDynamicsType.F4:
                          'alpha': alpha_tarch, 'beta': beta_tarch,
                          'gamma': gamma_tarch, 'c': c}
 elif factorDynamicsType == FactorDynamicsType.F5:
-    raise NameError('AR-TARCH not yet fitted')
+    factor_parameters = {'B': 1-Phi_arx,'mu': mu_arx, 'omega': omega_arx,
+                         'alpha': alpha_arx, 'beta': beta_arx,
+                         'gamma': gamma_arx, 'c': c}
 
 
 returnDynamics.set_parameters(return_parameters)
@@ -171,21 +187,24 @@ marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
                                 factorDynamics=factorDynamics)
 
 market = Market(marketDynamics)
-market.simulate(j_=10000, t_=50)
+j_ = 1
+t_ = 8000
+market.simulate(j_=j_, t_=t_)
 
 f = market._simulations['f']
 r = market._simulations['r']
 
 fig = plt.figure()
-for j in range(50):
+for j in range(min(50, j_)):
     plt.plot(r[j, :], color='k', alpha=0.6)
 plt.title('Return')
 
 fig = plt.figure()
-for j in range(50):
+for j in range(min(50, j_)):
     plt.plot(f[j, :], color='r', alpha=0.6)
 plt.title('Factor')
 
 fig = plt.figure()
 plt.scatter(f[:, :-1].flatten(), r[:, 1:].flatten(), s=2)
 plt.title('Factor vs Return')
+

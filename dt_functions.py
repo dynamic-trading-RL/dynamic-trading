@@ -182,9 +182,7 @@ class Market:
             beta = parameters['beta']
 
             sig = np.zeros((j_, t_))
-            if alpha + beta >= 1:
-                raise NameError('Explosive GARCH')
-            sig[:, 0] = np.sqrt(omega / (1 - (alpha + beta)))
+            sig[:, 0] = np.sqrt(omega)
 
             epsi = np.zeros((j_, t_))
 
@@ -208,9 +206,7 @@ class Market:
             c = parameters['c']
 
             sig = np.zeros((j_, t_))
-            if alpha + beta + gamma >= 1:
-                raise NameError('Explosive TARCH')
-            sig[:, 0] = np.sqrt(omega / (1 - (alpha + beta + gamma)))
+            sig[:, 0] = np.sqrt(omega)
 
             epsi = np.zeros((j_, t_))
 
@@ -235,9 +231,7 @@ class Market:
             c = parameters['c']
 
             sig = np.zeros((j_, t_))
-            if alpha + beta + gamma >= 1:
-                raise NameError('Explosive TARCH')
-            sig[:, 0] = np.sqrt(omega / (1 - (alpha + beta + gamma)))
+            sig[:, 0] = np.sqrt(omega)
 
             epsi = np.zeros((j_, t_))
 
