@@ -19,62 +19,36 @@ from dt_functions import (simulate_market, q_hat, generate_episode, Optimizers,
                           compute_markovitz)
 
 
+np.random.seed(7890)
+
 print('######## Training RL agent')
 
 # ------------------------------------- Parameters ----------------------------
 
-parallel_computing = True       # True for parallel computing
-n_cores_max = 80                # maximum number of cores if parallel_computing
-n_batches = 5                   # number of batches
-eps = 0.1                       # eps greedy
-alpha = 1                       # learning rate
+parallel_computing = True      # True for parallel computing
+n_cores_max = 20               # maximum number of cores if parallel_computing
+n_batches = 8                  # number of batches
+eps = 0.1                      # eps greedy
+alpha = 1                      # learning rate
 j_ = 15000                      # number of episodes
 optimizer = None
-
-nonlinear = True  # Set to true if you want to consider the non-linear model
-                  # fitted in the get_time_series.py script
-dump(nonlinear, 'data/nonlinear.joblib')
-
 
 # RL model
 sup_model = 'ann_fast'  # or random_forest or ann_deep
 
 # Import parameters from previous scripts
-
 df_factor = load('data/df_factor.joblib')
 t_ = load('data/t_.joblib')
-
 B = load('data/B.joblib')
 mu_u = load('data/mu_u.joblib')
 Sigma = load('data/Sigma.joblib')
-
-reg_pol = load('data/reg_pol.joblib')
-B_list_fitted = load('data/B_list_fitted.joblib')
-sig_pol_fitted = load('data/sig_pol_fitted.joblib')
-
 Phi = load('data/Phi.joblib')
 mu_eps = load('data/mu_eps.joblib')
 Omega = load('data/Omega.joblib')
-
-lam = load('data/lam.joblib')
 Lambda = load('data/Lambda.joblib')
+lam = load('data/lam.joblib')
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
-
-
-if nonlinear:
-
-    def next_step(f_t):
-
-        f = np.array([f_t, f_t**2, f_t**3]).reshape(1, -1)
-
-        return reg_pol.predict(f)
-
-else:
-
-    def next_step(f_t):
-
-        return B*f_t + mu_u
 
 
 # ------------------------------------- Printing ------------------------------
@@ -101,37 +75,23 @@ elif sup_model == 'ann_deep':
     alpha_ann = 0.001
 
 
-# ------------------------------------- Reinforcement learning ----------------
-
-if nonlinear:
-    r, f = simulate_market(j_, t_, n_batches, 0, 0, 0,
-                           Phi, mu_eps, Omega,
-                           nonlinear=nonlinear,
-                           nonlineartype='polynomial',
-                           nn=None, sig_nn=None,
-                           B_list=B_list_fitted, sig_pol=sig_pol_fitted)
-else:
-    r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
-                           Phi, mu_eps, Omega,
-                           nonlinear=nonlinear,
-                           nonlineartype=None,
-                           nn=None, sig_nn=None,
-                           B_list=None, sig_pol=None)
-
-
+# ------------------------------------- Markovitz portfolio -------------------
 # used only to determine bounds for RL optimization
-Markovitz = compute_markovitz(f[:, 0, :].flatten(), gamma, B, Sigma)
+
+Markovitz = compute_markovitz(df_factor.to_numpy(), gamma, B, Sigma)
+
 lot_size = np.max(np.abs(np.diff(Markovitz)))
 print('lot_size =', lot_size)
 
+
+# ------------------------------------- Reinforcement learning ----------------
+
 qb_list = []  # list to store models
 
-optimizers = Optimizers()
+r, f = simulate_market(j_, t_, n_batches, B, mu_u, Sigma,
+                       Phi, mu_eps, Omega)
 
-if nonlinear:
-    sig = sig_pol_fitted
-else:
-    sig = Sigma
+optimizers = Optimizers()
 
 for b in range(n_batches):  # loop on batches
     print('Creating batch %d of %d; eps=%f' % (b+1, n_batches, eps))
@@ -152,17 +112,17 @@ for b in range(n_batches):  # loop on batches
         qb_list.append(load('models/q%d.joblib' % (b-1)))  # import regressors
 
         def q_value(state, action):
-            return q_hat(state, action, qb_list,
+            return q_hat(state, action, n_batches, qb_list,
                          flag_qaverage=False,
                          n_models=None)
 
     # generate episodes
     # create alias for generate_episode that fixes all the parameters but j
     # this way we can iterate it via multiprocessing.Pool.map()
+
     gen_ep_part = partial(generate_episode,
                           # market parameters
-                          Lambda=Lambda, next_step=next_step,
-                          sig=sig,
+                          Lambda=Lambda, B=B, mu_u=mu_u, Sigma=Sigma,
                           # market simulations
                           f=f[:, b, :],
                           # RL parameters
