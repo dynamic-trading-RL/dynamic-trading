@@ -6,17 +6,8 @@ Created on Fri May 28 17:16:57 2021
 """
 
 import numpy as np
-from sklearn.linear_model import LinearRegression
-from scipy.optimize import (dual_annealing, shgo, differential_evolution)
-
-
-# -----------------------------------------------------------------------------
-# PY_FAIL
-# -----------------------------------------------------------------------------
-
-def PY_FAIL(msg):
-
-    raise Exception("PULIB EX: " + msg)
+from scipy.optimize import (dual_annealing, shgo, differential_evolution,
+                            basinhopping)
 
 
 # -----------------------------------------------------------------------------
@@ -50,49 +41,18 @@ class Optimizers:
 # -----------------------------------------------------------------------------
 
 
-def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
-                    nonlinear=False,   # if True, the parameters below are used
-                    nonlineartype='nn',  # can be 'nn' or 'polynomial'
-                    nn=None, sig_nn=None,  # nn parameters
-                    B_list=None, sig_pol=None,  # polynomial parameters
-                    factor_distr=None):
+def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega):
 
     f = np.zeros((j_, n_batches, t_))
-    if factor_distr == 'student-t':
-        f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.standard_t(4,
-                                                                  size=(j_, n_batches))
-    else:
-        f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
-
+    f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
     for t in range(1, t_-1):
-
-        if factor_distr == 'student-t':
-            f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
-                    np.sqrt(Omega)*np.random.standard_t(4, size=(j_, n_batches))
-
-        else:
-            f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
-                    np.sqrt(Omega)*np.random.randn(j_, n_batches)
+        f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
+                np.sqrt(Omega)*np.random.randn(j_, n_batches)
 
     r = np.zeros((j_, n_batches, t_))
-    if nonlinear:
-        if nonlineartype == 'nn':
-            ff = f[:, :, :-1].flatten()
-            rr = nn.predict(ff.reshape((-1, 1))) +\
-                np.sqrt(sig_nn)*np.random.randn(j_*n_batches*(t_-1))
-            r[:, :, 1:] = rr.reshape((j_, n_batches, t_-1))
-
-        elif nonlineartype == 'polynomial':
-            for n in range(len(B_list)):
-                r[:, :, 1:] += B_list[n]*f[:, :, :-1]**n
-            r[:, :, 1:] += np.sqrt(sig_pol)*np.random.randn(j_, n_batches, t_-1)
-
-        else:
-            PY_FAIL('Invalid nonlineartype:' + str(nonlineartype))
-
-    else:
-        r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
-            np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
+    r[:, :, 0] = 0.
+    r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
+        np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
 
     return r.squeeze(), f.squeeze()
 
@@ -103,13 +63,13 @@ def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega,
 
 
 def reward(x_tm1, x_t, f_t,
-           Lambda, next_step, sig,
+           Lambda, B, mu_u, Sigma,
            rho, gamma):
 
     delta_x = x_t - x_tm1
 
     return -0.5*delta_x*Lambda*delta_x +\
-        (1 - rho)*(x_t*next_step(f_t) - 0.5*gamma*x_t*sig*x_t)
+        (1 - rho)*(x_t*(B*f_t + mu_u) - 0.5*gamma*x_t*Sigma*x_t)
 
 
 # -----------------------------------------------------------------------------
@@ -185,7 +145,7 @@ def generate_episode(
                      # dummy for parallel computing
                      j,
                      # market parameters
-                     Lambda, next_step, sig,
+                     Lambda, B, mu_u, Sigma,
                      # market simulations
                      f,
                      # RL parameters
@@ -224,16 +184,15 @@ def generate_episode(
         if np.random.rand() < eps:
             action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
         else:
-            action_ = maxAction(q_value, state_, lot_size, optimizers,
-                                optimizer)
+            action_ = maxAction(q_value, state_, lot_size, optimizers, optimizer)
 
         # Observe r
 
-        reward_t = reward(state[0], state_[0], f[j, t], Lambda, next_step,
-                          sig, rho, gamma)
+        reward_t = reward(state[0], state_[0], f[j, t], Lambda, B, mu_u, Sigma,
+                          rho, gamma)
         reward_total += reward_t
         cost_total += -0.5*((state_[0]-state[0])*Lambda*(state_[0]-state[0]) +
-                            (1 - rho)*gamma*state_[0]*sig*state_[0])
+                            (1 - rho)*gamma*state_[0]*Sigma*state_[0])
 
         # Update value function
         y = q_value(state, action) +\
@@ -257,18 +216,17 @@ def generate_episode(
 # -----------------------------------------------------------------------------
 
 def q_hat(state, action,
-          qb_list,
-          flag_qaverage='average', n_models=None, reward_list=None):
+          B, qb_list,
+          flag_qaverage=True, n_models=None):
     """
     This function evaluates the estimated q-value function in a given state and
     action pair. The other parameters are given to include the cases of
     model averaging and data rescaling.
     """
-
     res = 0.
     is_simulation = (np.ndim(state) > 1)
 
-    if flag_qaverage == 'average':
+    if flag_qaverage:
         if n_models is None or n_models > len(qb_list):
             n_models = len(qb_list)
         for b in range(1, n_models+1):
@@ -279,22 +237,8 @@ def q_hat(state, action,
                 res = 0.5*(res + qb.predict(np.r_[state,
                                                   action].reshape(1, -1)))
         return res
-
-    elif flag_qaverage == 'last':
+    else:
         qb = qb_list[-1]
-        if is_simulation:
-            res = res + qb.predict(np.c_[state, action])
-        else:
-            res = res + qb.predict(np.r_[state, action].reshape(1, -1))
-        return res
-
-    elif flag_qaverage == 'best':
-
-        best_idx = np.argmax(np.array(reward_list))
-        if best_idx == 0:
-            best_idx = 1
-        qb = qb_list[best_idx - 1]
-
         if is_simulation:
             res = res + qb.predict(np.c_[state, action])
         else:
@@ -306,39 +250,18 @@ def q_hat(state, action,
 # compute_markovitz
 # -----------------------------------------------------------------------------
 
-def compute_markovitz(f, gamma, B, Sigma, k_=1):
+def compute_markovitz(f, gamma, B, Sigma):
 
-    if k_ == 1:  # 1 factor
-        if f.ndim == 1:
-            t_ = f.shape[0]
-            j_ = 1
-        elif f.ndim == 2:
-            j_, t_ = f.shape
-
-    else:  # k_ factors
-        if f.ndim == 2:
-            t_, k_ = f.shape
-            j_ = 1
-        else:
-            j_, k_, t_ = f.shape
-
-    f = f.reshape((j_, k_, t_))
-
-    # Parameters
-    Sigma = np.array(Sigma)
-    B = np.array(B)
-    if Sigma.ndim == 0:
-        Sigma = np.array([[Sigma]])
-    if B.ndim == 0:
-        B = np.array([[B]])
-
-    Sigma_inv = np.linalg.inv(Sigma)
-
-    factor = ((gamma)**(-1) * Sigma_inv @ B).T
+    if f.ndim == 1:
+        t_ = f.shape[0]
+        j_ = 1
+        f = f.reshape((j_, t_))
+    elif f.ndim == 2:
+        j_, t_ = f.shape
 
     Markovitz = np.zeros((j_, t_))
     for t in range(t_):
-        Markovitz[:, t] = ((f[:, :, t] @ factor).T).squeeze()
+        Markovitz[:, t] = (gamma*Sigma)**(-1)*B*f[:, t]
 
     return Markovitz.squeeze()
 
@@ -347,83 +270,27 @@ def compute_markovitz(f, gamma, B, Sigma, k_=1):
 # compute_optimal
 # -----------------------------------------------------------------------------
 
-def compute_optimal(f, gamma, Lambda, rho, B, Sigma, Phi, k_=1):
-    """
-    Optimal trading strategy as in Garleanu-Pedersen.
-    """
+def compute_optimal(f, gamma, lam, rho, B, Sigma, Phi):
 
-    if k_ == 1:  # 1 factor
-        if f.ndim == 1:
-            t_ = f.shape[0]
-            j_ = 1
-        elif f.ndim == 2:
-            j_, t_ = f.shape
+    if f.ndim == 1:
+        t_ = f.shape[0]
+        j_ = 1
+        f = f.reshape((j_, t_))
+    elif f.ndim == 2:
+        j_, t_ = f.shape
 
-    else:  # k_ factors
-        if f.ndim == 2:
-            t_, k_ = f.shape
-            j_ = 1
-        else:
-            j_, k_, t_ = f.shape
-
-    f = f.reshape((j_, k_, t_))
-
-    # Parameters
-
-    Lambda = np.array(Lambda)
-    Sigma = np.array(Sigma)
-    B = np.array(B)
-    if Lambda.ndim == 0:
-        Lambda = np.array([[Lambda]])
-    if Sigma.ndim == 0:
-        Sigma = np.array([[Sigma]])
-    if B.ndim == 0:
-        B = np.array([[B]])
-
-    rho_ = 1-rho
-    Lambda_ = rho_**(-1) * Lambda
-    Lambda_sqrt = riccati(Lambda_)  # here it is correct Lambda_
-    Lambda_inv = np.linalg.inv(Lambda)  # here it is correct Lambda
-    eye = np.eye(k_)
-
-    A_xx = riccati(rho_*gamma*Lambda_sqrt@Sigma@Lambda_sqrt +
-                   0.25*(rho**2*Lambda_**2
-                         + 2*rho*gamma*Lambda_sqrt@Sigma@Lambda_sqrt
-                         + gamma**2 *
-                         Lambda_sqrt@Sigma@Lambda_inv@Sigma@Lambda_sqrt)) -\
-        0.5*(rho*Lambda_ + gamma*Sigma)
-
-    A_xx_inv = np.linalg.inv(A_xx)
-
-    A_xf = inv_vec(rho_ *
-                   np.linalg.inv(eye - rho_*np.kron((eye - Phi).T,
-                                                    eye - A_xx@Lambda_inv)) @
-                   vec((eye - A_xx@Lambda_inv)@B))
-
-    # Strategy
-    A_xx_inv_A_xf = A_xx_inv @ A_xf
-    Lambda_inv_A_xx = Lambda_inv @ A_xx
+    a = (-(gamma*(1 - rho) + lam*rho) +
+         np.sqrt((gamma*(1-rho) + lam*rho)**2 +
+                 4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
 
     x = np.zeros((j_, t_))
-    x[:, 0] = ((f[:, :, 0] @ Lambda_inv_A_xx.T).T).squeeze()
+    for t in range(t_):
+        if t == 0:
+            x[:, t] = a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
 
-    for t in range(1, t_):
-        aim_t = ((f[:, :, t] @ A_xx_inv_A_xf.T).T).squeeze()
-        x[:, t] = x[:, t-1] + Lambda_inv_A_xx * (aim_t - x[:, t-1])
-
-    # Old: assumption Lambda = lam*Sigma and k_=1
-    # a = (-(gamma*(1 - rho) + lam*rho) +
-    #      np.sqrt((gamma*(1-rho) + lam*rho)**2 +
-    #              4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
-
-    # x = np.zeros((j_, t_))
-    # for t in range(t_):
-    #     if t == 0:
-    #         x[:, t] = a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
-
-    #     else:
-    #         x[:, t] = (1 - a/lam)*x[:, t-1] +\
-    #             a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+        else:
+            x[:, t] = (1 - a/lam)*x[:, t-1] +\
+                a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
 
     return x.squeeze()
 
@@ -434,23 +301,23 @@ def compute_optimal(f, gamma, Lambda, rho, B, Sigma, Phi, k_=1):
 
 def compute_rl(j, f, q_value, lot_size, optimizers, optimizer=None):
 
-    if f.ndim == 1:
+    if f.ndim ==1:
         t_ = f.shape[0]
-        f = f.reshape((1, t_))
-    elif f.ndim == 2:
-        _, t_ = f.shape
+    else:
+        f = f[j, :]
+        t_ = f.shape[0]
 
     shares = np.zeros(t_)
 
     for t in range(t_):
 
         if t == 0:
-            state = np.array([0, f[j, t]])
+            state = np.array([0, f[t]])
             action = maxAction(q_value, state, lot_size, optimizers,
                                optimizer=optimizer)
             shares[t] = state[0] + action
         else:
-            state = np.array([shares[t-1], f[j, t]])
+            state = np.array([shares[t-1], f[t]])
             action = maxAction(q_value, state, lot_size, optimizers,
                                optimizer=optimizer)
             shares[t] = state[0] + action
@@ -462,7 +329,7 @@ def compute_rl(j, f, q_value, lot_size, optimizers, optimizer=None):
 # compute_wealth
 # -----------------------------------------------------------------------------
 
-def compute_wealth(r, strat, gamma, Lambda, rho, sig):
+def compute_wealth(r, strat, gamma, Lambda, rho, B, Sigma, Phi):
 
     if r.ndim == 1:
         t_ = r.shape[0]
@@ -483,7 +350,7 @@ def compute_wealth(r, strat, gamma, Lambda, rho, sig):
     for t in range(1, t_):
         delta_strat = strat[:, t] - strat[:, t-1]
         cost[:, t] =\
-            gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*sig*strat[:, t] +\
+            gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*Sigma*strat[:, t] +\
             0.5*(1 - rho)**t * delta_strat*Lambda*delta_strat
     cost = np.cumsum(cost, axis=1)
 
@@ -491,102 +358,3 @@ def compute_wealth(r, strat, gamma, Lambda, rho, sig):
     wealth = value - cost
 
     return wealth.squeeze(), value.squeeze(), cost.squeeze()
-
-
-# -----------------------------------------------------------------------------
-# riccati
-# -----------------------------------------------------------------------------
-
-def riccati(s2):
-
-    lambda2, e = np.linalg.eigh(s2)
-    s = e @ np.diag(np.sqrt(lambda2)) @ e.T
-
-    return s
-
-
-# -----------------------------------------------------------------------------
-# vec
-# -----------------------------------------------------------------------------
-
-def vec(x):
-
-    n_ = x.shape[0]
-
-    return np.reshape(x, (n_**2, 1), 'F')
-
-
-# -----------------------------------------------------------------------------
-# inv_vec
-# -----------------------------------------------------------------------------
-
-def inv_vec(x):
-
-    n_ = int(np.sqrt(x.shape[0]))
-
-    return np.reshape(x, (n_, n_), 'F')
-
-
-# -----------------------------------------------------------------------------
-# fit_cointegration
-# -----------------------------------------------------------------------------
-
-def fit_cointegration(x, *, b_threshold=0.99):
-
-    t_ = x.shape[0]
-    if len(x.shape) == 1:
-        x = x.reshape((t_, 1))
-        d_ = 1
-    else:
-        d_ = x.shape[1]
-
-    p = np.ones(t_)/t_
-
-    # Step 1: estimate HFP covariance matrix
-
-    sigma2_hat = np.cov(x.T)
-
-    # Step 2: find eigenvectors
-
-    lambda2_hat, e_hat = np.linalg.eigh(sigma2_hat)
-    idx = np.argsort(-lambda2_hat)
-    e_hat = e_hat[:, idx]
-
-    # Step 3: detect cointegration vectors
-
-    c_hat = []
-    b_hat = []
-    p = p[:-1]
-
-    for d in np.arange(0, d_):
-
-        # Step 4: Define series
-
-        y_t = e_hat[:, d] @ x.T
-
-        # Step 5: fit AR(1)
-
-        yt = y_t[1:].reshape((-1, 1))
-        ytm1 = y_t[:-1].reshape((-1, 1))
-        reg = LinearRegression().fit(X=ytm1, y=yt)
-        b = reg.coef_[0, 0]
-        if np.ndim(b) < 2:
-            b = np.array(b).reshape(-1, 1)
-
-        # Step 6: check stationarity
-
-        if abs(b[0, 0]) <= b_threshold:
-            c_hat.append(list(e_hat[:, d]))
-            b_hat.append(b[0, 0])
-
-    # Output
-
-    c_hat = np.array(c_hat).T
-    b_hat = np.array(b_hat)
-
-    # Step 7: Sort according to the AR(1) parameters beta_hat
-
-    c_hat = c_hat[:, np.argsort(b_hat)]
-    b_hat = np.sort(b_hat)
-
-    return c_hat, b_hat

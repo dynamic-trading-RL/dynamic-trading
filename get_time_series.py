@@ -7,12 +7,12 @@ Created on Fri May 28 23:34:59 2021
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from statsmodels.tsa.ar_model import AutoReg
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
 from joblib import dump
-from dt_functions import fit_cointegration, PY_FAIL
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.rcParams['text.usetex'] = True
 
 import sys
 import warnings
@@ -27,9 +27,8 @@ print('######## Analizing time series')
 # ------------------------------------- Parameters ----------------------------
 
 to_analyze = 'WTI'  # set != None if you want to analyze a specific time series
-cointegration = True  # Set to true if you want to use the coint. ptf as signal
 t_ = 50             # length of the time series to save and use for backtesting
-signal_type = 'MACD'
+standardize = False  # set to true if you want to standardize the factors
 
 # Model parameters
 lam = 10**-2               # costs factor: ??? should be calibrated
@@ -118,59 +117,35 @@ df_values = pd.concat(li, axis=1)
 df_returns = df_values.diff().copy()
 df_returns.dropna(inplace=True)
 
-# ------------------------------------- Factors -------------------------------
+# Factors
+window = 5
 
-if signal_type == 'MA':
-    window = 5
-    # Compute moving average
-    df_mov_av = df_returns.rolling(window=window).mean().copy()
-
-elif signal_type == 'MACD':
-    df_mov_av = df_returns.ewm(span=12).mean().copy() -\
-        df_returns.ewm(span=26).mean().copy()
-
-df_mov_av.dropna(inplace=True)
-dates = df_mov_av.index
-df_returns = df_returns.loc[dates]
-
-# Determine factors
-if cointegration:
-    c_hat, b_hat = fit_cointegration(df_returns.to_numpy())
-    df_factors = df_mov_av.copy()@c_hat[:, 0]
+if standardize:
+    df_factors = (df_returns.rolling(window=window).mean() /
+                  df_returns.rolling(window=window).std()).copy()
 else:
-    df_factors = df_mov_av.copy()
+    df_factors = df_returns.rolling(window=window).mean().copy()
+
+df_factors.dropna(inplace=True)
+dates = df_factors.index
+df_returns = df_returns.loc[dates].copy()
 
 
 # ------------------------------------- Fit of dynamics -----------------------
 
-params = {}
-aic = {}
-sig2 = {}
-
 if to_analyze is not None:
-    print('Using time series:', to_analyze)
     best = to_analyze
-
-    if cointegration:
-        res = AutoReg(df_factors, lags=1).fit()
-    else:
-        res = AutoReg(df_factors[best], lags=1).fit()
-
+    params = {}
+    aic = {}
+    sig2 = {}
+    res = AutoReg(df_factors[best], lags=1).fit()
     params[best] = [res.params.iloc[0], res.params.iloc[1]]
     sig2[best] = res.sigma2
 
-    # Select best time series for the experiment
-    df_return = df_returns[best].copy()
-    if cointegration:
-        df_factor = df_factors.copy()
-    else:
-        df_factor = df_factors[best].copy()
-
 else:
-
-    if cointegration:
-        PY_FAIL('cointegration should be False if to_analyze is None')
-
+    params = {}
+    aic = {}
+    sig2 = {}
     best = df_factors.columns[0]
     for column in df_factors.columns:
         res = AutoReg(df_factors[column], lags=1).fit()
@@ -180,78 +155,50 @@ else:
         if aic[column] < aic[best]:
             best = column
 
-    # Select best time series for the experiment
-    df_return = df_returns[best].copy()
-    df_factor = df_factors[best].copy()
+print('Using time series:', best)
 
-# Factors parameters
+# Select best time series for the experiment
+df_return = df_returns[best].copy()
+df_factor = df_factors[best].copy()
+
+
+# Fit model for the returns
+reg = LinearRegression().fit(X=np.array(df_factor[:-1]).reshape(-1, 1),
+                             y=np.array(df_return.iloc[1:]).reshape(-1, 1))
+r2 = reg.score(X=np.array(df_factor[:-1]).reshape(-1, 1),
+               y=np.array(df_return.iloc[1:]).reshape(-1, 1))
+
+# Time series parameters
+B = reg.coef_[0, 0]
+mu_u = reg.intercept_[0]
+Sigma = (np.array(df_return.iloc[1:]) -
+         B*np.array(df_factor[:-1]) -
+         mu_u).var()
+
 Phi = 1 - params[best][1]
 mu_eps = params[best][0]
 Omega = sig2[best]
 
-# Fit linear model for the returns
-reg = LinearRegression().fit(X=np.array(df_factor.iloc[:-1]).reshape(-1, 1),
-                             y=np.array(df_return.iloc[1:]).reshape(-1, 1))
-
-B = reg.coef_[0, 0]
-mu_u = reg.intercept_[0]
-Sigma = (np.array(df_return.iloc[1:]) -
-         B*np.array(df_factor.iloc[:-1]) -
-         mu_u).var()
-
-# Fit non-linear models for the returns
-poly = PolynomialFeatures(3, include_bias=False)
-X = poly.fit_transform(np.array(df_factor.iloc[:-1]).reshape(-1, 1))
-
-reg_pol = LinearRegression().fit(X=X,
-                                 y=np.array(df_return.iloc[1:]).reshape(-1, 1))
-
-B_list_fitted = [reg_pol.intercept_[0]] + list(reg_pol.coef_[0])
-
-sig_pol_fitted = (np.array(df_return.iloc[1:]).reshape(-1, 1) -
-                  reg_pol.predict(X)).var()
-
-Lambda = lam*sig_pol_fitted  # Lambda is the true cost multiplier;
-                             # the polynomial one is the best possible when
-                             # dealing with data with unknown distribution
-
-
-# ------------------------------------- Plot of fit ---------------------------
-
-
-plt.scatter(df_factor.iloc[:-1], df_return.iloc[1:], s=0.1)
-xx = np.linspace(-0.5, 0.7).reshape(-1, 1)
-XX = poly.fit_transform(xx)
-plt.plot(xx, reg_pol.predict(XX), label='poly')
-plt.plot(xx, reg.predict(xx), label='lin')
-plt.legend()
-
-
-# ------------------------------------- Shorten time series -------------------
+Lambda = lam*Sigma
 
 df_return = df_return.iloc[-t_:]
 df_factor = df_factor.iloc[-t_:]
 
+plt.figure()
+df_factor.cumsum().plot(label='factor')
+df_return.cumsum().plot(label='pnl')
 
 # ------------------------------------- Dump data -----------------------------
 
 dump(df_return, 'data/df_return.joblib')
 dump(df_factor, 'data/df_factor.joblib')
-
 dump(t_, 'data/t_.joblib')
-
 dump(B, 'data/B.joblib')
 dump(mu_u, 'data/mu_u.joblib')
 dump(Sigma, 'data/Sigma.joblib')
-
-dump(reg_pol, 'data/reg_pol.joblib')
-dump(B_list_fitted, 'data/B_list_fitted.joblib')
-dump(sig_pol_fitted, 'data/sig_pol_fitted.joblib')
-
 dump(Phi, 'data/Phi.joblib')
 dump(mu_eps, 'data/mu_eps.joblib')
 dump(Omega, 'data/Omega.joblib')
-
 dump(lam, 'data/lam.joblib')
 dump(Lambda, 'data/Lambda.joblib')
 dump(gamma, 'data/gamma.joblib')
