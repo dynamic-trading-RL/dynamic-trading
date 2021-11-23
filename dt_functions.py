@@ -6,8 +6,359 @@ Created on Fri May 28 17:16:57 2021
 """
 
 import numpy as np
-from scipy.optimize import (dual_annealing, shgo, differential_evolution,
-                            basinhopping)
+import pandas as pd
+from enum import Enum
+from scipy.optimize import (dual_annealing, shgo, differential_evolution)
+
+
+# -----------------------------------------------------------------------------
+# enum: ReturnDynamicsType
+# -----------------------------------------------------------------------------
+
+class ReturnDynamicsType(Enum):
+
+    R1 = 'R1'
+    R2 = 'R2'
+
+
+# -----------------------------------------------------------------------------
+# enum: FactorDynamicsType
+# -----------------------------------------------------------------------------
+
+class FactorDynamicsType(Enum):
+
+    F1 = 'F1'
+    F2 = 'F2'
+    F3 = 'F3'
+    F4 = 'F4'
+    F5 = 'F5'
+
+
+# -----------------------------------------------------------------------------
+# class: Dynamics
+# -----------------------------------------------------------------------------
+
+class Dynamics:
+
+    def __init__(self):
+
+        self._parameters = {}
+
+
+# -----------------------------------------------------------------------------
+# class: ReturnDynamics
+# -----------------------------------------------------------------------------
+
+class ReturnDynamics(Dynamics):
+
+    def __init__(self, returnDynamicsType: ReturnDynamicsType):
+
+        super().__init__()
+        self._returnDynamicsType = returnDynamicsType
+
+    def set_parameters(self, param_dict):
+
+        if self._returnDynamicsType == ReturnDynamicsType.R1:
+
+            set_linear_parameters(self._parameters, param_dict)
+
+        elif self._returnDynamicsType == ReturnDynamicsType.R2:
+
+            set_threshold_parameters(self._parameters, param_dict)
+
+        else:
+            raise NameError('Invalid return dynamics')
+
+
+# -----------------------------------------------------------------------------
+# class: FactorDynamics
+# -----------------------------------------------------------------------------
+
+class FactorDynamics(Dynamics):
+
+    def __init__(self, factorDynamicsType: FactorDynamicsType):
+
+        super().__init__()
+        self._factorDynamicsType = factorDynamicsType
+
+    def set_parameters(self, param_dict):
+
+        if self._factorDynamicsType == FactorDynamicsType.F1:
+
+            set_linear_parameters(self._parameters, param_dict)
+
+        elif self._factorDynamicsType == FactorDynamicsType.F2:
+
+            set_threshold_parameters(self._parameters, param_dict)
+
+        elif self._factorDynamicsType == FactorDynamicsType.F3:
+
+            set_garch_parameters(self._parameters, param_dict)
+
+        elif self._factorDynamicsType == FactorDynamicsType.F4:
+
+            set_tarch_parameters(self._parameters, param_dict)
+
+        elif self._factorDynamicsType == FactorDynamicsType.F5:
+
+            set_artarch_parameters(self._parameters, param_dict)
+
+        else:
+            raise NameError('Invalid factor dynamics')
+
+
+# -----------------------------------------------------------------------------
+# class: MarketDynamics
+# -----------------------------------------------------------------------------
+
+class MarketDynamics:
+
+    def __init__(self,
+                 returnDynamics: ReturnDynamics,
+                 factorDynamics: FactorDynamics):
+
+        self._returnDynamics = returnDynamics
+        self._factorDynamics = factorDynamics
+
+
+# -----------------------------------------------------------------------------
+# class: Market
+# -----------------------------------------------------------------------------
+
+class Market:
+
+    def __init__(self, marketDynamics: MarketDynamics):
+
+        self._marketDynamics = marketDynamics
+        self._simulations = {}
+
+    def simulate(self, j_, t_):
+
+        self._simulate_factor(j_, t_)
+        self._simulate_return()
+
+    def _simulate_factor(self, j_, t_):
+
+        factorDynamicsType =\
+            self._marketDynamics._factorDynamics._factorDynamicsType
+        parameters = self._marketDynamics._factorDynamics._parameters
+
+        f = np.zeros((j_, t_))
+        norm = np.random.randn(j_, t_)
+
+        if factorDynamicsType == FactorDynamicsType.F1:
+
+            mu = parameters['mu']
+            B = parameters['B']
+            sig2 = parameters['sig2']
+
+            for t in range(1, t_):
+
+                f[:, t] = B*f[:, t-1] + mu + np.sqrt(sig2)*norm[:, t]
+
+        elif factorDynamicsType == FactorDynamicsType.F2:
+
+            c = parameters['c']
+            mu_0 = parameters['mu_0']
+            B_0 = parameters['B_0']
+            sig2_0 = parameters['sig2_0']
+            mu_1 = parameters['mu_1']
+            B_1 = parameters['B_1']
+            sig2_1 = parameters['sig2_1']
+
+            for t in range(1, t_):
+
+                ind_0 = f[:, t-1] < c
+                ind_1 = f[:, t-1] >= c
+
+                f[ind_0, t] = B_0*f[ind_0, t-1] + mu_0 + np.sqrt(sig2_0)*norm[ind_0, t]
+                f[ind_1, t] = B_1*f[ind_1, t-1] + mu_1 + np.sqrt(sig2_1)*norm[ind_1, t]
+
+        elif factorDynamicsType == FactorDynamicsType.F3:
+
+            mu = parameters['mu']
+            omega = parameters['omega']
+            alpha = parameters['alpha']
+            beta = parameters['beta']
+
+            sig = np.zeros((j_, t_))
+            if alpha + beta >= 1:
+                raise NameError('Explosive GARCH')
+            sig[:, 0] = np.sqrt(omega / (1 - (alpha + beta)))
+
+            epsi = np.zeros((j_, t_))
+
+            for t in range(1, t_):
+
+                sig[:, t] = np.sqrt(omega
+                                    + alpha*epsi[:, t-1]**2
+                                    + beta*sig[:, t-1]**2)
+                epsi[:, t] = sig[:, t]*norm[:, t]
+                f[:, t] = f[:, t-1] + mu + epsi[:, t]
+
+            self._simulations['sig'] = sig
+
+        elif factorDynamicsType == FactorDynamicsType.F4:
+
+            mu = parameters['mu']
+            omega = parameters['omega']
+            alpha = parameters['alpha']
+            beta = parameters['beta']
+            gamma = parameters['gamma']
+            c = parameters['c']
+
+            sig = np.zeros((j_, t_))
+            if alpha + beta + gamma >= 1:
+                raise NameError('Explosive TARCH')
+            sig[:, 0] = np.sqrt(omega / (1 - (alpha + beta + gamma)))
+
+            epsi = np.zeros((j_, t_))
+
+            for t in range(1, t_):
+
+                sig2 = omega + alpha*epsi[:, t-1]**2 + beta*sig[:, t-1]**2
+                sig2[epsi[:, t-1] < 0] += gamma*epsi[epsi[:, t-1] < c, t-1]
+                sig[:, t] = np.sqrt(sig2)
+                epsi[:, t] = sig[:, t]*norm[:, t]
+                f[:, t] = f[:, t-1] + mu + epsi[:, t]
+
+            self._simulations['sig'] = sig
+
+        elif factorDynamicsType == FactorDynamicsType.F5:
+
+            mu = parameters['mu']
+            B = parameters['B']
+            omega = parameters['omega']
+            alpha = parameters['alpha']
+            beta = parameters['beta']
+            gamma = parameters['gamma']
+            c = parameters['c']
+
+            sig = np.zeros((j_, t_))
+            if alpha + beta + gamma >= 1:
+                raise NameError('Explosive TARCH')
+            sig[:, 0] = np.sqrt(omega / (1 - (alpha + beta + gamma)))
+
+            epsi = np.zeros((j_, t_))
+
+            for t in range(1, t_):
+
+                sig2 = omega + alpha*epsi[:, t-1]**2 + beta*sig[:, t-1]**2
+                sig2[epsi[:, t-1] < 0] += gamma*epsi[epsi[:, t-1] < c, t-1]
+                sig[:, t] = np.sqrt(sig2)
+                epsi[:, t] = sig[:, t]*norm[:, t]
+                f[:, t] = B*f[:, t-1] + mu + epsi[:, t]
+
+            self._simulations['sig'] = sig
+
+        else:
+            raise NameError('Invalid factorDynamicsType')
+
+        self._simulations['f'] = f
+
+    def _simulate_return(self):
+
+        returnDynamicsType =\
+            self._marketDynamics._returnDynamics._returnDynamicsType
+        parameters = self._marketDynamics._returnDynamics._parameters
+
+        f = self._simulations['f']
+        j_, t_ = f.shape
+        r = np.zeros((j_, t_))
+        norm = np.random.randn(j_, t_)
+
+        if returnDynamicsType == ReturnDynamicsType.R1:
+
+            mu = parameters['mu']
+            B = parameters['B']
+            sig2 = parameters['sig2']
+
+            r[:, 1:] = mu + B*f[:, :-1] + np.sqrt(sig2)*norm[:, 1:]
+
+        elif returnDynamicsType == ReturnDynamicsType.R2:
+
+            c = parameters['c']
+            mu_0 = parameters['mu_0']
+            B_0 = parameters['B_0']
+            sig2_0 = parameters['sig2_0']
+            mu_1 = parameters['mu_1']
+            B_1 = parameters['B_1']
+            sig2_1 = parameters['sig2_1']
+
+            for t in range(1, t_):
+
+                ind_0 = f[:, t-1] < c
+                ind_1 = f[:, t-1] >= c
+
+                r[ind_0, t] =\
+                    mu_0 + B_0*f[ind_0, t-1] + np.sqrt(sig2_0)*norm[ind_0, t]
+
+                r[ind_1, t] =\
+                    mu_1 + B_1*f[ind_1, t-1] + np.sqrt(sig2_1)*norm[ind_1, t]
+
+        else:
+            raise NameError('Invalid returnDynamicsType')
+
+        self._simulations['r'] = r
+
+
+# -----------------------------------------------------------------------------
+# set_linear_parameters
+# -----------------------------------------------------------------------------
+
+def set_linear_parameters(parameters, param_dict):
+
+    parameters['mu'] = param_dict['mu']
+    parameters['B'] = param_dict['B']
+    parameters['sig2'] = param_dict['sig2']
+
+
+# -----------------------------------------------------------------------------
+# set_threshold_parameters
+# -----------------------------------------------------------------------------
+
+def set_threshold_parameters(parameters, param_dict):
+
+    parameters['c'] = param_dict['c']
+    parameters['mu_0'] = param_dict['mu_0']
+    parameters['B_0'] = param_dict['B_0']
+    parameters['sig2_0'] = param_dict['sig2_0']
+    parameters['mu_1'] = param_dict['mu_1']
+    parameters['B_1'] = param_dict['B_1']
+    parameters['sig2_1'] = param_dict['sig2_1']
+
+
+# -----------------------------------------------------------------------------
+# set_garch_parameters
+# -----------------------------------------------------------------------------
+
+def set_garch_parameters(parameters, param_dict):
+
+    parameters['mu'] = param_dict['mu']
+    parameters['omega'] = param_dict['omega']
+    parameters['alpha'] = param_dict['alpha']
+    parameters['beta'] = param_dict['beta']
+
+
+# -----------------------------------------------------------------------------
+# set_tarch_parameters
+# -----------------------------------------------------------------------------
+
+def set_tarch_parameters(parameters, param_dict):
+
+    set_garch_parameters(parameters, param_dict)
+    parameters['gamma'] = param_dict['gamma']
+    parameters['c'] = param_dict['c']
+
+
+# -----------------------------------------------------------------------------
+# set_artarch_parameters
+# -----------------------------------------------------------------------------
+
+def set_artarch_parameters(parameters, param_dict):
+
+    set_tarch_parameters(parameters, param_dict)
+    parameters['B'] = param_dict['B']
 
 
 # -----------------------------------------------------------------------------
