@@ -17,8 +17,8 @@ from scipy.optimize import (dual_annealing, shgo, differential_evolution)
 
 class ReturnDynamicsType(Enum):
 
-    R1 = 'R1'
-    R2 = 'R2'
+    Linear = 'Linear'
+    NonLinear = 'NonLinear'
 
 
 # -----------------------------------------------------------------------------
@@ -27,11 +27,11 @@ class ReturnDynamicsType(Enum):
 
 class FactorDynamicsType(Enum):
 
-    F1 = 'F1'
-    F2 = 'F2'
-    F3 = 'F3'
-    F4 = 'F4'
-    F5 = 'F5'
+    AR = 'AR'
+    SETAR = 'SETAR'
+    GARCH = 'GARCH'
+    TARCH = 'TARCH'
+    AR_TARCH = 'AR_TARCH'
 
 
 # -----------------------------------------------------------------------------
@@ -58,11 +58,11 @@ class ReturnDynamics(Dynamics):
 
     def set_parameters(self, param_dict):
 
-        if self._returnDynamicsType == ReturnDynamicsType.R1:
+        if self._returnDynamicsType == ReturnDynamicsType.Linear:
 
             set_linear_parameters(self._parameters, param_dict)
 
-        elif self._returnDynamicsType == ReturnDynamicsType.R2:
+        elif self._returnDynamicsType == ReturnDynamicsType.NonLinear:
 
             set_threshold_parameters(self._parameters, param_dict)
 
@@ -83,23 +83,23 @@ class FactorDynamics(Dynamics):
 
     def set_parameters(self, param_dict):
 
-        if self._factorDynamicsType == FactorDynamicsType.F1:
+        if self._factorDynamicsType == FactorDynamicsType.AR:
 
             set_linear_parameters(self._parameters, param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.F2:
+        elif self._factorDynamicsType == FactorDynamicsType.SETAR:
 
             set_threshold_parameters(self._parameters, param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.F3:
+        elif self._factorDynamicsType == FactorDynamicsType.GARCH:
 
             set_garch_parameters(self._parameters, param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.F4:
+        elif self._factorDynamicsType == FactorDynamicsType.TARCH:
 
             set_tarch_parameters(self._parameters, param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.F5:
+        elif self._factorDynamicsType == FactorDynamicsType.AR_TARCH:
 
             set_artarch_parameters(self._parameters, param_dict)
 
@@ -130,7 +130,18 @@ class Market:
     def __init__(self, marketDynamics: MarketDynamics):
 
         self._marketDynamics = marketDynamics
+        self._marketId = self._setMarketId()
         self._simulations = {}
+
+    def _setMarketId(self):
+
+        returnDynamicsType =\
+            self._marketDynamics._returnDynamics._returnDynamicsType
+
+        factorDynamicsType =\
+            self._marketDynamics._factorDynamics._factorDynamicsType
+
+        self._marketId = returnDynamicsType.value + '-' + factorDynamicsType.value
 
     def simulate(self, j_, t_):
 
@@ -146,7 +157,7 @@ class Market:
         f = np.zeros((j_, t_))
         norm = np.random.randn(j_, t_)
 
-        if factorDynamicsType == FactorDynamicsType.F1:
+        if factorDynamicsType == FactorDynamicsType.AR:
 
             mu = parameters['mu']
             B = parameters['B']
@@ -156,7 +167,7 @@ class Market:
 
                 f[:, t] = B*f[:, t-1] + mu + np.sqrt(sig2)*norm[:, t]
 
-        elif factorDynamicsType == FactorDynamicsType.F2:
+        elif factorDynamicsType == FactorDynamicsType.SETAR:
 
             c = parameters['c']
             mu_0 = parameters['mu_0']
@@ -174,7 +185,7 @@ class Market:
                 f[ind_0, t] = B_0*f[ind_0, t-1] + mu_0 + np.sqrt(sig2_0)*norm[ind_0, t]
                 f[ind_1, t] = B_1*f[ind_1, t-1] + mu_1 + np.sqrt(sig2_1)*norm[ind_1, t]
 
-        elif factorDynamicsType == FactorDynamicsType.F3:
+        elif factorDynamicsType == FactorDynamicsType.GARCH:
 
             mu = parameters['mu']
             omega = parameters['omega']
@@ -196,7 +207,7 @@ class Market:
 
             self._simulations['sig'] = sig
 
-        elif factorDynamicsType == FactorDynamicsType.F4:
+        elif factorDynamicsType == FactorDynamicsType.TARCH:
 
             mu = parameters['mu']
             omega = parameters['omega']
@@ -213,14 +224,14 @@ class Market:
             for t in range(1, t_):
 
                 sig2 = omega + alpha*epsi[:, t-1]**2 + beta*sig[:, t-1]**2
-                sig2[epsi[:, t-1] < 0] += gamma*epsi[epsi[:, t-1] < c, t-1]
+                sig2[epsi[:, t-1] < c] += gamma*epsi[epsi[:, t-1] < c, t-1]
                 sig[:, t] = np.sqrt(sig2)
                 epsi[:, t] = sig[:, t]*norm[:, t]
                 f[:, t] = f[:, t-1] + mu + epsi[:, t]
 
             self._simulations['sig'] = sig
 
-        elif factorDynamicsType == FactorDynamicsType.F5:
+        elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
 
             mu = parameters['mu']
             B = parameters['B']
@@ -238,7 +249,7 @@ class Market:
             for t in range(1, t_):
 
                 sig2 = omega + alpha*epsi[:, t-1]**2 + beta*sig[:, t-1]**2
-                sig2[epsi[:, t-1] < 0] += gamma*epsi[epsi[:, t-1] < c, t-1]
+                sig2[epsi[:, t-1] < c] += gamma*epsi[epsi[:, t-1] < c, t-1]
                 sig[:, t] = np.sqrt(sig2)
                 epsi[:, t] = sig[:, t]*norm[:, t]
                 f[:, t] = B*f[:, t-1] + mu + epsi[:, t]
@@ -261,7 +272,7 @@ class Market:
         r = np.zeros((j_, t_))
         norm = np.random.randn(j_, t_)
 
-        if returnDynamicsType == ReturnDynamicsType.R1:
+        if returnDynamicsType == ReturnDynamicsType.Linear:
 
             mu = parameters['mu']
             B = parameters['B']
@@ -269,7 +280,7 @@ class Market:
 
             r[:, 1:] = mu + B*f[:, :-1] + np.sqrt(sig2)*norm[:, 1:]
 
-        elif returnDynamicsType == ReturnDynamicsType.R2:
+        elif returnDynamicsType == ReturnDynamicsType.NonLinear:
 
             c = parameters['c']
             mu_0 = parameters['mu_0']
@@ -294,6 +305,23 @@ class Market:
             raise NameError('Invalid returnDynamicsType')
 
         self._simulations['r'] = r
+
+
+# -----------------------------------------------------------------------------
+# class: AllMarkets
+# -----------------------------------------------------------------------------
+
+class AllMarkets:
+
+    def __init__(self):
+
+        self._allMarketsDict = {}
+
+    def fill_allMarketsDict(self, d):
+
+        for key, item in d.items():
+
+            self._allMarketsDict[key] = item
 
 
 # -----------------------------------------------------------------------------
@@ -353,6 +381,72 @@ def set_artarch_parameters(parameters, param_dict):
 
     set_tarch_parameters(parameters, param_dict)
     parameters['B'] = param_dict['B']
+
+
+# -----------------------------------------------------------------------------
+# read_return_parameters
+# -----------------------------------------------------------------------------
+
+def read_return_parameters(returnDynamicsType):
+
+    if returnDynamicsType == ReturnDynamicsType.Linear:
+
+        params = pd.read_excel('data/return_calibrations.xlsx',
+                               sheet_name='linear',
+                               index_col=0)
+
+    elif returnDynamicsType == ReturnDynamicsType.NonLinear:
+
+        params = pd.read_excel('data/return_calibrations.xlsx',
+                               sheet_name='non-linear',
+                               index_col=0)
+
+    else:
+        raise NameError('Invalid returnDynamicsType')
+
+    return params['param'].to_dict()
+
+
+# -----------------------------------------------------------------------------
+# read_factor_parameters
+# -----------------------------------------------------------------------------
+
+def read_factor_parameters(factorDynamicsType):
+
+    if factorDynamicsType == FactorDynamicsType.AR:
+
+        params = pd.read_excel('data/factor_calibrations.xlsx',
+                               sheet_name='AR',
+                               index_col=0)
+
+    elif factorDynamicsType == FactorDynamicsType.SETAR:
+
+        params = pd.read_excel('data/factor_calibrations.xlsx',
+                               sheet_name='SETAR',
+                               index_col=0)
+
+    elif factorDynamicsType == FactorDynamicsType.GARCH:
+
+        params = pd.read_excel('data/factor_calibrations.xlsx',
+                               sheet_name='GARCH',
+                               index_col=0)
+
+    elif factorDynamicsType == FactorDynamicsType.TARCH:
+
+        params = pd.read_excel('data/factor_calibrations.xlsx',
+                               sheet_name='TARCH',
+                               index_col=0)
+
+    elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
+
+        params = pd.read_excel('data/factor_calibrations.xlsx',
+                               sheet_name='AR-TARCH',
+                               index_col=0)
+
+    else:
+        raise NameError('Invalid factorDynamicsType')
+
+    return params['param'].to_dict()
 
 
 # -----------------------------------------------------------------------------

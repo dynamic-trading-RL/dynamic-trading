@@ -6,27 +6,39 @@ Created on Tue Nov 23 15:27:18 2021
 """
 
 import numpy as np
+import pandas as pd
 import yfinance as yf
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from arch import arch_model
 from arch.univariate import ARX, GARCH
 from statsmodels.tsa.ar_model import AutoReg
-import matplotlib.pyplot as plt
+
+# ------------------------------------- Parameters ----------------------------
+
+ticker = 'GOOGL'  # '^GSPC'
+c = 0.
+scale = 1000
+t_past = 8000
+window = 5
+
+calibration_parameters = pd.DataFrame(index=['ticker', 'scale', 't_past',
+                                              'window'],
+                                       data=[ticker, scale, t_past, window],
+                                       columns=['calibration-parameters'])
 
 
 # ------------------------------------- Download data -------------------------
 
-snp500 = yf.download('^GSPC')['Adj Close']
-first_valid_loc = snp500.first_valid_index()
-snp500 = snp500.loc[first_valid_loc:]
-snp500.name = '^GSPC'
-snp500 = snp500.to_frame()
-df = snp500.copy().iloc[-8000:]
-df['r'] = 1000*np.log(df['^GSPC']).diff()
+stock = yf.download(ticker)['Adj Close']
+first_valid_loc = stock.first_valid_index()
+stock = stock.loc[first_valid_loc:]
+stock.name = ticker
+stock = stock.to_frame()
+df = stock.copy().iloc[-t_past:]
+df['r'] = scale*df[ticker].pct_change()
 
 # Factors
-window = 5
 df['f'] = df['r'].rolling(window).mean()
 
 df.dropna(inplace=True)
@@ -47,10 +59,15 @@ B = reg.params['f']
 mu_u = reg.params['const']
 Sigma2_u = reg.mse_resid
 
+res_linear = pd.DataFrame(index=['mu', 'B', 'sig2'],
+                          data=[mu_u, B, Sigma2_u],
+                          columns=['param'])
+
+with open('reports/' + ticker + '-return_linear.txt', 'w') as fh:
+    fh.write(reg.summary().as_text())
+
 
 # Non-linear prediction
-c = 0.
-
 ind_0 = df_reg['f'] < c
 ind_1 = df_reg['f'] >= c
 
@@ -59,17 +76,74 @@ reg_0 = OLS(df_reg['r'].loc[ind_0], add_constant(df_reg['f'].loc[ind_0])).fit()
 B_0 = reg_0.params['f']
 mu_u_0 = reg_0.params['const']
 Sigma2_u_0 = reg_0.mse_resid
-print(reg_0.summary())
 
 reg_1 = OLS(df_reg['r'].loc[ind_1], add_constant(df_reg['f'].loc[ind_1])).fit()
 
 B_1 = reg_1.params['f']
 mu_u_1 = reg_1.params['const']
 Sigma2_u_1 = reg_1.mse_resid
-print(reg_1.summary())
+
+res_non_linear = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
+                                     'mu_1', 'B_1', 'sig2_1',
+                                     'c'],
+                              data=[mu_u_0, B_0, Sigma2_u_0,
+                                    mu_u_1, B_1, Sigma2_u_1,
+                                    c],
+                              columns=['param'])
+
+with open('reports/' + ticker + '-return_nonlinear_0.txt', 'w') as fh:
+    fh.write(reg_0.summary().as_text())
+
+with open('reports/' + ticker + '-return_nonlinear_1.txt', 'w') as fh:
+    fh.write(reg_1.summary().as_text())
 
 
 # ------------------ FACTORS
+
+# AR(1) on factors
+res_ar = AutoReg(df['f'], lags=1, old_names=False).fit()
+mu_ar = res_ar.params.iloc[0]
+Phi_ar = 1 - res_ar.params.iloc[1]
+Omega_ar = res_ar.sigma2
+epsi_ar = df['f'].iloc[1:] - Phi_ar*df['f'].iloc[:-1] - mu_ar
+
+with open('reports/' + ticker + '-factor_AR.txt', 'w') as fh:
+    fh.write(res_ar.summary().as_text())
+
+res_ar = pd.DataFrame(index=['mu', 'B', 'sig2'],
+                      data=[mu_ar, 1 - Phi_ar, Omega_ar],
+                      columns=['param'])
+
+# SETAR on factors
+ind_0 = df['f'] < c
+ind_1 = df['f'] >= c
+
+res_ar_0 = AutoReg(df['f'].loc[ind_0], lags=1, old_names=False).fit()
+mu_ar_0 = res_ar_0.params.iloc[0]
+Phi_ar_0 = 1 - res_ar_0.params.iloc[1]
+Omega_ar_0 = res_ar_0.sigma2
+epsi_ar_0 = df['f'].loc[ind_0].iloc[1:] - Phi_ar_0*df['f'].loc[ind_0].iloc[:-1] - mu_ar_0
+
+res_ar_1 = AutoReg(df['f'].loc[ind_1], lags=1, old_names=False).fit()
+mu_ar_1 = res_ar_1.params.iloc[0]
+Phi_ar_1 = 1 - res_ar_1.params.iloc[1]
+Omega_ar_1 = res_ar_1.sigma2
+epsi_ar_1 = df['f'].loc[ind_1].iloc[1:] - Phi_ar_1*df['f'].loc[ind_1].iloc[:-1] - mu_ar_1
+
+with open('reports/' + ticker + '-factor_SETAR_0.txt', 'w') as fh:
+    fh.write(res_ar_0.summary().as_text())
+
+with open('reports/' + ticker + '-factor_SETAR_0.txt', 'w') as fh:
+    fh.write(res_ar_1.summary().as_text())
+
+res_setar = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
+                                'mu_1', 'B_1', 'sig2_1',
+                                'c'],
+                         data=[mu_ar_0, 1 - Phi_ar_0, Omega_ar_0,
+                               mu_ar_1, 1 - Phi_ar_1, Omega_ar_1,
+                               c],
+                         columns=['param'])
+
 
 # GARCH(1, 1) on factors
 garch = arch_model(df['f'].diff().dropna(), p=1, q=1, rescale=False)
@@ -81,7 +155,14 @@ mu_garch = res_garch.params['mu']
 omega_garch = res_garch.params['omega']
 alpha_garch = res_garch.params['alpha[1]']
 beta_garch = res_garch.params['beta[1]']
-print(res_garch.summary())
+
+with open('reports/' + ticker + '-factor_GARCH.txt', 'w') as fh:
+    fh.write(res_garch.summary().as_text())
+
+res_garch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'beta'],
+                         data=[mu_garch, omega_garch, alpha_garch, beta_garch],
+                         columns=['param'])
+
 
 # TARCH(1, 1, 1) on factors
 tarch = arch_model(df['f'].diff().dropna(), p=1, o=1, q=1, rescale=False)
@@ -94,117 +175,94 @@ omega_tarch = res_tarch.params['omega']
 alpha_tarch = res_tarch.params['alpha[1]']
 gamma_tarch = res_tarch.params['gamma[1]']
 beta_tarch = res_tarch.params['beta[1]']
-print(res_tarch.summary())
+
+with open('reports/' + ticker + '-factor_TARCH.txt', 'w') as fh:
+    fh.write(res_tarch.summary().as_text())
+
+res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c'],
+                         data=[mu_tarch, omega_tarch, alpha_tarch, gamma_tarch,
+                               beta_tarch, 0],
+                         columns=['param'])
+
 
 # AR-TARCH(1, 1, 1) on factors
-arx = ARX(df['f'], lags=1, rescale=False)
-arx.volatility = GARCH(p=1, o=1, q=1)
-res_arx = arx.fit()
-Phi_arx = 1 - res_arx.params['f[1]']
-mu_arx = res_arx.params['Const']
-omega_arx = res_arx.params['omega']
-alpha_arx = res_arx.params['alpha[1]']
-gamma_arx = res_arx.params['gamma[1]']
-beta_arx = res_arx.params['beta[1]']
-print(res_arx.summary())
+ar_tarch = ARX(df['f'], lags=1, rescale=False)
+ar_tarch.volatility = GARCH(p=1, o=1, q=1)
+res_ar_tarch = ar_tarch.fit()
+resid = res_ar_tarch.resid
+sigma_ar_tarch = res_ar_tarch.conditional_volatility
+epsi_ar_tarch = np.divide(resid, sigma_ar_tarch)
+Phi_ar_tarch = 1 - res_ar_tarch.params['f[1]']
+mu_ar_tarch = res_ar_tarch.params['Const']
+omega_ar_tarch = res_ar_tarch.params['omega']
+alpha_ar_tarch = res_ar_tarch.params['alpha[1]']
+gamma_ar_tarch = res_ar_tarch.params['gamma[1]']
+beta_ar_tarch = res_ar_tarch.params['beta[1]']
+
+with open('reports/' + ticker + '-factor_AR_TARCH.txt', 'w') as fh:
+    fh.write(res_ar_tarch.summary().as_text())
+
+res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma', 'beta',
+                                   'c'],
+                            data=[mu_ar_tarch, 1 - Phi_ar_tarch, omega_ar_tarch,
+                                  alpha_ar_tarch, gamma_ar_tarch, beta_ar_tarch,
+                                  0],
+                            columns=['param'])
 
 
-# AR(1) on factors
-res_ar = AutoReg(df['f'], lags=1, old_names=False).fit()
-mu_ar = res_ar.params.iloc[0]
-Phi_ar = 1 - res_ar.params.iloc[1]
-Omega_ar = res_ar.sigma2
-epsi_ar = df['f'].iloc[1:] - Phi_ar*df['f'].iloc[:-1] - mu_ar
-print(res_ar.summary())
+# ------------------------------------- Output --------------------------------
 
-# SETAR on factors
-ind_0 = df['f'] < 0
-ind_1 = df['f'] >= 0
+# ---------- Calibration parameters
+writer = pd.ExcelWriter('data/calibration_parameters.xlsx')
+workbook = writer.book
 
-res_ar_0 = AutoReg(df['f'].loc[ind_0], lags=1, old_names=False).fit()
-mu_ar_0 = res_ar_0.params.iloc[0]
-Phi_ar_0 = 1 - res_ar_0.params.iloc[1]
-Omega_ar_0 = res_ar_0.sigma2
-epsi_ar_0 = df['f'].loc[ind_0].iloc[1:] - Phi_ar_0*df['f'].loc[ind_0].iloc[:-1] - mu_ar_0
-print(res_ar_0.summary())
+# write sheets
+worksheet = workbook.add_worksheet('calibration-parameters')
+writer.sheets['calibration-parameters'] = worksheet
+calibration_parameters.to_excel(writer, sheet_name='calibration-parameters')
 
-res_ar_1 = AutoReg(df['f'].loc[ind_1], lags=1, old_names=False).fit()
-mu_ar_1 = res_ar_1.params.iloc[0]
-Phi_ar_1 = 1 - res_ar_1.params.iloc[1]
-Omega_ar_1 = res_ar_1.sigma2
-epsi_ar_1 = df['f'].loc[ind_1].iloc[1:] - Phi_ar_1*df['f'].loc[ind_1].iloc[:-1] - mu_ar_1
-print(res_ar_1.summary())
+writer.close()
 
 
-###############################################################################
-###############################################################################
-###############################################################################
+# ---------- Return dynamics
+writer = pd.ExcelWriter('data/return_calibrations.xlsx')
+workbook = writer.book
 
-from dt_functions import (ReturnDynamics, FactorDynamics,
-                          ReturnDynamicsType, FactorDynamicsType,
-                          MarketDynamics, Market)
+# write sheets
+worksheet = workbook.add_worksheet('linear')
+writer.sheets['linear'] = worksheet
+res_linear.to_excel(writer, sheet_name='linear')
 
-returnDynamicsType = ReturnDynamicsType.R2
-factorDynamicsType = FactorDynamicsType.F5
+worksheet = workbook.add_worksheet('non-linear')
+writer.sheets['non-linear'] = worksheet
+res_non_linear.to_excel(writer, sheet_name='non-linear')
 
-returnDynamics = ReturnDynamics(returnDynamicsType)
-factorDynamics = FactorDynamics(factorDynamicsType)
-
-if returnDynamicsType == ReturnDynamicsType.R1:
-    return_parameters = {'B': B, 'mu': mu_u, 'sig2': Sigma2_u}
-elif returnDynamicsType == ReturnDynamicsType.R2:
-    return_parameters = {'B_0': B_0, 'mu_0': mu_u_0, 'sig2_0': Sigma2_u_0,
-                         'B_1': B_1, 'mu_1': mu_u_1, 'sig2_1': Sigma2_u_1,
-                         'c': c}
-else:
-    raise NameError('Invalid returnDynamicsType')
-
-if factorDynamicsType == FactorDynamicsType.F1:
-    factor_parameters = {'B': 1-Phi_ar, 'mu': mu_ar, 'sig2': Omega_ar}
-elif factorDynamicsType == FactorDynamicsType.F2:
-    factor_parameters = {'B_0': 1-Phi_ar_0, 'mu_0': mu_ar_0,
-                         'sig2_0': Omega_ar_0,
-                         'B_1': 1-Phi_ar_1, 'mu_1': mu_ar_1,
-                         'sig2_1': Omega_ar_1,
-                         'c': c}
-elif factorDynamicsType == FactorDynamicsType.F3:
-    factor_parameters = {'mu': mu_garch, 'omega': omega_garch,
-                         'alpha': alpha_garch, 'beta': beta_garch}
-elif factorDynamicsType == FactorDynamicsType.F4:
-    factor_parameters = {'mu': mu_tarch, 'omega': omega_tarch,
-                         'alpha': alpha_tarch, 'beta': beta_tarch,
-                         'gamma': gamma_tarch, 'c': c}
-elif factorDynamicsType == FactorDynamicsType.F5:
-    factor_parameters = {'B': 1-Phi_arx,'mu': mu_arx, 'omega': omega_arx,
-                         'alpha': alpha_arx, 'beta': beta_arx,
-                         'gamma': gamma_arx, 'c': c}
+writer.close()
 
 
-returnDynamics.set_parameters(return_parameters)
-factorDynamics.set_parameters(factor_parameters)
+# ---------- Factor dynamics
+writer = pd.ExcelWriter('data/factor_calibrations.xlsx')
+workbook = writer.book
 
-marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
-                                factorDynamics=factorDynamics)
+# write sheets
+worksheet = workbook.add_worksheet('AR')
+writer.sheets['AR'] = worksheet
+res_ar.to_excel(writer, sheet_name='AR')
 
-market = Market(marketDynamics)
-j_ = 1
-t_ = 8000
-market.simulate(j_=j_, t_=t_)
+worksheet = workbook.add_worksheet('SETAR')
+writer.sheets['SETAR'] = worksheet
+res_setar.to_excel(writer, sheet_name='SETAR')
 
-f = market._simulations['f']
-r = market._simulations['r']
+worksheet = workbook.add_worksheet('GARCH')
+writer.sheets['GARCH'] = worksheet
+res_garch.to_excel(writer, sheet_name='GARCH')
 
-fig = plt.figure()
-for j in range(min(50, j_)):
-    plt.plot(r[j, :], color='k', alpha=0.6)
-plt.title('Return')
+worksheet = workbook.add_worksheet('TARCH')
+writer.sheets['TARCH'] = worksheet
+res_tarch.to_excel(writer, sheet_name='TARCH')
 
-fig = plt.figure()
-for j in range(min(50, j_)):
-    plt.plot(f[j, :], color='r', alpha=0.6)
-plt.title('Factor')
+worksheet = workbook.add_worksheet('AR-TARCH')
+writer.sheets['AR-TARCH'] = worksheet
+res_ar_tarch.to_excel(writer, sheet_name='AR-TARCH')
 
-fig = plt.figure()
-plt.scatter(f[:, :-1].flatten(), r[:, 1:].flatten(), s=2)
-plt.title('Factor vs Return')
-
+writer.close()
