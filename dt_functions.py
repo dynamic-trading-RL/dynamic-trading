@@ -475,31 +475,96 @@ class Optimizers:
             '  differential_evolution: ' + str(self._differential_evolution)
 
 
+# # -----------------------------------------------------------------------------
+# # simulate_market
+# # -----------------------------------------------------------------------------
+
+def simulate_market(market, j_episodes, n_batches, t_):
+
+    market.simulate(j_=j_episodes*n_batches, t_=t_)
+    f = market._simulations['f'].reshape((j_episodes, n_batches, t_))
+    r = market._simulations['r'].reshape((j_episodes, n_batches, t_))
+
+    return r, f
+
+
 # -----------------------------------------------------------------------------
-# simulate_market
+# generate_episode
 # -----------------------------------------------------------------------------
 
+def generate_episode(
+                     # dummy for parallel computing
+                     j,
+                     # market parameters
+                     Lambda, mu, Sigma,
+                     # market simulations
+                     f,
+                     # RL parameters
+                     eps, rho, q_value, alpha, gamma, lot_size,
+                     optimizers,
+                     optimizer):
+    """
+    Given a market simulation f, this function generates an episode for the
+    reinforcement learning agent training
+    """
 
-def simulate_market(j_, t_, n_batches, B, mu_u, Sigma, Phi, mu_eps, Omega):
+    reward_total = 0
+    cost_total = 0
 
-    f = np.zeros((j_, n_batches, t_))
-    f[:, :, 0] = mu_eps + np.sqrt(Omega)*np.random.randn(j_, n_batches)
-    for t in range(1, t_-1):
-        f[:, :, t] = mu_eps + (1 - Phi)*f[:, :, t-1] +\
-                np.sqrt(Omega)*np.random.randn(j_, n_batches)
+    t_ = f.shape[1]
 
-    r = np.zeros((j_, n_batches, t_))
-    r[:, :, 0] = 0.
-    r[:, :, 1:] = mu_u + B*f[:, :, :-1] +\
-        np.sqrt(Sigma)*np.random.randn(j_, n_batches, t_-1)
+    x_episode = np.zeros((t_-1, 3))
+    y_episode = np.zeros(t_-1)
 
-    return r.squeeze(), f.squeeze()
+    # state at t=0
+    state = np.array([0, f[j, 0]])
+
+    # choose action
+    if np.random.rand() < eps:
+        action = np.random.randint(-lot_size, lot_size, dtype=np.int64)
+    else:
+        action = maxAction(q_value, state, lot_size, optimizers, optimizer)
+
+    for t in range(1, t_):
+
+        # Observe s'
+        state_ = [state[0] + action, f[j, t]]
+
+        # Choose a' from s' using policy derived from q_value
+
+        if np.random.rand() < eps:
+            action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
+        else:
+            action_ = maxAction(q_value, state_, lot_size, optimizers, optimizer)
+
+        # Observe r
+
+        reward_t = reward(state[0], state_[0], f[j, t], Lambda, mu, Sigma,
+                          rho, gamma)
+        reward_total += reward_t
+        cost_total += -0.5*((state_[0]-state[0])*Lambda*(state_[0]-state[0]) +
+                            (1 - rho)*gamma*state_[0]*Sigma*state_[0])
+
+        # Update value function
+        y = q_value(state, action) +\
+            alpha*(reward_t +
+                   (1-rho)*q_value(state_, action_) -
+                   q_value(state, action))
+
+        # update pairs
+        x_episode[t-1] = np.r_[state, action]
+        y_episode[t-1] = y
+
+        # update state and action
+        state = state_
+        action = action_
+
+    return x_episode, y_episode, j, reward_total, cost_total
 
 
 # -----------------------------------------------------------------------------
 # reward
 # -----------------------------------------------------------------------------
-
 
 def reward(x_tm1, x_t, f_t,
            Lambda, B, mu_u, Sigma,
@@ -577,80 +642,6 @@ def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
 
 
 # -----------------------------------------------------------------------------
-# generate_episode
-# -----------------------------------------------------------------------------
-
-def generate_episode(
-                     # dummy for parallel computing
-                     j,
-                     # market parameters
-                     Lambda, B, mu_u, Sigma,
-                     # market simulations
-                     f,
-                     # RL parameters
-                     eps, rho, q_value, alpha, gamma, lot_size,
-                     optimizers,
-                     optimizer):
-    """
-    Given a market simulation f, this function generates an episode for the
-    reinforcement learning agent training
-    """
-
-    reward_total = 0
-    cost_total = 0
-
-    t_ = f.shape[1]
-
-    x_episode = np.zeros((t_-1, 3))
-    y_episode = np.zeros(t_-1)
-
-    # state at t=0
-    state = np.array([0, f[j, 0]])
-
-    # choose action
-    if np.random.rand() < eps:
-        action = np.random.randint(-lot_size, lot_size, dtype=np.int64)
-    else:
-        action = maxAction(q_value, state, lot_size, optimizers, optimizer)
-
-    for t in range(1, t_):
-
-        # Observe s'
-        state_ = [state[0] + action, f[j, t]]
-
-        # Choose a' from s' using policy derived from q_value
-
-        if np.random.rand() < eps:
-            action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
-        else:
-            action_ = maxAction(q_value, state_, lot_size, optimizers, optimizer)
-
-        # Observe r
-
-        reward_t = reward(state[0], state_[0], f[j, t], Lambda, B, mu_u, Sigma,
-                          rho, gamma)
-        reward_total += reward_t
-        cost_total += -0.5*((state_[0]-state[0])*Lambda*(state_[0]-state[0]) +
-                            (1 - rho)*gamma*state_[0]*Sigma*state_[0])
-
-        # Update value function
-        y = q_value(state, action) +\
-            alpha*(reward_t +
-                   (1-rho)*q_value(state_, action_) -
-                   q_value(state, action))
-
-        # update pairs
-        x_episode[t-1] = np.r_[state, action]
-        y_episode[t-1] = y
-
-        # update state and action
-        state = state_
-        action = action_
-
-    return x_episode, y_episode, j, reward_total, cost_total
-
-
-# -----------------------------------------------------------------------------
 # q_hat
 # -----------------------------------------------------------------------------
 
@@ -706,10 +697,10 @@ def compute_markovitz(f, gamma, B, Sigma):
 
 
 # -----------------------------------------------------------------------------
-# compute_optimal
+# compute_GP
 # -----------------------------------------------------------------------------
 
-def compute_optimal(f, gamma, lam, rho, B, Sigma, Phi):
+def compute_GP(f, gamma, lam, rho, B, Sigma, Phi):
 
     if f.ndim == 1:
         t_ = f.shape[0]
