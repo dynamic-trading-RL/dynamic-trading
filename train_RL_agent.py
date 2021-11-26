@@ -5,9 +5,7 @@ Created on Wed Nov 24 12:41:52 2021
 @author: Giorgi
 """
 
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from dt_functions import (ReturnDynamics, FactorDynamics,
                           ReturnDynamicsType, FactorDynamicsType,
                           MarketDynamics, Market,
@@ -22,7 +20,7 @@ n_batches = 5
 t_ = 50
 
 calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
-                                        index_col=0)
+                                       index_col=0)
 ticker = calibration_parameters.loc['ticker', 'calibration-parameters']
 
 returnDynamicsType = ReturnDynamicsType.Linear
