@@ -38,6 +38,12 @@ stock = stock.to_frame()
 df = stock.copy().iloc[-t_past:]
 df['r'] = scale*df[ticker].pct_change()
 
+# ??? use log-returns for the fit "x"; then, transform them back to PnLs and
+# apply RL to the simulations of the PnL. Pay attention to the transformation
+# of the log-returns variance to PnL variance. For the non-linear case,
+# first transform the log-return variance to a unique sig as a linear combination
+# of the negative/positive part sig's, then transform to PnL variance
+
 # Factors
 df['f'] = df['r'].rolling(window).mean()
 
@@ -59,8 +65,8 @@ B = reg.params['f']
 mu_u = reg.params['const']
 Sigma2_u = reg.mse_resid
 
-res_linear = pd.DataFrame(index=['mu', 'B', 'sig2'],
-                          data=[mu_u, B, Sigma2_u],
+res_linear = pd.DataFrame(index=['mu', 'B', 'sig2', 'scale'],
+                          data=[mu_u, B, Sigma2_u, scale],
                           columns=['param'])
 
 with open('reports/' + ticker + '-return_linear.txt', 'w') as fh:
@@ -85,10 +91,10 @@ Sigma2_u_1 = reg_1.mse_resid
 
 res_non_linear = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
                                      'mu_1', 'B_1', 'sig2_1',
-                                     'c'],
+                                     'c', 'scale'],
                               data=[mu_u_0, B_0, Sigma2_u_0,
                                     mu_u_1, B_1, Sigma2_u_1,
-                                    c],
+                                    c, scale],
                               columns=['param'])
 
 with open('reports/' + ticker + '-return_nonlinear_0.txt', 'w') as fh:
@@ -110,8 +116,8 @@ epsi_ar = df['f'].iloc[1:] - Phi_ar*df['f'].iloc[:-1] - mu_ar
 with open('reports/' + ticker + '-factor_AR.txt', 'w') as fh:
     fh.write(res_ar.summary().as_text())
 
-res_ar = pd.DataFrame(index=['mu', 'B', 'sig2'],
-                      data=[mu_ar, 1 - Phi_ar, Omega_ar],
+res_ar = pd.DataFrame(index=['mu', 'B', 'sig2', 'scale'],
+                      data=[mu_ar, 1 - Phi_ar, Omega_ar, scale],
                       columns=['param'])
 
 # SETAR on factors
@@ -138,10 +144,10 @@ with open('reports/' + ticker + '-factor_SETAR_0.txt', 'w') as fh:
 
 res_setar = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
                                 'mu_1', 'B_1', 'sig2_1',
-                                'c'],
+                                'c', 'scale'],
                          data=[mu_ar_0, 1 - Phi_ar_0, Omega_ar_0,
                                mu_ar_1, 1 - Phi_ar_1, Omega_ar_1,
-                               c],
+                               c, scale],
                          columns=['param'])
 
 
@@ -159,8 +165,9 @@ beta_garch = res_garch.params['beta[1]']
 with open('reports/' + ticker + '-factor_GARCH.txt', 'w') as fh:
     fh.write(res_garch.summary().as_text())
 
-res_garch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'beta'],
-                         data=[mu_garch, omega_garch, alpha_garch, beta_garch],
+res_garch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'beta', 'scale'],
+                         data=[mu_garch, omega_garch, alpha_garch, beta_garch,
+                               scale],
                          columns=['param'])
 
 
@@ -179,9 +186,10 @@ beta_tarch = res_tarch.params['beta[1]']
 with open('reports/' + ticker + '-factor_TARCH.txt', 'w') as fh:
     fh.write(res_tarch.summary().as_text())
 
-res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c'],
+res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c',
+                                'scale'],
                          data=[mu_tarch, omega_tarch, alpha_tarch, gamma_tarch,
-                               beta_tarch, 0],
+                               beta_tarch, 0, scale],
                          columns=['param'])
 
 
@@ -203,10 +211,10 @@ with open('reports/' + ticker + '-factor_AR_TARCH.txt', 'w') as fh:
     fh.write(res_ar_tarch.summary().as_text())
 
 res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma', 'beta',
-                                   'c'],
+                                   'c', 'scale'],
                             data=[mu_ar_tarch, 1 - Phi_ar_tarch, omega_ar_tarch,
                                   alpha_ar_tarch, gamma_ar_tarch, beta_ar_tarch,
-                                  0],
+                                  0, scale],
                             columns=['param'])
 
 

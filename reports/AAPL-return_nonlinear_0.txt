@@ -3,8 +3,8 @@
 Dep. Variable:                      r   R-squared:                       0.099
 Model:                            OLS   Adj. R-squared:                  0.099
 Method:                 Least Squares   F-statistic:                     386.6
-Date:                Wed, 24 Nov 2021   Prob (F-statistic):           9.74e-82
-Time:                        12:22:37   Log-Likelihood:                -16383.
+Date:                Fri, 26 Nov 2021   Prob (F-statistic):           9.74e-82
+Time:                        12:33:55   Log-Likelihood:                -16383.
 No. Observations:                3505   AIC:                         3.277e+04
 Df Residuals:                    3503   BIC:                         3.278e+04
 Df Model:                           1                                         
@@ -15,8 +15,8 @@ Covariance Type:            nonrobust
 const          0.1094      0.606      0.181      0.857      -1.078       1.297
 f              0.9732      0.049     19.663      0.000       0.876       1.070
 ==============================================================================
-Omnibus:                     1387.518   Durbin-Watson:                   2.601
-Prob(Omnibus):                  0.000   Jarque-Bera (JB):            69538.108
+Omnibus:                     1387.517   Durbin-Watson:                   2.601
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):            69538.141
 Skew:                          -1.116   Prob(JB):                         0.00
 Kurtosis:                      24.707   Cond. No.                         17.0
 ==============================================================================

@@ -8,7 +8,8 @@ Created on Fri May 28 17:16:57 2021
 import numpy as np
 import pandas as pd
 from enum import Enum
-from scipy.optimize import (dual_annealing, shgo, differential_evolution)
+from scipy.optimize import (Bounds, dual_annealing, shgo,
+                            differential_evolution, brute)
 
 
 # -----------------------------------------------------------------------------
@@ -43,6 +44,7 @@ class Dynamics:
     def __init__(self):
 
         self._parameters = {}
+        self._scale = None
 
 
 # -----------------------------------------------------------------------------
@@ -68,6 +70,8 @@ class ReturnDynamics(Dynamics):
 
         else:
             raise NameError('Invalid return dynamics')
+
+        self._scale = param_dict['scale']
 
 
 # -----------------------------------------------------------------------------
@@ -106,6 +110,8 @@ class FactorDynamics(Dynamics):
         else:
             raise NameError('Invalid factor dynamics')
 
+        self._scale = param_dict['scale']
+
 
 # -----------------------------------------------------------------------------
 # class: MarketDynamics
@@ -130,8 +136,19 @@ class Market:
     def __init__(self, marketDynamics: MarketDynamics):
 
         self._marketDynamics = marketDynamics
+        self._scale = self._setScale()
         self._marketId = self._setMarketId()
         self._simulations = {}
+
+    def _setScale(self):
+
+        returnScale = self._marketDynamics._returnDynamics._scale
+        factorScale = self._marketDynamics._factorDynamics._scale
+
+        if returnScale != factorScale:
+            raise NameError('Incoherent scale between return and factor')
+
+        return returnScale
 
     def _setMarketId(self):
 
@@ -259,7 +276,7 @@ class Market:
         else:
             raise NameError('Invalid factorDynamicsType')
 
-        self._simulations['f'] = f
+        self._simulations['f'] = f / self._scale
 
     def _simulate_return(self):
 
@@ -304,7 +321,7 @@ class Market:
         else:
             raise NameError('Invalid returnDynamicsType')
 
-        self._simulations['r'] = r
+        self._simulations['r'] = r / self._scale
 
 
 # -----------------------------------------------------------------------------
@@ -459,27 +476,54 @@ class Optimizers:
         self._shgo = 0
         self._dual_annealing = 0
         self._differential_evolution = 0
+        self._brute = 0
 
     def __repr__(self):
 
         return 'Used optimizers:\n' +\
             '  shgo: ' + str(self._shgo) + '\n' +\
             '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
-            '  differential_evolution: ' + str(self._differential_evolution)
+            '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
+            '  brute: ' + str(self._brute)
 
     def __str__(self):
 
         return 'Used optimizers:\n' +\
             '  shgo: ' + str(self._shgo) + '\n' +\
             '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
-            '  differential_evolution: ' + str(self._differential_evolution)
+            '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
+            '  brute: ' + str(self._brute)
 
 
-# # -----------------------------------------------------------------------------
-# # simulate_market
-# # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# instantiate_market
+# -----------------------------------------------------------------------------
 
-def simulate_market(market, j_episodes, n_batches, t_):
+def instantiate_market(returnDynamicsType, factorDynamicsType):
+
+    # Instantiate dynamics
+    returnDynamics = ReturnDynamics(returnDynamicsType)
+    factorDynamics = FactorDynamics(factorDynamicsType)
+
+    # Read calibrated parameters
+    return_parameters = read_return_parameters(returnDynamicsType)
+    factor_parameters = read_factor_parameters(factorDynamicsType)
+
+    # Set dynamics
+    returnDynamics.set_parameters(return_parameters)
+    factorDynamics.set_parameters(factor_parameters)
+    marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
+                                    factorDynamics=factorDynamics)
+    market = Market(marketDynamics)
+
+    return market
+
+
+# -----------------------------------------------------------------------------
+# simulate_market
+# -----------------------------------------------------------------------------
+
+def simulate_market(market, j_episodes, n_batches, t_, scale):
 
     market.simulate(j_=j_episodes*n_batches, t_=t_)
     f = market._simulations['f'].reshape((j_episodes, n_batches, t_))
@@ -489,61 +533,84 @@ def simulate_market(market, j_episodes, n_batches, t_):
 
 
 # -----------------------------------------------------------------------------
+# get_Sigma
+# -----------------------------------------------------------------------------
+
+def get_Sigma(market):
+
+    returnDynamicsType = market._marketDynamics._returnDynamics._returnDynamicsType
+
+    if returnDynamicsType == ReturnDynamicsType.Linear:
+
+        Sigma = market._marketDynamics._returnDynamics._parameters['sig2']
+
+    elif returnDynamicsType == ReturnDynamicsType.NonLinear:
+
+        Sigma =\
+            0.5*(market._marketDynamics._returnDynamics._parameters['sig2_0'] +
+                 market._marketDynamics._returnDynamics._parameters['sig2_0'])
+
+    return Sigma / market._scale**2
+
+# -----------------------------------------------------------------------------
 # generate_episode
 # -----------------------------------------------------------------------------
 
-def generate_episode(
-                     # dummy for parallel computing
+def generate_episode(# dummy for parallel computing
                      j,
-                     # market parameters
-                     Lambda, mu, Sigma,
                      # market simulations
-                     f,
+                     r,
+                     # reward/cost parameters
+                     rho, gamma, Sigma, Lambda,
                      # RL parameters
-                     eps, rho, q_value, alpha, gamma, lot_size,
-                     optimizers,
-                     optimizer):
+                     eps, q_value, alpha,
+                     optimizers, optimizer,
+                     b):
     """
-    Given a market simulation f, this function generates an episode for the
+    Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
     """
 
     reward_total = 0
     cost_total = 0
 
-    t_ = f.shape[1]
+    t_ = r.shape[1]
 
     x_episode = np.zeros((t_-1, 3))
     y_episode = np.zeros(t_-1)
 
-    # state at t=0
-    state = np.array([0, f[j, 0]])
+    # Observe state
+    state = np.array([0, r[j, 0]])
 
-    # choose action
+    # Choose action
+
     if np.random.rand() < eps:
-        action = np.random.randint(-lot_size, lot_size, dtype=np.int64)
+        action = np.random.rand()
     else:
-        action = maxAction(q_value, state, lot_size, optimizers, optimizer)
+        action = maxAction(q_value, state, [0., 1.], b, optimizers, optimizer)
 
     for t in range(1, t_):
 
         # Observe s'
-        state_ = [state[0] + action, f[j, t]]
+        state_ = [state[0] + action, r[j, t]]
 
         # Choose a' from s' using policy derived from q_value
-
+        min_w = -(state[0] + action)
+        max_w = 1 - (state[0] + action)
         if np.random.rand() < eps:
-            action_ = np.random.randint(-lot_size, lot_size, dtype=np.int64)
+            action_ = min_w + (max_w - min_w)*np.random.rand()
         else:
-            action_ = maxAction(q_value, state_, lot_size, optimizers, optimizer)
+            action_ = maxAction(q_value, state_, [min_w, max_w], b,
+                                optimizers, optimizer)
 
-        # Observe r
+        # Observe reward
+        x_tm1 = state_[0]
+        r_t = state_[1]
+        a_tm1 = action
 
-        reward_t = reward(state[0], state_[0], f[j, t], Lambda, mu, Sigma,
-                          rho, gamma)
+        reward_t = reward(x_tm1, r_t, a_tm1, rho, gamma, Sigma, Lambda)
         reward_total += reward_t
-        cost_total += -0.5*((state_[0]-state[0])*Lambda*(state_[0]-state[0]) +
-                            (1 - rho)*gamma*state_[0]*Sigma*state_[0])
+        cost_total += cost(x_tm1, r_t, a_tm1, rho, gamma, Sigma, Lambda)
 
         # Update value function
         y = q_value(state, action) +\
@@ -551,11 +618,11 @@ def generate_episode(
                    (1-rho)*q_value(state_, action_) -
                    q_value(state, action))
 
-        # update pairs
+        # Update fitting pairs
         x_episode[t-1] = np.r_[state, action]
         y_episode[t-1] = y
 
-        # update state and action
+        # Update state and action
         state = state_
         action = action_
 
@@ -566,80 +633,125 @@ def generate_episode(
 # reward
 # -----------------------------------------------------------------------------
 
-def reward(x_tm1, x_t, f_t,
-           Lambda, B, mu_u, Sigma,
-           rho, gamma):
+def reward(x_tm1, r_t, a_tm1,
+           rho, gamma, Sigma, Lambda):
 
-    delta_x = x_t - x_tm1
+    return (1 - rho)*(x_tm1*r_t - 0.5*gamma*x_tm1*Sigma*x_tm1) -\
+        0.5*a_tm1*Lambda*a_tm1
 
-    return -0.5*delta_x*Lambda*delta_x +\
-        (1 - rho)*(x_t*(B*f_t + mu_u) - 0.5*gamma*x_t*Sigma*x_t)
+
+# -----------------------------------------------------------------------------
+# cost
+# -----------------------------------------------------------------------------
+
+def cost(x_tm1, r_t, a_tm1,
+           rho, gamma, Sigma, Lambda):
+
+    return reward(x_tm1, r_t, a_tm1, rho, gamma, Sigma, Lambda) +\
+        (1 - rho)*x_tm1*r_t
 
 
 # -----------------------------------------------------------------------------
 # maxAction
 # -----------------------------------------------------------------------------
 
-def maxAction(q_value, state, lot_size, optimizers, optimizer=None):
+def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
     """
     This function determines the q-greedy action for a given
     q-value function and state
     """
 
-    # function
-    def fun(a): return -q_value(state, a)
+    if b == 0:
 
-    if optimizer == 'best':
-        n = np.array([optimizers._shgo, optimizers._dual_annealing,
-                      optimizers._differential_evolution])
-        i = np.argmax(n)
-        if i == 0:
-            optimizer = 'shgo'
-        elif i == 1:
-            optimizer = 'dual_annealing'
-        elif i == 2:
-            optimizer = 'differential_evolution'
-        else:
-            print('Wrong optimizer')
-
-    if optimizer is None:
-
-        # optimizations
-        res1 = shgo(fun, bounds=[(-lot_size, lot_size)])
-        res2 = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
-        res3 = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-
-        res_x = np.array([res1.x, res2.x, res3.x])
-        res_fun = np.array([res1.fun, res2.fun, res3.fun])
-
-        i = np.argmax(res_fun)
-
-        if i == 0:
-            optimizers._shgo += 1
-        elif i == 1:
-            optimizers._dual_annealing += 1
-        elif i == 2:
-            optimizers._differential_evolution += 1
-        else:
-            print('Wrong optimizer')
-
-        return res_x[i]
-
-    elif optimizer == 'shgo':
-        res = shgo(fun, bounds=[(-lot_size, lot_size)])
-        return res.x
-
-    elif optimizer == 'dual_annealing':
-        res = dual_annealing(fun, bounds=[(-lot_size, lot_size)])
-        return res.x
-
-    elif optimizer == 'differential_evolution':
-        res = differential_evolution(fun, bounds=[(-lot_size, lot_size)])
-        return res.x
+        return bounds[0] + (bounds[1] - bounds[0])*np.random.rand()
 
     else:
-        print('Wrong optimizer')
 
+        bounds = [tuple(bounds)]
+
+        # function
+        def fun(a): return -q_value(state, a)
+
+        if optimizer == 'best':
+            n = np.array([optimizers._shgo, optimizers._dual_annealing,
+                          optimizers._differential_evolution,
+                          optimizers._brute])
+            i = np.argmax(n)
+            if i == 0:
+                optimizer = 'shgo'
+            elif i == 1:
+                optimizer = 'dual_annealing'
+            elif i == 2:
+                optimizer = 'differential_evolution'
+            elif i == 3:
+                optimizer == 'brute'
+            else:
+                print('Wrong optimizer')
+
+        if optimizer is None:
+
+            # optimizations
+            res1 = shgo(fun, bounds)
+            res2 = dual_annealing(fun, bounds)
+            res3 = differential_evolution(fun, bounds)
+            res4 = brute(fun, bounds, Ns=50)
+
+            res = [res1, res2, res3, res4]  # ??? integrare brute
+            res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
+
+            i = np.argmax(res_fun)
+
+            if i == 0:
+                optimizers._shgo += 1
+            elif i == 1:
+                optimizers._dual_annealing += 1
+            elif i == 2:
+                optimizers._differential_evolution += 1
+            elif i == 3:
+                optimizers._brute += 1
+            else:
+                print('Wrong optimizer')
+
+            res = res[i]
+
+        elif optimizer == 'shgo':
+            optimizers._shgo += 1
+            res = shgo(fun, bounds=bounds)
+
+        elif optimizer == 'dual_annealing':
+            optimizers._dual_annealing += 1
+            res = dual_annealing(fun, bounds)
+
+        elif optimizer == 'differential_evolution':
+            optimizers._differential_evolution += 1
+            res = differential_evolution(fun, bounds)
+
+        elif optimizer == 'brute':
+            a=1
+            optimizers._brute += 1
+            res = brute(fun, bounds, Ns=50)
+
+        else:
+            raise NameError('Wrong optimizer: ' + optimizer)
+
+        return res.x[0]
+
+
+def set_regressor_parameters(sup_model):
+
+    if sup_model == 'ann_fast':
+        hidden_layer_sizes = (64, 32, 8)
+        max_iter = 10
+        n_iter_no_change = 2
+        alpha_ann = 0.0001
+
+    elif sup_model == 'ann_deep':
+        hidden_layer_sizes = (70, 50, 30, 10)
+        max_iter = 200
+        n_iter_no_change = 10
+        alpha_ann = 0.001
+
+    return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
 
 # -----------------------------------------------------------------------------
 # q_hat
@@ -729,30 +841,31 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi):
 # compute_rl
 # -----------------------------------------------------------------------------
 
-def compute_rl(j, f, q_value, lot_size, optimizers, optimizer=None):
+def compute_rl(j, r, q_value, optimizers, optimizer=None):
 
-    if f.ndim ==1:
-        t_ = f.shape[0]
+    if r.ndim ==1:
+        t_ = r.shape[0]
     else:
-        f = f[j, :]
-        t_ = f.shape[0]
+        r = r[j, :]
+        t_ = r.shape[0]
 
-    shares = np.zeros(t_)
+    weights = np.zeros(t_)
 
     for t in range(t_):
 
         if t == 0:
-            state = np.array([0, f[t]])
-            action = maxAction(q_value, state, lot_size, optimizers,
+            state = np.array([0, r[t]])
+            action = maxAction(q_value, state, [0., 1.], 1, optimizers,
                                optimizer=optimizer)
-            shares[t] = state[0] + action
+            weights[t] = state[0] + action
         else:
-            state = np.array([shares[t-1], f[t]])
-            action = maxAction(q_value, state, lot_size, optimizers,
+            state = np.array([weights[t-1], r[t]])
+            bounds = [-weights[t-1], 1 - weights[t-1]]
+            action = maxAction(q_value, state, bounds, 1, optimizers,
                                optimizer=optimizer)
-            shares[t] = state[0] + action
+            weights[t] = state[0] + action
 
-    return shares
+    return weights
 
 
 # -----------------------------------------------------------------------------
