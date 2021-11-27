@@ -19,8 +19,9 @@ j_ = 100
 t_ = 40
 
 calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
-                                        index_col=0)
+                                       index_col=0)
 ticker = calibration_parameters.loc['ticker', 'calibration-parameters']
+startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 
 # Specify model
 for returnDynamicsType in ReturnDynamicsType:
@@ -39,7 +40,7 @@ for returnDynamicsType in ReturnDynamicsType:
         factorDynamics.set_parameters(factor_parameters)
         marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
                                         factorDynamics=factorDynamics)
-        market = Market(marketDynamics)
+        market = Market(marketDynamics, startPrice)
 
         # Simulations
         market.simulate(j_=j_, t_=t_)
@@ -67,7 +68,6 @@ for returnDynamicsType in ReturnDynamicsType:
             ' and ' + returnDynamicsType.value
         plt.title(s)
         plt.savefig('figures/' + ticker + '-' + s + '.png')
-
 
         fig = plt.figure()
         for j in range(min(50, j_)):

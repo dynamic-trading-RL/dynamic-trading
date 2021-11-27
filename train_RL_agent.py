@@ -32,9 +32,9 @@ np.random.seed(7890)
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 1000
+j_episodes = 30
 n_batches = 3
-t_ = 50
+t_ = 10
 
 parallel_computing = False
 n_cores_max = 20
@@ -57,7 +57,7 @@ sup_model = 'ann_fast'  # or random_forest or ann_deep
 # ------------------------------------- Reinforcement learning ----------------
 calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
                                        index_col=0)
-scale = calibration_parameters.loc['scale']
+startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 qb_list = []  # list to store models
 optimizers = Optimizers()
 hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann =\
@@ -68,14 +68,13 @@ if parallel_computing:
     n_cores = min(mp.cpu_count(), n_cores_max)
     print('Number of cores used: %d' % n_cores)
 
-
 # Instantiate market
-market = instantiate_market(returnDynamicsType, factorDynamicsType)
+market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice)
 
 # Simulations
-r, f = simulate_market(market, j_episodes, n_batches, t_, scale)
-Sigma = get_Sigma(market)
-Lambda = lam*Sigma
+price, pnl = simulate_market(market, j_episodes, n_batches, t_)
+Sigma_r = get_Sigma(market)
+Lambda_r = lam*Sigma_r
 
 for b in range(n_batches):  # loop on batches
     print('Creating batch %d of %d; eps=%f' % (b+1, n_batches, eps))
@@ -96,7 +95,7 @@ for b in range(n_batches):  # loop on batches
         qb_list.append(load('models/q%d.joblib' % (b-1)))  # import regressors
 
         def q_value(state, action):
-            return q_hat(state, action, n_batches, qb_list,
+            return q_hat(state, action, qb_list,
                          flag_qaverage=False,
                          n_models=None)
 
@@ -106,9 +105,10 @@ for b in range(n_batches):  # loop on batches
 
     gen_ep_part = partial(generate_episode,
                           # market simulations
-                          r=r[:, b, :],
+                          price=price[:, b, ], pnl=pnl[:, b, :],
                           # reward/cost parameters
-                          rho=rho, gamma=gamma, Sigma=Sigma, Lambda=Lambda,
+                          rho=rho, gamma=gamma, Sigma_r=Sigma_r,
+                          Lambda_r=Lambda_r,
                           # RL parameters
                           eps=eps, q_value=q_value, alpha=alpha,
                           optimizers=optimizers, optimizer=optimizer,
@@ -181,3 +181,37 @@ for b in range(n_batches):  # loop on batches
 print(optimizers)
 dump(n_batches, 'data/n_batches.joblib')
 dump(optimizers, 'data/optimizers.joblib')
+
+
+# ------------------------------------- Check strategy ------------------------
+qb_list = []  # list to store models
+for b in range(n_batches):
+    qb_list.append(load('models/q%d.joblib' % b))
+
+
+def q_value(state, action):
+    return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
+
+
+# Simulations
+pnl_oos = pnl[0, 0, :]
+
+if parallel_computing:
+    if __name__ == '__main__':
+
+        compute_rl_part = partial(compute_rl, pnl=pnl_oos, q_value=q_value,
+                                  optimizers=optimizers,
+                                  optimizer=optimizer)
+
+        p = mp.Pool(n_cores)
+        shares = p.map(compute_rl_part, range(1))
+        p.close()
+        p.join()
+    shares = np.array(shares)
+
+else:
+    shares = np.zeros((1, t_))
+    for j in range(1):
+        print('Simulation', j+1, 'on', 1)
+        shares[j, :] = compute_rl(j, pnl_oos, q_value, optimizers,
+                                  optimizer=optimizer)

@@ -16,38 +16,38 @@ from statsmodels.tsa.ar_model import AutoReg
 
 # ------------------------------------- Parameters ----------------------------
 
-ticker = 'GOOGL'  # '^GSPC'
+ticker = '^GSPC'  # '^GSPC'
+end_date = '2021-11-26'
 c = 0.
 scale = 1000
 t_past = 8000
 window = 5
 
-calibration_parameters = pd.DataFrame(index=['ticker', 'scale', 't_past',
-                                              'window'],
-                                       data=[ticker, scale, t_past, window],
-                                       columns=['calibration-parameters'])
-
 
 # ------------------------------------- Download data -------------------------
 
-stock = yf.download(ticker)['Adj Close']
+stock = yf.download(ticker, end=end_date)['Adj Close']
 first_valid_loc = stock.first_valid_index()
 stock = stock.loc[first_valid_loc:]
+startPrice = stock.iloc[-1]
 stock.name = ticker
 stock = stock.to_frame()
 df = stock.copy().iloc[-t_past:]
 df['r'] = scale*df[ticker].pct_change()
 
-# ??? use log-returns for the fit "x"; then, transform them back to PnLs and
-# apply RL to the simulations of the PnL. Pay attention to the transformation
-# of the log-returns variance to PnL variance. For the non-linear case,
-# first transform the log-return variance to a unique sig as a linear combination
-# of the negative/positive part sig's, then transform to PnL variance
+# NB: returns and log returns are almost equal
 
 # Factors
 df['f'] = df['r'].rolling(window).mean()
 
 df.dropna(inplace=True)
+
+calibration_parameters = pd.DataFrame(index=['ticker', 'end_date',
+                                             'startPrice', 't_past', 'scale',
+                                             'window'],
+                                      data=[ticker, end_date, startPrice,
+                                            t_past, scale, window],
+                                      columns=['calibration-parameters'])
 
 
 # ------------------------------------- Fit of dynamics -----------------------
@@ -56,17 +56,17 @@ df.dropna(inplace=True)
 
 # Linear prediction
 df_reg = df[['f', 'r']].copy()
-df_reg['r'] = df_reg['r'].shift(1)
+df_reg['r'] = df_reg['r'].shift(-1)
 df_reg.dropna(inplace=True)
 
 reg = OLS(df_reg['r'], add_constant(df_reg['f'])).fit()
 
 B = reg.params['f']
-mu_u = reg.params['const']
-Sigma2_u = reg.mse_resid
+mu_u = reg.params['const'] / scale
+Sigma2_u = reg.mse_resid / scale**2
 
-res_linear = pd.DataFrame(index=['mu', 'B', 'sig2', 'scale'],
-                          data=[mu_u, B, Sigma2_u, scale],
+res_linear = pd.DataFrame(index=['mu', 'B', 'sig2'],
+                          data=[mu_u, B, Sigma2_u],
                           columns=['param'])
 
 with open('reports/' + ticker + '-return_linear.txt', 'w') as fh:
@@ -80,21 +80,21 @@ ind_1 = df_reg['f'] >= c
 reg_0 = OLS(df_reg['r'].loc[ind_0], add_constant(df_reg['f'].loc[ind_0])).fit()
 
 B_0 = reg_0.params['f']
-mu_u_0 = reg_0.params['const']
-Sigma2_u_0 = reg_0.mse_resid
+mu_u_0 = reg_0.params['const'] / scale
+Sigma2_u_0 = reg_0.mse_resid / scale**2
 
 reg_1 = OLS(df_reg['r'].loc[ind_1], add_constant(df_reg['f'].loc[ind_1])).fit()
 
 B_1 = reg_1.params['f']
-mu_u_1 = reg_1.params['const']
-Sigma2_u_1 = reg_1.mse_resid
+mu_u_1 = reg_1.params['const'] / scale
+Sigma2_u_1 = reg_1.mse_resid / scale**2
 
 res_non_linear = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
                                      'mu_1', 'B_1', 'sig2_1',
-                                     'c', 'scale'],
+                                     'c'],
                               data=[mu_u_0, B_0, Sigma2_u_0,
                                     mu_u_1, B_1, Sigma2_u_1,
-                                    c, scale],
+                                    c],
                               columns=['param'])
 
 with open('reports/' + ticker + '-return_nonlinear_0.txt', 'w') as fh:
@@ -108,16 +108,16 @@ with open('reports/' + ticker + '-return_nonlinear_1.txt', 'w') as fh:
 
 # AR(1) on factors
 res_ar = AutoReg(df['f'], lags=1, old_names=False).fit()
-mu_ar = res_ar.params.iloc[0]
+mu_ar = res_ar.params.iloc[0] / scale
 Phi_ar = 1 - res_ar.params.iloc[1]
-Omega_ar = res_ar.sigma2
-epsi_ar = df['f'].iloc[1:] - Phi_ar*df['f'].iloc[:-1] - mu_ar
+Omega_ar = res_ar.sigma2 / scale**2
+epsi_ar = df['f'].iloc[1:] / scale - Phi_ar*df['f'].iloc[:-1] / scale - mu_ar
 
 with open('reports/' + ticker + '-factor_AR.txt', 'w') as fh:
     fh.write(res_ar.summary().as_text())
 
-res_ar = pd.DataFrame(index=['mu', 'B', 'sig2', 'scale'],
-                      data=[mu_ar, 1 - Phi_ar, Omega_ar, scale],
+res_ar = pd.DataFrame(index=['mu', 'B', 'sig2'],
+                      data=[mu_ar, 1 - Phi_ar, Omega_ar],
                       columns=['param'])
 
 # SETAR on factors
@@ -125,16 +125,18 @@ ind_0 = df['f'] < c
 ind_1 = df['f'] >= c
 
 res_ar_0 = AutoReg(df['f'].loc[ind_0], lags=1, old_names=False).fit()
-mu_ar_0 = res_ar_0.params.iloc[0]
+mu_ar_0 = res_ar_0.params.iloc[0] / scale
 Phi_ar_0 = 1 - res_ar_0.params.iloc[1]
-Omega_ar_0 = res_ar_0.sigma2
-epsi_ar_0 = df['f'].loc[ind_0].iloc[1:] - Phi_ar_0*df['f'].loc[ind_0].iloc[:-1] - mu_ar_0
+Omega_ar_0 = res_ar_0.sigma2 / scale**2
+epsi_ar_0 = df['f'].loc[ind_0].iloc[1:] / scale -\
+    Phi_ar_0*df['f'].loc[ind_0].iloc[:-1] / scale - mu_ar_0
 
 res_ar_1 = AutoReg(df['f'].loc[ind_1], lags=1, old_names=False).fit()
-mu_ar_1 = res_ar_1.params.iloc[0]
+mu_ar_1 = res_ar_1.params.iloc[0] / scale
 Phi_ar_1 = 1 - res_ar_1.params.iloc[1]
-Omega_ar_1 = res_ar_1.sigma2
-epsi_ar_1 = df['f'].loc[ind_1].iloc[1:] - Phi_ar_1*df['f'].loc[ind_1].iloc[:-1] - mu_ar_1
+Omega_ar_1 = res_ar_1.sigma2 / scale**2
+epsi_ar_1 = df['f'].loc[ind_1].iloc[1:] / scale -\
+    Phi_ar_1*df['f'].loc[ind_1].iloc[:-1] / scale - mu_ar_1
 
 with open('reports/' + ticker + '-factor_SETAR_0.txt', 'w') as fh:
     fh.write(res_ar_0.summary().as_text())
@@ -144,52 +146,50 @@ with open('reports/' + ticker + '-factor_SETAR_0.txt', 'w') as fh:
 
 res_setar = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
                                 'mu_1', 'B_1', 'sig2_1',
-                                'c', 'scale'],
+                                'c'],
                          data=[mu_ar_0, 1 - Phi_ar_0, Omega_ar_0,
                                mu_ar_1, 1 - Phi_ar_1, Omega_ar_1,
-                               c, scale],
+                               c],
                          columns=['param'])
 
 
 # GARCH(1, 1) on factors
 garch = arch_model(df['f'].diff().dropna(), p=1, q=1, rescale=False)
 res_garch = garch.fit()
-resid = res_garch.resid
-sigma_garch = res_garch.conditional_volatility
+resid = res_garch.resid / scale
+sigma_garch = res_garch.conditional_volatility / scale
 epsi_garch = np.divide(resid, sigma_garch)
-mu_garch = res_garch.params['mu']
-omega_garch = res_garch.params['omega']
-alpha_garch = res_garch.params['alpha[1]']
-beta_garch = res_garch.params['beta[1]']
+mu_garch = res_garch.params['mu'] / scale
+omega_garch = res_garch.params['omega'] / scale**2
+alpha_garch = res_garch.params['alpha[1]'] / scale**2
+beta_garch = res_garch.params['beta[1]'] / scale**2
 
 with open('reports/' + ticker + '-factor_GARCH.txt', 'w') as fh:
     fh.write(res_garch.summary().as_text())
 
-res_garch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'beta', 'scale'],
-                         data=[mu_garch, omega_garch, alpha_garch, beta_garch,
-                               scale],
+res_garch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'beta'],
+                         data=[mu_garch, omega_garch, alpha_garch, beta_garch],
                          columns=['param'])
 
 
 # TARCH(1, 1, 1) on factors
 tarch = arch_model(df['f'].diff().dropna(), p=1, o=1, q=1, rescale=False)
 res_tarch = tarch.fit()
-resid = res_tarch.resid
-sigma_tarch = res_tarch.conditional_volatility
+resid = res_tarch.resid / scale
+sigma_tarch = res_tarch.conditional_volatility / scale
 epsi_tarch = np.divide(resid, sigma_tarch)
-mu_tarch = res_tarch.params['mu']
-omega_tarch = res_tarch.params['omega']
-alpha_tarch = res_tarch.params['alpha[1]']
-gamma_tarch = res_tarch.params['gamma[1]']
-beta_tarch = res_tarch.params['beta[1]']
+mu_tarch = res_tarch.params['mu'] / scale
+omega_tarch = res_tarch.params['omega'] / scale**2
+alpha_tarch = res_tarch.params['alpha[1]'] / scale**2
+gamma_tarch = res_tarch.params['gamma[1]'] / scale**2
+beta_tarch = res_tarch.params['beta[1]'] / scale**2
 
 with open('reports/' + ticker + '-factor_TARCH.txt', 'w') as fh:
     fh.write(res_tarch.summary().as_text())
 
-res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c',
-                                'scale'],
+res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c'],
                          data=[mu_tarch, omega_tarch, alpha_tarch, gamma_tarch,
-                               beta_tarch, 0, scale],
+                               beta_tarch, 0],
                          columns=['param'])
 
 
@@ -197,24 +197,24 @@ res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c',
 ar_tarch = ARX(df['f'], lags=1, rescale=False)
 ar_tarch.volatility = GARCH(p=1, o=1, q=1)
 res_ar_tarch = ar_tarch.fit()
-resid = res_ar_tarch.resid
-sigma_ar_tarch = res_ar_tarch.conditional_volatility
+resid = res_ar_tarch.resid / scale
+sigma_ar_tarch = res_ar_tarch.conditional_volatility / scale
 epsi_ar_tarch = np.divide(resid, sigma_ar_tarch)
 Phi_ar_tarch = 1 - res_ar_tarch.params['f[1]']
-mu_ar_tarch = res_ar_tarch.params['Const']
-omega_ar_tarch = res_ar_tarch.params['omega']
-alpha_ar_tarch = res_ar_tarch.params['alpha[1]']
-gamma_ar_tarch = res_ar_tarch.params['gamma[1]']
-beta_ar_tarch = res_ar_tarch.params['beta[1]']
+mu_ar_tarch = res_ar_tarch.params['Const'] / scale
+omega_ar_tarch = res_ar_tarch.params['omega'] / scale**2
+alpha_ar_tarch = res_ar_tarch.params['alpha[1]'] / scale**2
+gamma_ar_tarch = res_ar_tarch.params['gamma[1]'] / scale**2
+beta_ar_tarch = res_ar_tarch.params['beta[1]'] / scale**2
 
 with open('reports/' + ticker + '-factor_AR_TARCH.txt', 'w') as fh:
     fh.write(res_ar_tarch.summary().as_text())
 
-res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma', 'beta',
-                                   'c', 'scale'],
-                            data=[mu_ar_tarch, 1 - Phi_ar_tarch, omega_ar_tarch,
-                                  alpha_ar_tarch, gamma_ar_tarch, beta_ar_tarch,
-                                  0, scale],
+res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma',
+                                   'beta', 'c'],
+                            data=[mu_ar_tarch, 1 - Phi_ar_tarch,
+                                  omega_ar_tarch, alpha_ar_tarch,
+                                  gamma_ar_tarch, beta_ar_tarch, 0],
                             columns=['param'])
 
 

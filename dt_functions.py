@@ -8,7 +8,7 @@ Created on Fri May 28 17:16:57 2021
 import numpy as np
 import pandas as pd
 from enum import Enum
-from scipy.optimize import (Bounds, dual_annealing, shgo,
+from scipy.optimize import (dual_annealing, shgo,
                             differential_evolution, brute)
 
 
@@ -44,7 +44,6 @@ class Dynamics:
     def __init__(self):
 
         self._parameters = {}
-        self._scale = None
 
 
 # -----------------------------------------------------------------------------
@@ -70,8 +69,6 @@ class ReturnDynamics(Dynamics):
 
         else:
             raise NameError('Invalid return dynamics')
-
-        self._scale = param_dict['scale']
 
 
 # -----------------------------------------------------------------------------
@@ -110,8 +107,6 @@ class FactorDynamics(Dynamics):
         else:
             raise NameError('Invalid factor dynamics')
 
-        self._scale = param_dict['scale']
-
 
 # -----------------------------------------------------------------------------
 # class: MarketDynamics
@@ -133,22 +128,13 @@ class MarketDynamics:
 
 class Market:
 
-    def __init__(self, marketDynamics: MarketDynamics):
+    def __init__(self, marketDynamics: MarketDynamics,
+                 startPrice: float):
 
         self._marketDynamics = marketDynamics
-        self._scale = self._setScale()
+        self._startPrice = startPrice
         self._marketId = self._setMarketId()
         self._simulations = {}
-
-    def _setScale(self):
-
-        returnScale = self._marketDynamics._returnDynamics._scale
-        factorScale = self._marketDynamics._factorDynamics._scale
-
-        if returnScale != factorScale:
-            raise NameError('Incoherent scale between return and factor')
-
-        return returnScale
 
     def _setMarketId(self):
 
@@ -164,6 +150,8 @@ class Market:
 
         self._simulate_factor(j_, t_)
         self._simulate_return()
+        self._simulate_price()
+        self._simulate_pnl()
 
     def _simulate_factor(self, j_, t_):
 
@@ -276,7 +264,7 @@ class Market:
         else:
             raise NameError('Invalid factorDynamicsType')
 
-        self._simulations['f'] = f / self._scale
+        self._simulations['f'] = f
 
     def _simulate_return(self):
 
@@ -321,7 +309,28 @@ class Market:
         else:
             raise NameError('Invalid returnDynamicsType')
 
-        self._simulations['r'] = r / self._scale
+        self._simulations['r'] = r
+
+    def _simulate_price(self):
+
+        r = self._simulations['r']
+        j_, t_ = r.shape
+        price = np.zeros((j_, t_))
+
+        price[:, 0] = self._startPrice
+
+        for t in range(1, t_):
+
+            price[:, t] = price[:, t-1]*(1 + r[:, t])
+
+        self._simulations['price'] = price
+
+    def _simulate_pnl(self):
+
+        j_, _ = self._simulations['price'].shape
+
+        self._simulations['pnl'] =\
+            np.c_[np.zeros(j_), np.diff(self._simulations['price'], axis=1)]
 
 
 # -----------------------------------------------------------------------------
@@ -499,7 +508,7 @@ class Optimizers:
 # instantiate_market
 # -----------------------------------------------------------------------------
 
-def instantiate_market(returnDynamicsType, factorDynamicsType):
+def instantiate_market(returnDynamicsType, factorDynamicsType, startPrice):
 
     # Instantiate dynamics
     returnDynamics = ReturnDynamics(returnDynamicsType)
@@ -514,7 +523,7 @@ def instantiate_market(returnDynamicsType, factorDynamicsType):
     factorDynamics.set_parameters(factor_parameters)
     marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
                                     factorDynamics=factorDynamics)
-    market = Market(marketDynamics)
+    market = Market(marketDynamics, startPrice)
 
     return market
 
@@ -523,13 +532,14 @@ def instantiate_market(returnDynamicsType, factorDynamicsType):
 # simulate_market
 # -----------------------------------------------------------------------------
 
-def simulate_market(market, j_episodes, n_batches, t_, scale):
+def simulate_market(market, j_episodes, n_batches, t_):
 
     market.simulate(j_=j_episodes*n_batches, t_=t_)
-    f = market._simulations['f'].reshape((j_episodes, n_batches, t_))
-    r = market._simulations['r'].reshape((j_episodes, n_batches, t_))
 
-    return r, f
+    price = market._simulations['price'].reshape((j_episodes, n_batches, t_))
+    pnl = market._simulations['pnl'].reshape((j_episodes, n_batches, t_))
+
+    return price, pnl
 
 
 # -----------------------------------------------------------------------------
@@ -538,34 +548,39 @@ def simulate_market(market, j_episodes, n_batches, t_, scale):
 
 def get_Sigma(market):
 
-    returnDynamicsType = market._marketDynamics._returnDynamics._returnDynamicsType
+    returnDynamicsType =\
+        market._marketDynamics._returnDynamics._returnDynamicsType
 
     if returnDynamicsType == ReturnDynamicsType.Linear:
 
-        Sigma = market._marketDynamics._returnDynamics._parameters['sig2']
+        Sigma_r = market._marketDynamics._returnDynamics._parameters['sig2']
 
     elif returnDynamicsType == ReturnDynamicsType.NonLinear:
 
-        Sigma =\
+        # ??? should become weighted average
+        Sigma_r =\
             0.5*(market._marketDynamics._returnDynamics._parameters['sig2_0'] +
                  market._marketDynamics._returnDynamics._parameters['sig2_0'])
 
-    return Sigma / market._scale**2
+    return Sigma_r
+
 
 # -----------------------------------------------------------------------------
 # generate_episode
 # -----------------------------------------------------------------------------
 
-def generate_episode(# dummy for parallel computing
+def generate_episode(
+                     # dummy for parallel computing
                      j,
                      # market simulations
-                     r,
+                     price, pnl,
                      # reward/cost parameters
-                     rho, gamma, Sigma, Lambda,
+                     rho, gamma, Sigma_r, Lambda_r,
                      # RL parameters
                      eps, q_value, alpha,
                      optimizers, optimizer,
-                     b):
+                     b,
+                     bound=100):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
@@ -574,33 +589,34 @@ def generate_episode(# dummy for parallel computing
     reward_total = 0
     cost_total = 0
 
-    t_ = r.shape[1]
+    t_ = pnl.shape[1]
 
     x_episode = np.zeros((t_-1, 3))
     y_episode = np.zeros(t_-1)
 
     # Observe state
-    state = np.array([0, r[j, 0]])
+    state = np.array([0, pnl[j, 0]])
 
     # Choose action
 
     if np.random.rand() < eps:
         action = np.random.rand()
     else:
-        action = maxAction(q_value, state, [0., 1.], b, optimizers, optimizer)
+        action = maxAction(q_value, state, [0., bound], b,
+                           optimizers, optimizer)
 
     for t in range(1, t_):
 
         # Observe s'
-        state_ = [state[0] + action, r[j, t]]
+        state_ = [state[0] + action, pnl[j, t]]
 
         # Choose a' from s' using policy derived from q_value
-        min_w = -(state[0] + action)
-        max_w = 1 - (state[0] + action)
+        lb = -(state[0] + action)
+        ub = bound - (state[0] + action)
         if np.random.rand() < eps:
-            action_ = min_w + (max_w - min_w)*np.random.rand()
+            action_ = lb + (ub - lb)*np.random.rand()
         else:
-            action_ = maxAction(q_value, state_, [min_w, max_w], b,
+            action_ = maxAction(q_value, state_, [lb, ub], b,
                                 optimizers, optimizer)
 
         # Observe reward
@@ -608,9 +624,14 @@ def generate_episode(# dummy for parallel computing
         r_t = state_[1]
         a_tm1 = action
 
-        reward_t = reward(x_tm1, r_t, a_tm1, rho, gamma, Sigma, Lambda)
+        Sigma = price[j, t-1]*Sigma_r  # ??? should be price[j, t]?
+        Lambda = price[j, t-1]*Lambda_r  # ??? should be price[j, t]?
+
+        cost_tm1 = cost(x_tm1, a_tm1, rho, gamma, Sigma, Lambda)
+        reward_t = reward(x_tm1, r_t, cost_tm1, rho)
+
+        cost_total += cost_tm1
         reward_total += reward_t
-        cost_total += cost(x_tm1, r_t, a_tm1, rho, gamma, Sigma, Lambda)
 
         # Update value function
         y = q_value(state, action) +\
@@ -633,22 +654,18 @@ def generate_episode(# dummy for parallel computing
 # reward
 # -----------------------------------------------------------------------------
 
-def reward(x_tm1, r_t, a_tm1,
-           rho, gamma, Sigma, Lambda):
+def reward(x_tm1, r_t, cost_tm1, rho):
 
-    return (1 - rho)*(x_tm1*r_t - 0.5*gamma*x_tm1*Sigma*x_tm1) -\
-        0.5*a_tm1*Lambda*a_tm1
+    return (1 - rho)*x_tm1*r_t - cost_tm1
 
 
 # -----------------------------------------------------------------------------
 # cost
 # -----------------------------------------------------------------------------
 
-def cost(x_tm1, r_t, a_tm1,
-           rho, gamma, Sigma, Lambda):
+def cost(x_tm1, a_tm1, rho, gamma, Sigma, Lambda):
 
-    return reward(x_tm1, r_t, a_tm1, rho, gamma, Sigma, Lambda) +\
-        (1 - rho)*x_tm1*r_t
+    return -0.5*((1 - rho)*gamma*x_tm1*Sigma*x_tm1 - a_tm1*Lambda*a_tm1)
 
 
 # -----------------------------------------------------------------------------
@@ -694,10 +711,14 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res1 = shgo(fun, bounds)
             res2 = dual_annealing(fun, bounds)
             res3 = differential_evolution(fun, bounds)
-            res4 = brute(fun, bounds, Ns=50)
 
-            res = [res1, res2, res3, res4]  # ??? integrare brute
-            res_fun = np.array([res1.fun, res2.fun, res3.fun, res4.fun])
+            res4 = brute(fun, ranges=bounds,
+                         Ns=bounds[0][1]-bounds[0][0]+1,
+                         finish=None,
+                         full_output=True)
+
+            res = [res1, res2, res3, res4[0]]
+            res_fun = np.array([res1.fun, res2.fun, res3.fun, res4[1]])
 
             i = np.argmax(res_fun)
 
@@ -727,9 +748,13 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res = differential_evolution(fun, bounds)
 
         elif optimizer == 'brute':
-            a=1
+
             optimizers._brute += 1
-            res = brute(fun, bounds, Ns=50)
+            x_brute = brute(fun, ranges=bounds,
+                            Ns=bounds[0][1]-bounds[0][0]+1,
+                            finish=None)
+
+            return x_brute
 
         else:
             raise NameError('Wrong optimizer: ' + optimizer)
@@ -753,12 +778,13 @@ def set_regressor_parameters(sup_model):
 
     return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
 
+
 # -----------------------------------------------------------------------------
 # q_hat
 # -----------------------------------------------------------------------------
 
 def q_hat(state, action,
-          B, qb_list,
+          qb_list,
           flag_qaverage=True, n_models=None):
     """
     This function evaluates the estimated q-value function in a given state and
@@ -841,31 +867,32 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi):
 # compute_rl
 # -----------------------------------------------------------------------------
 
-def compute_rl(j, r, q_value, optimizers, optimizer=None):
+def compute_rl(j, pnl, q_value, optimizers, optimizer=None):
 
-    if r.ndim ==1:
-        t_ = r.shape[0]
+    a = 1
+
+    if pnl.ndim == 1:
+        t_ = pnl.shape[0]
     else:
-        r = r[j, :]
-        t_ = r.shape[0]
+        t_ = pnl.shape[1]
 
-    weights = np.zeros(t_)
+    shares = np.zeros(t_)
 
     for t in range(t_):
 
         if t == 0:
-            state = np.array([0, r[t]])
-            action = maxAction(q_value, state, [0., 1.], 1, optimizers,
+            state = np.array([0, pnl[t]])
+            action = maxAction(q_value, state, [0., 100.], 1, optimizers,
                                optimizer=optimizer)
-            weights[t] = state[0] + action
+            shares[t] = state[0] + action
         else:
-            state = np.array([weights[t-1], r[t]])
-            bounds = [-weights[t-1], 1 - weights[t-1]]
+            state = np.array([shares[t-1], pnl[t]])
+            bounds = [-shares[t-1], 100 - shares[t-1]]
             action = maxAction(q_value, state, bounds, 1, optimizers,
                                optimizer=optimizer)
-            weights[t] = state[0] + action
+            shares[t] = state[0] + action
 
-    return weights
+    return shares
 
 
 # -----------------------------------------------------------------------------
