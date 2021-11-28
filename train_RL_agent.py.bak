@@ -33,23 +33,22 @@ np.random.seed(7890)
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 15000
+j_episodes = 10000
 n_batches = 5
 t_ = 50
 
-parallel_computing = False
-n_cores_max = 50
+parallel_computing = True
+n_cores_max = 20
 alpha = 1.
 eps = 0.1
 optimizer = 'brute'
-bound = 200
 # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best'
 
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
 gamma = 10**-3  # risk aversion
-lam = 10**-1  # costs
+lam = 10**-2  # costs
 rho = 1 - np.exp(-.02/252)  # discount
 
 # RL model
@@ -77,8 +76,6 @@ market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice)
 price, pnl = simulate_market(market, j_episodes, n_batches, t_)
 Sigma_r = get_Sigma(market)
 Lambda_r = lam*Sigma_r
-
-print('Approximate cost per unit trade: $ %.2f' % (price.mean()*Lambda_r))
 
 for b in range(n_batches):  # loop on batches
     print('Creating batch %d of %d; eps=%f' % (b+1, n_batches, eps))
@@ -116,7 +113,7 @@ for b in range(n_batches):  # loop on batches
                           # RL parameters
                           eps=eps, q_value=q_value, alpha=alpha,
                           optimizers=optimizers, optimizer=optimizer,
-                          b=b, bound=bound)
+                          b=b)
 
     if parallel_computing:
         if __name__ == '__main__':
@@ -187,25 +184,53 @@ dump(n_batches, 'data/n_batches.joblib')
 dump(optimizers, 'data/optimizers.joblib')
 
 
-X_plot = X.reshape((j_episodes, t_-1, 3))
+# ------------------------------------- Check strategy ------------------------
+qb_list = []  # list to store models
+for b in range(n_batches):
+    qb_list.append(load('models/q%d.joblib' % b))
 
-plt.figure()
-for j in range(min(X_plot.shape[0], 50)):
-    plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
-plt.title('shares')
+
+def q_value(state, action):
+    return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
+
+
+# Simulations
+pnl_oos = pnl[0, 0, :]
+
+# if parallel_computing:
+#     if __name__ == '__main__':
+
+#         compute_rl_part = partial(compute_rl, pnl=pnl_oos, q_value=q_value,
+#                                   optimizers=optimizers,
+#                                   optimizer=optimizer)
+
+#         p = mp.Pool(n_cores)
+#         shares = p.map(compute_rl_part, range(1))
+#         p.close()
+#         p.join()
+#     shares = np.array(shares)
+
+# else:
+#     shares = np.zeros((1, t_))
+#     for j in range(1):
+#         print('Simulation', j+1, 'on', 1)
+#         shares[j, :] = compute_rl(j, pnl_oos, q_value, optimizers,
+#                                   optimizer=optimizer)
+
+shares = np.zeros((1, t_))
+for j in range(1):
+    print('Simulation', j+1, 'on', 1)
+    shares[j, :] = compute_rl(j, pnl_oos, q_value, optimizers,
+                              optimizer=optimizer)
+
+fig = plt.figure()
+plt.plot(shares[0, :])
 plt.savefig('figures/shares.png')
 
-plt.figure()
-for j in range(min(X_plot.shape[0], 50)):
-    plt.plot(X_plot[j, :, 1], color='k', alpha=0.5)
-plt.title('pnl')
-plt.savefig('figures/pnl.png')
 
-plt.figure()
-for j in range(min(X_plot.shape[0], 50)):
-    plt.bar(range(t_-1), X_plot[j, :, 2], color='k', alpha=0.5)
-plt.title('trades')
-plt.savefig('figures/trades.png')
+
+
+
 
 
 

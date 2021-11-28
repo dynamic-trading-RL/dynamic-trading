@@ -580,7 +580,7 @@ def generate_episode(
                      eps, q_value, alpha,
                      optimizers, optimizer,
                      b,
-                     bound=100):
+                     bound=400):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
@@ -602,7 +602,7 @@ def generate_episode(
     if np.random.rand() < eps:
         action = np.random.rand()
     else:
-        action = maxAction(q_value, state, [0., bound], b,
+        action = maxAction(q_value, state, [-bound, bound], b,
                            optimizers, optimizer)
 
     for t in range(1, t_):
@@ -611,8 +611,10 @@ def generate_episode(
         state_ = [state[0] + action, pnl[j, t]]
 
         # Choose a' from s' using policy derived from q_value
-        lb = -(state[0] + action)
-        ub = bound - (state[0] + action)
+        # lb = -(state[0] + action)
+        # ub = bound - (state[0] + action)
+        lb = -bound
+        ub = bound
         if np.random.rand() < eps:
             action_ = lb + (ub - lb)*np.random.rand()
         else:
@@ -867,9 +869,7 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi):
 # compute_rl
 # -----------------------------------------------------------------------------
 
-def compute_rl(j, pnl, q_value, optimizers, optimizer=None):
-
-    a = 1
+def compute_rl(j, pnl, q_value, optimizers, optimizer=None, bound=100):
 
     if pnl.ndim == 1:
         t_ = pnl.shape[0]
@@ -882,12 +882,12 @@ def compute_rl(j, pnl, q_value, optimizers, optimizer=None):
 
         if t == 0:
             state = np.array([0, pnl[t]])
-            action = maxAction(q_value, state, [0., 100.], 1, optimizers,
+            action = maxAction(q_value, state, [-bound, bound], 1, optimizers,
                                optimizer=optimizer)
             shares[t] = state[0] + action
         else:
             state = np.array([shares[t-1], pnl[t]])
-            bounds = [-shares[t-1], 100 - shares[t-1]]
+            bounds = [-bound, bound]
             action = maxAction(q_value, state, bounds, 1, optimizers,
                                optimizer=optimizer)
             shares[t] = state[0] + action
