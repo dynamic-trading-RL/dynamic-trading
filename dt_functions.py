@@ -538,8 +538,9 @@ def simulate_market(market, j_episodes, n_batches, t_):
 
     price = market._simulations['price'].reshape((j_episodes, n_batches, t_))
     pnl = market._simulations['pnl'].reshape((j_episodes, n_batches, t_))
+    f = market._simulations['f'].reshape((j_episodes, n_batches, t_))
 
-    return price, pnl
+    return price, pnl, f
 
 
 # -----------------------------------------------------------------------------
@@ -585,6 +586,9 @@ def generate_episode(
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
     """
+
+    if b > 0:
+        a = 1
 
     reward_total = 0
     cost_total = 0
@@ -772,13 +776,19 @@ def set_regressor_parameters(sup_model):
         n_iter_no_change = 2
         alpha_ann = 0.0001
 
+        return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
+
     elif sup_model == 'ann_deep':
         hidden_layer_sizes = (70, 50, 30, 10)
         max_iter = 200
         n_iter_no_change = 10
         alpha_ann = 0.001
 
-    return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
+        return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
+
+    elif sup_model == 'random_forest':
+
+        return None
 
 
 # -----------------------------------------------------------------------------

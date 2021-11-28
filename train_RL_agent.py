@@ -21,7 +21,7 @@ from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           generate_episode,
                           Optimizers,
                           set_regressor_parameters,
-                          compute_rl)
+                          compute_markovitz)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -33,27 +33,26 @@ np.random.seed(7890)
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 15000
+j_episodes = 20000
 n_batches = 5
 t_ = 50
 
-parallel_computing = False
+parallel_computing = True
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
 optimizer = 'brute'
-bound = 200
 # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best'
 
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
-gamma = 10**-3  # risk aversion
-lam = 10**-1  # costs
+gamma = 0.2  # risk aversion
+lam_perc = .01  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 
 # RL model
-sup_model = 'ann_fast'  # or random_forest or ann_deep
+sup_model = 'ann_deep'  # or random_forest or ann_deep or ann_fast
 
 
 # ------------------------------------- Reinforcement learning ----------------
@@ -62,8 +61,10 @@ calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
 startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 qb_list = []  # list to store models
 optimizers = Optimizers()
-hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann =\
-    set_regressor_parameters(sup_model)
+
+if sup_model in ('ann_fast', 'ann_deep'):
+    hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann =\
+        set_regressor_parameters(sup_model)
 
 if parallel_computing:
     print('Number of cores available: %d' % mp.cpu_count())
@@ -74,13 +75,33 @@ if parallel_computing:
 market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice)
 
 # Simulations
-price, pnl = simulate_market(market, j_episodes, n_batches, t_)
+price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
 Sigma_r = get_Sigma(market)
+lam = lam_perc / Sigma_r
 Lambda_r = lam*Sigma_r
 
-print('Approximate cost per unit trade: $ %.2f' % (price.mean()*Lambda_r))
+print('Approximate cost per unit trade: $ %.0f' % (price.mean()*Lambda_r))
+
+
+# Use Markowitz to determine bounds
+if (market._marketDynamics._returnDynamics._returnDynamicsType
+        == ReturnDynamicsType.Linear):
+    B = market._marketDynamics._returnDynamics._parameters['B']
+else:
+    B_0 = market._marketDynamics._returnDynamics._parameters['B_0']
+    B_1 = market._marketDynamics._returnDynamics._parameters['B_1']
+    B = .5*(B_0 + B_1)
+
+Markowitz = compute_markovitz(f.flatten(), gamma, B*price.mean(),
+                              Sigma_r*price.mean())
+
+bound = np.abs(Markowitz).max()
+
+reward = np.zeros((n_batches, j_episodes))
+cost = np.zeros((n_batches, j_episodes))
 
 for b in range(n_batches):  # loop on batches
+
     print('Creating batch %d of %d; eps=%f' % (b+1, n_batches, eps))
     X = []  # simulations
     Y = []
@@ -147,8 +168,8 @@ for b in range(n_batches):  # loop on batches
 
     ind_sort = np.argsort(j_sort)
     j_sort = np.sort(j_sort)
-    reward = np.array(reward_sort)[ind_sort]
-    cost = np.array(cost_sort)[ind_sort]
+    reward[b, :] = np.array(reward_sort)[ind_sort]
+    cost[b, :] = np.array(cost_sort)[ind_sort]
 
     # used as ylim in plots below
     if b == 0:
@@ -207,13 +228,40 @@ for j in range(min(X_plot.shape[0], 50)):
 plt.title('trades')
 plt.savefig('figures/trades.png')
 
+plt.figure()
+for b in range(n_batches):
+    plt.plot(reward[b, :], label='Batch: %d' % b)
+plt.legend()
+plt.title('reward')
+plt.savefig('figures/reward.png')
 
+plt.figure()
+for b in range(n_batches):
+    plt.plot(np.cumsum(reward[b, :]), label='Batch: %d' % b)
+plt.legend()
+plt.title('cum-reward')
+plt.savefig('figures/cum-reward.png')
 
+plt.figure()
+plt.plot(np.cumsum(reward[-1, :]))
+plt.title('cum-reward-final')
+plt.savefig('figures/cum-reward-final.png')
 
+plt.figure()
+for b in range(n_batches):
+    plt.plot(cost[b, :], label='Batch: %d' % b)
+plt.legend()
+plt.title('cost')
+plt.savefig('figures/cost.png')
 
+plt.figure()
+for b in range(n_batches):
+    plt.plot(np.cumsum(cost[b, :]), label='Batch: %d' % b)
+plt.legend()
+plt.title('cum-cost')
+plt.savefig('figures/cum-cost.png')
 
-
-
-
-
-
+plt.figure()
+plt.plot(np.cumsum(cost[-1, :]))
+plt.title('cum-cost-final')
+plt.savefig('figures/cum-cost-final.png')
