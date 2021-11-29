@@ -587,9 +587,6 @@ def generate_episode(
     reinforcement learning agent training
     """
 
-    if b > 0:
-        a = 1
-
     reward_total = 0
     cost_total = 0
 
@@ -686,7 +683,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
     if b == 0:
 
-        return bounds[0] + (bounds[1] - bounds[0])*np.random.rand()
+        return 0.5*(bounds[1] + bounds[0])
 
     else:
 
@@ -909,20 +906,20 @@ def compute_rl(j, pnl, q_value, optimizers, optimizer=None, bound=100):
 # compute_wealth
 # -----------------------------------------------------------------------------
 
-def compute_wealth(r, strat, gamma, Lambda, rho, B, Sigma, Phi):
+def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma):
 
-    if r.ndim == 1:
-        t_ = r.shape[0]
+    if pnl.ndim == 1:
+        t_ = pnl.shape[0]
         j_ = 1
-        r = r.reshape((j_, t_))
+        pnl = pnl.reshape((j_, t_))
         strat = strat.reshape((j_, t_))
-    elif r.ndim == 2:
-        j_, t_ = r.shape
+    elif pnl.ndim == 2:
+        j_, t_ = pnl.shape
 
     # Value
     value = np.zeros((j_, t_))
     for t in range(t_ - 1):
-        value[:, t] = (1 - rho)**(t + 1) * strat[:, t] * r[:, t+1]
+        value[:, t] = (1 - rho)**(t + 1) * strat[:, t] * pnl[:, t+1]
     value = np.cumsum(value, axis=1)
 
     # Costs

@@ -33,15 +33,15 @@ np.random.seed(7890)
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 20000
-n_batches = 5
+j_episodes = 5000
+n_batches = 10
 t_ = 50
 
 parallel_computing = True
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
-optimizer = 'brute'
+optimizer = 'shgo'
 # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best'
 
 # Market parameters
@@ -113,7 +113,8 @@ for b in range(n_batches):  # loop on batches
     if b == 0:  # initialize q_value arbitrarily
 
         def q_value(state, action):
-            return np.random.randn()
+            # return np.random.randn()
+            return 0.
 
     else:  # average models across previous batches
 
