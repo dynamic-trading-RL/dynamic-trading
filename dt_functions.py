@@ -668,7 +668,7 @@ def reward(x_tm1, r_t, cost_tm1, rho):
 
 def cost(x_tm1, a_tm1, rho, gamma, Sigma, Lambda):
 
-    return -0.5*((1 - rho)*gamma*x_tm1*Sigma*x_tm1 - a_tm1*Lambda*a_tm1)
+    return 0.5*((1 - rho)*gamma*x_tm1*Sigma*x_tm1 + a_tm1*Lambda*a_tm1)
 
 
 # -----------------------------------------------------------------------------

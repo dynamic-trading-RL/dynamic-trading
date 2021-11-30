@@ -33,8 +33,8 @@ np.random.seed(7890)
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 5000
-n_batches = 10
+j_episodes = 3000
+n_batches = 15
 t_ = 50
 
 parallel_computing = True
@@ -47,7 +47,7 @@ optimizer = 'shgo'
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
-gamma = 0.2  # risk aversion
+gamma = 10  # risk aversion
 lam_perc = .01  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 
@@ -207,6 +207,9 @@ for b in range(n_batches):  # loop on batches
 print(optimizers)
 dump(n_batches, 'data/n_batches.joblib')
 dump(optimizers, 'data/optimizers.joblib')
+dump(lam_perc, 'data/lam_perc.joblib')
+dump(gamma, 'data/gamma.joblib')
+dump(rho, 'data/rho.joblib')
 
 
 X_plot = X.reshape((j_episodes, t_-1, 3))

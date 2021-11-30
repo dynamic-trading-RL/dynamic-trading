@@ -1,5 +1,0 @@
-#!/bin/bash
-#
-#SBATCH --job-name=trading2
-#SBATCH --cpus-per-task=50
-python train_RL_agent.py

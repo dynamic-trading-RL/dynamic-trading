@@ -29,9 +29,7 @@ np.random.seed(7890)
 
 j_oos = 1000
 t_ = 50
-lam_perc = .01
-gamma = 0.2  # risk aversion
-rho = 1 - np.exp(-.02/252)  # discount
+
 optimizer = 'shgo'
 
 returnDynamicsType = ReturnDynamicsType.Linear
@@ -46,6 +44,9 @@ startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 
 n_batches = load('data/n_batches.joblib')
 optimizers = load('data/optimizers.joblib')
+lam_perc = load('data/lam_perc.joblib')
+gamma = load('data/gamma.joblib')
+rho = load('data/rho.joblib')
 
 # ------------------------------------- Simulations ---------------------------
 
@@ -66,31 +67,42 @@ Lambda_r = lam*Sigma_r
 if (market._marketDynamics._returnDynamics._returnDynamicsType
         == ReturnDynamicsType.Linear):
     B = market._marketDynamics._returnDynamics._parameters['B']
+    mu_r = market._marketDynamics._returnDynamics._parameters['mu']
 else:
     B_0 = market._marketDynamics._returnDynamics._parameters['B_0']
     B_1 = market._marketDynamics._returnDynamics._parameters['B_1']
+    mu_0 = market._marketDynamics._returnDynamics._parameters['mu_0']
+    mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
     B = .5*(B_0 + B_1)
+    mu_r = .5*(mu_0 + mu_1)
 
 
 if (market._marketDynamics._factorDynamics._factorDynamicsType
-    in (FactorDynamicsType.AR, FactorDynamicsType.AR_TARCH)):
+        in (FactorDynamicsType.AR, FactorDynamicsType.AR_TARCH)):
 
     Phi = 1 - market._marketDynamics._factorDynamics._parameters['B']
+    mu_f = 1 - market._marketDynamics._factorDynamics._parameters['mu']
 
 elif (market._marketDynamics._factorDynamics._factorDynamicsType
       == FactorDynamicsType.SETAR):
 
     Phi_0 = 1 - market._marketDynamics._factorDynamics._parameters['B_0']
     Phi_1 = 1 - market._marketDynamics._factorDynamics._parameters['B_1']
+    mu_f_0 = 1 - market._marketDynamics._factorDynamics._parameters['mu_0']
+    mu_f_1 = 1 - market._marketDynamics._factorDynamics._parameters['mu_1']
     Phi = 0.5*(Phi_0 + Phi_1)
+    mu_f = .5*(mu_f_0 + mu_f_1)
 
 else:
+
     Phi = 0.
+    mu_f = market._marketDynamics._factorDynamics._parameters['mu']
+
 
 # ------------------------------------- Markowitz -----------------------------
 
 
-Markowitz = compute_markovitz(f, gamma, B*price.mean(),
+Markowitz = compute_markovitz((f + mu_r)*price.mean(), gamma, B,
                               Sigma_r*price.mean())
 bound = np.abs(Markowitz).max()
 
@@ -101,8 +113,13 @@ wealth_M, value_M, cost_M =\
 
 # ------------------------------------- GP ------------------------------------
 
-
-GP = compute_GP(f, gamma/price.mean(), lam/price.mean(), rho, B, Sigma_r*price.mean(), Phi)
+GP = compute_GP((f + mu_r)*price.mean(),
+                gamma,
+                lam,
+                rho,
+                B,
+                Sigma_r*price.mean(),
+                Phi)
 
 wealth_GP, value_GP, cost_GP =\
     compute_wealth(pnl, GP, gamma, Lambda_r*price.mean(), rho,
@@ -114,6 +131,7 @@ wealth_GP, value_GP, cost_GP =\
 qb_list = []
 for b in range(n_batches):
     qb_list.append(load('models/q%d.joblib' % b))
+
 
 def q_value(state, action):
     return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
@@ -134,21 +152,21 @@ wealth_RL, value_RL, cost_RL =\
 # ------------------------------------- Plots ---------------------------------
 
 plt.figure()
-for j in range(50, j_oos):
-    # plt.plot(Markowitz[j, :], color='k', alpha=0.5)
-    plt.plot(GP[j, :], color='b', alpha=0.5)
+for j in range(min(50, j_oos)):
+    plt.plot(Markowitz[j, :], color='m', alpha=0.5)
+    plt.plot(GP[j, :], color='g', alpha=0.5)
     plt.plot(RL[j, :], color='r', alpha=0.5)
 plt.title('out-of-sample-shares')
 plt.savefig('figures/out-of-sample-shares.png')
 
 
 plt.figure()
-# plt.plot(np.cumsum(wealth_M[0]), color='k', label='Markowitz')
-plt.plot(np.cumsum(wealth_GP[0]), color='b', label='GP')
+plt.plot(np.cumsum(wealth_M[0]), color='m', label='Markowitz')
+plt.plot(np.cumsum(wealth_GP[0]), color='g', label='GP')
 plt.plot(np.cumsum(wealth_RL[0]), color='r', label='RL')
-for j in range(50, j_oos):
-    # plt.plot(np.cumsum(wealth_M[j]), color='k')
-    plt.plot(np.cumsum(wealth_GP[j]), color='b')
+for j in range(min(50, j_oos)):
+    plt.plot(np.cumsum(wealth_M[j]), color='m')
+    plt.plot(np.cumsum(wealth_GP[j]), color='g')
     plt.plot(np.cumsum(wealth_RL[j]), color='r')
 plt.title('wealth')
 plt.legend()
@@ -156,12 +174,12 @@ plt.savefig('figures/wealth.png')
 
 
 plt.figure()
-# plt.plot(np.cumsum(cost_M[0]), color='k', label='Markowitz')
-plt.plot(np.cumsum(cost_GP[0]), color='b', label='GP')
+plt.plot(np.cumsum(cost_M[0]), color='m', label='Markowitz')
+plt.plot(np.cumsum(cost_GP[0]), color='g', label='GP')
 plt.plot(np.cumsum(cost_RL[0]), color='r', label='RL')
-for j in range(50, j_oos):
-    # plt.plot(np.cumsum(cost_M[j]), color='k')
-    plt.plot(np.cumsum(cost_GP[j]), color='b')
+for j in range(min(50, j_oos)):
+    plt.plot(np.cumsum(cost_M[j]), color='m')
+    plt.plot(np.cumsum(cost_GP[j]), color='g')
     plt.plot(np.cumsum(cost_RL[j]), color='r')
 plt.title('cost')
 plt.legend()
