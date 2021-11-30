@@ -8,6 +8,7 @@ Created on Wed Nov 24 12:41:52 2021
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from joblib import load, dump
@@ -33,8 +34,8 @@ np.random.seed(7890)
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 3000
-n_batches = 15
+j_episodes = 6000
+n_batches = 7
 t_ = 50
 
 parallel_computing = True
@@ -47,12 +48,12 @@ optimizer = 'shgo'
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
-gamma = 10  # risk aversion
+gamma = 3  # risk aversion
 lam_perc = .01  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 
 # RL model
-sup_model = 'ann_deep'  # or random_forest or ann_deep or ann_fast
+sup_model = 'ann_fast'  # or random_forest or ann_deep or ann_fast
 
 
 # ------------------------------------- Reinforcement learning ----------------
@@ -198,7 +199,8 @@ for b in range(n_batches):  # loop on batches
 
     dump(model.fit(X, Y), 'models/q%d.joblib' % b)  # export regressor
     print('    Score: %.3f' % model.score(X, Y))
-    print('    Average reward: %.3f' % np.mean(reward))
+    print('    Average reward: %.3f' % np.mean(reward[b, :]))
+    print('    Average cost: %.3f' % np.mean(cost[b, :]))
 
     eps = max(eps/3, 0.00001)  # update epsilon
 
@@ -212,60 +214,68 @@ dump(gamma, 'data/gamma.joblib')
 dump(rho, 'data/rho.joblib')
 
 
+# ------------------------------------- Plots ---------------------------------
+
 X_plot = X.reshape((j_episodes, t_-1, 3))
 
+j_plot = min(X_plot.shape[0], 50)
+
+color = cm.Greens(np.linspace(0, 1, n_batches))
+
 plt.figure()
-for j in range(min(X_plot.shape[0], 50)):
+for j in range(j_plot):
     plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
 plt.title('shares')
 plt.savefig('figures/shares.png')
 
 plt.figure()
-for j in range(min(X_plot.shape[0], 50)):
+for j in range(j_plot):
     plt.plot(X_plot[j, :, 1], color='k', alpha=0.5)
 plt.title('pnl')
 plt.savefig('figures/pnl.png')
 
 plt.figure()
-for j in range(min(X_plot.shape[0], 50)):
+for j in range(j_plot):
     plt.bar(range(t_-1), X_plot[j, :, 2], color='k', alpha=0.5)
 plt.title('trades')
 plt.savefig('figures/trades.png')
 
 plt.figure()
 for b in range(n_batches):
-    plt.plot(reward[b, :], label='Batch: %d' % b)
+    plt.plot(reward[b, :], label='Batch: %d' % b, alpha=0.5, color=color[b])
 plt.legend()
 plt.title('reward')
 plt.savefig('figures/reward.png')
 
 plt.figure()
 for b in range(n_batches):
-    plt.plot(np.cumsum(reward[b, :]), label='Batch: %d' % b)
+    plt.plot(np.cumsum(reward[b, :]), label='Batch: %d' % b, alpha=0.5,
+             color=color[b])
 plt.legend()
 plt.title('cum-reward')
 plt.savefig('figures/cum-reward.png')
 
 plt.figure()
-plt.plot(np.cumsum(reward[-1, :]))
+plt.plot(np.cumsum(reward[-1, :]), alpha=0.5)
 plt.title('cum-reward-final')
 plt.savefig('figures/cum-reward-final.png')
 
 plt.figure()
 for b in range(n_batches):
-    plt.plot(cost[b, :], label='Batch: %d' % b)
+    plt.plot(cost[b, :], label='Batch: %d' % b, alpha=0.5, color=color[b])
 plt.legend()
 plt.title('cost')
 plt.savefig('figures/cost.png')
 
 plt.figure()
 for b in range(n_batches):
-    plt.plot(np.cumsum(cost[b, :]), label='Batch: %d' % b)
+    plt.plot(np.cumsum(cost[b, :]), label='Batch: %d' % b, alpha=0.5,
+             color=color[b])
 plt.legend()
 plt.title('cum-cost')
 plt.savefig('figures/cum-cost.png')
 
 plt.figure()
-plt.plot(np.cumsum(cost[-1, :]))
+plt.plot(np.cumsum(cost[-1, :]), alpha=0.5)
 plt.title('cum-cost-final')
 plt.savefig('figures/cum-cost-final.png')

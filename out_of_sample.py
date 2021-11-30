@@ -152,35 +152,61 @@ wealth_RL, value_RL, cost_RL =\
 # ------------------------------------- Plots ---------------------------------
 
 plt.figure()
-for j in range(min(50, j_oos)):
+plt.plot(Markowitz[0, :], color='m', label='Markowitz', alpha=0.5)
+plt.plot(GP[0, :], color='g', label='GP', alpha=0.5)
+plt.plot(RL[0, :], color='r', label='RL', alpha=0.5)
+for j in range(1, min(50, j_oos)):
     plt.plot(Markowitz[j, :], color='m', alpha=0.5)
     plt.plot(GP[j, :], color='g', alpha=0.5)
     plt.plot(RL[j, :], color='r', alpha=0.5)
+plt.legend()
 plt.title('out-of-sample-shares')
 plt.savefig('figures/out-of-sample-shares.png')
 
 
+for j in range(7):
+    plt.figure()
+    plt.plot(Markowitz[j, :], color='m', label='Markowitz')
+    plt.plot(GP[j, :], color='g', label='GP')
+    plt.plot(RL[j, :], color='r', label='RL')
+    plt.title('out-of-sample-shares %d' % j)
+    plt.legend()
+    plt.savefig('figures/out-of-sample-shares-%d.png' % j)
+
+
 plt.figure()
-plt.plot(np.cumsum(wealth_M[0]), color='m', label='Markowitz')
-plt.plot(np.cumsum(wealth_GP[0]), color='g', label='GP')
-plt.plot(np.cumsum(wealth_RL[0]), color='r', label='RL')
-for j in range(min(50, j_oos)):
-    plt.plot(np.cumsum(wealth_M[j]), color='m')
-    plt.plot(np.cumsum(wealth_GP[j]), color='g')
-    plt.plot(np.cumsum(wealth_RL[j]), color='r')
+plt.plot(np.cumsum(wealth_M[0]), color='m', label='Markowitz', alpha=0.5)
+plt.plot(np.cumsum(wealth_GP[0]), color='g', label='GP', alpha=0.5)
+plt.plot(np.cumsum(wealth_RL[0]), color='r', label='RL', alpha=0.5)
+for j in range(1, min(50, j_oos)):
+    plt.plot(np.cumsum(wealth_M[j]), color='m', alpha=0.5)
+    plt.plot(np.cumsum(wealth_GP[j]), color='g', alpha=0.5)
+    plt.plot(np.cumsum(wealth_RL[j]), color='r', alpha=0.5)
 plt.title('wealth')
 plt.legend()
 plt.savefig('figures/wealth.png')
 
 
 plt.figure()
-plt.plot(np.cumsum(cost_M[0]), color='m', label='Markowitz')
-plt.plot(np.cumsum(cost_GP[0]), color='g', label='GP')
-plt.plot(np.cumsum(cost_RL[0]), color='r', label='RL')
-for j in range(min(50, j_oos)):
-    plt.plot(np.cumsum(cost_M[j]), color='m')
-    plt.plot(np.cumsum(cost_GP[j]), color='g')
-    plt.plot(np.cumsum(cost_RL[j]), color='r')
+plt.hist(np.cumsum(wealth_M, axis=1)[:, -1], color='m', density=True,
+         alpha=0.5, label='Markowitz', bins='auto')
+plt.hist(np.cumsum(wealth_GP, axis=1)[:, -1], color='g', density=True,
+         alpha=0.5, label='GP', bins='auto')
+plt.hist(np.cumsum(wealth_RL, axis=1)[:, -1], color='r', density=True,
+         alpha=0.5, label='RL', bins='auto')
+plt.title('final-wealth')
+plt.legend()
+plt.savefig('figures/final-wealth.png')
+
+
+plt.figure()
+plt.plot(np.cumsum(cost_M[0]), color='m', label='Markowitz', alpha=0.5)
+plt.plot(np.cumsum(cost_GP[0]), color='g', label='GP', alpha=0.5)
+plt.plot(np.cumsum(cost_RL[0]), color='r', label='RL', alpha=0.5)
+for j in range(1, min(50, j_oos)):
+    plt.plot(np.cumsum(cost_M[j]), color='m', alpha=0.5)
+    plt.plot(np.cumsum(cost_GP[j]), color='g', alpha=0.5)
+    plt.plot(np.cumsum(cost_RL[j]), color='r', alpha=0.5)
 plt.title('cost')
 plt.legend()
 plt.savefig('figures/cost.png')
