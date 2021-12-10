@@ -28,21 +28,19 @@ import warnings
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
-np.random.seed(7890)
-
 
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 6000
-n_batches = 7
+j_episodes = 15000
+n_batches = 10
 t_ = 50
 
 parallel_computing = True
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
-optimizer = 'shgo'
+optimizer = 'dual_annealing'
 # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best'
 
 # Market parameters
@@ -53,7 +51,7 @@ lam_perc = .01  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 
 # RL model
-sup_model = 'ann_fast'  # or random_forest or ann_deep or ann_fast
+sup_model = 'ann_deep'  # or random_forest or ann_deep or ann_fast
 
 
 # ------------------------------------- Reinforcement learning ----------------
@@ -123,7 +121,7 @@ for b in range(n_batches):  # loop on batches
 
         def q_value(state, action):
             return q_hat(state, action, qb_list,
-                         flag_qaverage=False,
+                         flag_qaverage=True,
                          n_models=None)
 
     # generate episodes

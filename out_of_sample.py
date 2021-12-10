@@ -23,14 +23,13 @@ import warnings
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
-np.random.seed(7890)
 
 # ------------------------------------- Parameters ----------------------------
 
 j_oos = 1000
 t_ = 50
 
-optimizer = 'shgo'
+optimizer = 'dual_annealing'
 
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
@@ -134,7 +133,7 @@ for b in range(n_batches):
 
 
 def q_value(state, action):
-    return q_hat(state, action, qb_list, flag_qaverage=False, n_models=None)
+    return q_hat(state, action, qb_list, flag_qaverage=True, n_models=None)
 
 
 RL = np.zeros((j_oos, t_))

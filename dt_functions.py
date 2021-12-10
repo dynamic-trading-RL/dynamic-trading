@@ -147,7 +147,8 @@ class Market:
         self._marketId = returnDynamicsType.value + '-' + factorDynamicsType.value
 
     def simulate(self, j_, t_):
-
+        
+        np.random.seed(789)
         self._simulate_factor(j_, t_)
         self._simulate_return()
         self._simulate_price()
@@ -716,7 +717,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res3 = differential_evolution(fun, bounds)
 
             res4 = brute(fun, ranges=bounds,
-                         Ns=bounds[0][1]-bounds[0][0]+1,
+                         Ns=max(100, bounds[0][1]-bounds[0][0]+1),
                          finish=None,
                          full_output=True)
 
