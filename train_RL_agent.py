@@ -15,6 +15,7 @@ from joblib import load, dump
 from functools import partial
 import multiprocessing as mp
 from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
+                          FactorType,
                           instantiate_market,
                           get_Sigma,
                           simulate_market,
@@ -33,15 +34,15 @@ if not sys.warnoptions:
 
 # RL parameters
 j_episodes = 15000
-n_batches = 10
+n_batches = 5
 t_ = 50
 
 parallel_computing = True
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
-optimizer = 'dual_annealing'
-# None, 'differential_evolution', 'shgo', 'dual_annealing', 'best'
+optimizer = 'brute'
+# None, 'differential_evolution', 'shgo', 'dual_annealing', 'best', 'brute'
 
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
@@ -49,9 +50,10 @@ factorDynamicsType = FactorDynamicsType.AR
 gamma = 3  # risk aversion
 lam_perc = .01  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
+factorType = FactorType.Observable
 
 # RL model
-sup_model = 'ann_deep'  # or random_forest or ann_deep or ann_fast
+sup_model = 'ann_fast'  # or random_forest or ann_deep or ann_fast
 
 
 # ------------------------------------- Reinforcement learning ----------------
@@ -130,7 +132,8 @@ for b in range(n_batches):  # loop on batches
 
     gen_ep_part = partial(generate_episode,
                           # market simulations
-                          price=price[:, b, ], pnl=pnl[:, b, :],
+                          price=price[:, b, ], pnl=pnl[:, b, :], f=f[:, b, :],
+                          factorType=factorType,
                           # reward/cost parameters
                           rho=rho, gamma=gamma, Sigma_r=Sigma_r,
                           Lambda_r=Lambda_r,

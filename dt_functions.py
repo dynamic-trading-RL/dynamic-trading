@@ -36,6 +36,16 @@ class FactorDynamicsType(Enum):
 
 
 # -----------------------------------------------------------------------------
+# enum: FactorType
+# -----------------------------------------------------------------------------
+
+class FactorType(Enum):
+
+    Observable = 'Observable'
+    Latent = 'Latent'
+
+
+# -----------------------------------------------------------------------------
 # class: Dynamics
 # -----------------------------------------------------------------------------
 
@@ -147,7 +157,7 @@ class Market:
         self._marketId = returnDynamicsType.value + '-' + factorDynamicsType.value
 
     def simulate(self, j_, t_):
-        
+
         np.random.seed(789)
         self._simulate_factor(j_, t_)
         self._simulate_return()
@@ -352,6 +362,35 @@ class AllMarkets:
 
 
 # -----------------------------------------------------------------------------
+# class: Optimizers
+# -----------------------------------------------------------------------------
+
+class Optimizers:
+
+    def __init__(self):
+        self._shgo = 0
+        self._dual_annealing = 0
+        self._differential_evolution = 0
+        self._brute = 0
+
+    def __repr__(self):
+
+        return 'Used optimizers:\n' +\
+            '  shgo: ' + str(self._shgo) + '\n' +\
+            '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
+            '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
+            '  brute: ' + str(self._brute)
+
+    def __str__(self):
+
+        return 'Used optimizers:\n' +\
+            '  shgo: ' + str(self._shgo) + '\n' +\
+            '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
+            '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
+            '  brute: ' + str(self._brute)
+
+
+# -----------------------------------------------------------------------------
 # set_linear_parameters
 # -----------------------------------------------------------------------------
 
@@ -477,35 +516,6 @@ def read_factor_parameters(factorDynamicsType):
 
 
 # -----------------------------------------------------------------------------
-# class: Optimizers
-# -----------------------------------------------------------------------------
-
-class Optimizers:
-
-    def __init__(self):
-        self._shgo = 0
-        self._dual_annealing = 0
-        self._differential_evolution = 0
-        self._brute = 0
-
-    def __repr__(self):
-
-        return 'Used optimizers:\n' +\
-            '  shgo: ' + str(self._shgo) + '\n' +\
-            '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
-            '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
-            '  brute: ' + str(self._brute)
-
-    def __str__(self):
-
-        return 'Used optimizers:\n' +\
-            '  shgo: ' + str(self._shgo) + '\n' +\
-            '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
-            '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
-            '  brute: ' + str(self._brute)
-
-
-# -----------------------------------------------------------------------------
 # instantiate_market
 # -----------------------------------------------------------------------------
 
@@ -575,7 +585,7 @@ def generate_episode(
                      # dummy for parallel computing
                      j,
                      # market simulations
-                     price, pnl,
+                     price, pnl, f, factorType,
                      # reward/cost parameters
                      rho, gamma, Sigma_r, Lambda_r,
                      # RL parameters
@@ -597,7 +607,12 @@ def generate_episode(
     y_episode = np.zeros(t_-1)
 
     # Observe state
-    state = np.array([0, pnl[j, 0]])
+    if factorType == FactorType.Observable:
+        state = [0, f[j, 0]]
+    elif factorType == FactorType.Latent:
+        state = [0]
+    else:
+        raise NameError('Invalid factorType: ' + factorType.value)
 
     # Choose action
 
@@ -610,11 +625,14 @@ def generate_episode(
     for t in range(1, t_):
 
         # Observe s'
-        state_ = [state[0] + action, pnl[j, t]]
+        if factorType == FactorType.Observable:
+            state_ = [state[0] + action, f[j, t]]
+        elif factorType == FactorType.Latent:
+            state_ = [state[0] + action]
+        else:
+            raise NameError('Invalid factorType: ' + factorType.value)
 
         # Choose a' from s' using policy derived from q_value
-        # lb = -(state[0] + action)
-        # ub = bound - (state[0] + action)
         lb = -bound
         ub = bound
         if np.random.rand() < eps:
