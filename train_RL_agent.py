@@ -114,7 +114,7 @@ for b in range(n_batches):  # loop on batches
     if b == 0:  # initialize q_value arbitrarily
 
         def q_value(state, action):
-            # return np.random.randn()
+
             return 0.
 
     else:  # average models across previous batches

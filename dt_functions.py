@@ -585,7 +585,7 @@ def generate_episode(
                      # dummy for parallel computing
                      j,
                      # market simulations
-                     price, pnl, f, factorType,
+                     price, pnl, f, factorType,  # ??? maybe pnl no longer needed
                      # reward/cost parameters
                      rho, gamma, Sigma_r, Lambda_r,
                      # RL parameters
@@ -603,7 +603,13 @@ def generate_episode(
 
     t_ = pnl.shape[1]
 
-    x_episode = np.zeros((t_-1, 3))
+    if factorType == FactorType.Observable:
+        x_episode = np.zeros((t_-1, 3))
+    elif factorType == FactorType.Latent:
+        x_episode = np.zeros((t_-1, 2))
+    else:
+        raise NameError('Invalid factorType: ' + factorType.value)
+
     y_episode = np.zeros(t_-1)
 
     # Observe state
@@ -626,7 +632,7 @@ def generate_episode(
 
         # Observe s'
         if factorType == FactorType.Observable:
-            state_ = [state[0] + action, f[j, t]]
+            state_ = [state[0] + action, f[j, t]]  # ??? maybe f[j, t-1]
         elif factorType == FactorType.Latent:
             state_ = [state[0] + action]
         else:
@@ -643,14 +649,14 @@ def generate_episode(
 
         # Observe reward
         x_tm1 = state_[0]
-        r_t = state_[1]
+        r_t = state_[1]  # ??? should be f_t = state_[1] only if Observable
         a_tm1 = action
 
         Sigma = price[j, t-1]*Sigma_r  # ??? should be price[j, t]?
         Lambda = price[j, t-1]*Lambda_r  # ??? should be price[j, t]?
 
         cost_tm1 = cost(x_tm1, a_tm1, rho, gamma, Sigma, Lambda)
-        reward_t = reward(x_tm1, r_t, cost_tm1, rho)
+        reward_t = reward(x_tm1, r_t, cost_tm1, rho)  # ??? change as (5) in GP
 
         cost_total += cost_tm1
         reward_total += reward_t
@@ -784,6 +790,10 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
         return res.x[0]
 
 
+# -----------------------------------------------------------------------------
+# set_regressor_parameters
+# -----------------------------------------------------------------------------
+
 def set_regressor_parameters(sup_model):
 
     if sup_model == 'ann_fast':
@@ -843,7 +853,7 @@ def q_hat(state, action,
 
 
 # -----------------------------------------------------------------------------
-# compute_markovitz
+# compute_markovitz  # ??? should be corrected, no price.mean()
 # -----------------------------------------------------------------------------
 
 def compute_markovitz(f, gamma, B, Sigma):
@@ -863,7 +873,7 @@ def compute_markovitz(f, gamma, B, Sigma):
 
 
 # -----------------------------------------------------------------------------
-# compute_GP
+# compute_GP  # ??? should be corrected, no price.mean()
 # -----------------------------------------------------------------------------
 
 def compute_GP(f, gamma, lam, rho, B, Sigma, Phi):
