@@ -132,8 +132,8 @@ RL = np.zeros((j_oos, t_))
 
 for j in range(j_oos):
 
-    RL[j] = compute_rl(j, pnl=pnl[j], q_value=q_value, optimizers=optimizers,
-                       optimizer=optimizer, bound=bound)
+    RL[j] = compute_rl(j, f=f[j], q_value=q_value, factorType=factorType,
+                       optimizers=optimizers, optimizer=optimizer, bound=bound)
 
 wealth_RL, value_RL, cost_RL =\
     compute_wealth(pnl, RL, gamma, Lambda_r, rho, Sigma_r, price)

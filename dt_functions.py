@@ -918,24 +918,39 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
 # compute_rl
 # -----------------------------------------------------------------------------
 
-def compute_rl(j, pnl, q_value, optimizers, optimizer=None, bound=100):
+def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
+               bound=100):
 
-    if pnl.ndim == 1:
-        t_ = pnl.shape[0]
+    if f.ndim == 1:
+        t_ = f.shape[0]
     else:
-        t_ = pnl.shape[1]
+        t_ = f.shape[1]
 
     shares = np.zeros(t_)
 
     for t in range(t_):
 
         if t == 0:
-            state = np.array([0, pnl[t]])
+
+            if factorType == FactorType.Observable:
+                state = np.array([0, f[t]])
+            elif factorType == FactorType.Latent:
+                state = np.array([0])
+            else:
+                raise NameError('Invalid factorType: ' + factorType.value)
+
             action = maxAction(q_value, state, [-bound, bound], 1, optimizers,
                                optimizer=optimizer)
             shares[t] = state[0] + action
         else:
-            state = np.array([shares[t-1], pnl[t]])
+
+            if factorType == FactorType.Observable:
+                state = np.array([shares[t-1], f[t]])
+            elif factorType == FactorType.Latent:
+                state = np.array([shares[t-1]])
+            else:
+                raise NameError('Invalid factorType: ' + factorType.value)
+
             bounds = [-bound, bound]
             action = maxAction(q_value, state, bounds, 1, optimizers,
                                optimizer=optimizer)
