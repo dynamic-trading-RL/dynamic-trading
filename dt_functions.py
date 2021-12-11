@@ -585,7 +585,7 @@ def generate_episode(
                      # dummy for parallel computing
                      j,
                      # market simulations
-                     price, pnl, f, factorType,  # ??? maybe pnl no longer needed
+                     price, pnl, f, factorType,
                      # reward/cost parameters
                      rho, gamma, Sigma_r, Lambda_r,
                      # RL parameters
@@ -601,7 +601,7 @@ def generate_episode(
     reward_total = 0
     cost_total = 0
 
-    t_ = pnl.shape[1]
+    t_ = f.shape[1]
 
     if factorType == FactorType.Observable:
         x_episode = np.zeros((t_-1, 3))
@@ -632,7 +632,7 @@ def generate_episode(
 
         # Observe s'
         if factorType == FactorType.Observable:
-            state_ = [state[0] + action, f[j, t]]  # ??? maybe f[j, t-1]
+            state_ = [state[0] + action, f[j, t]]
         elif factorType == FactorType.Latent:
             state_ = [state[0] + action]
         else:
@@ -649,14 +649,14 @@ def generate_episode(
 
         # Observe reward
         x_tm1 = state_[0]
-        r_t = state_[1]  # ??? should be f_t = state_[1] only if Observable
+        r_t = pnl[j, t]
         a_tm1 = action
 
-        Sigma = price[j, t-1]*Sigma_r  # ??? should be price[j, t]?
-        Lambda = price[j, t-1]*Lambda_r  # ??? should be price[j, t]?
+        Sigma = price[j, t-1]*Sigma_r
+        Lambda = price[j, t-1]*Lambda_r
 
         cost_tm1 = cost(x_tm1, a_tm1, rho, gamma, Sigma, Lambda)
-        reward_t = reward(x_tm1, r_t, cost_tm1, rho)  # ??? change as (5) in GP
+        reward_t = reward(x_tm1, r_t, cost_tm1, rho)
 
         cost_total += cost_tm1
         reward_total += reward_t
@@ -664,7 +664,7 @@ def generate_episode(
         # Update value function
         y = q_value(state, action) +\
             alpha*(reward_t +
-                   (1-rho)*q_value(state_, action_) -
+                   (1 - rho)*q_value(state_, action_) -
                    q_value(state, action))
 
         # Update fitting pairs
@@ -779,7 +779,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
             optimizers._brute += 1
             x_brute = brute(fun, ranges=bounds,
-                            Ns=bounds[0][1]-bounds[0][0]+1,
+                            Ns=max(100, bounds[0][1]-bounds[0][0]+1),
                             finish=None)
 
             return x_brute
@@ -853,21 +853,26 @@ def q_hat(state, action,
 
 
 # -----------------------------------------------------------------------------
-# compute_markovitz  # ??? should be corrected, no price.mean()
+# compute_markovitz
 # -----------------------------------------------------------------------------
 
-def compute_markovitz(f, gamma, B, Sigma):
+def compute_markovitz(f, gamma, B, Sigma, price, mu_u):
 
     if f.ndim == 1:
         t_ = f.shape[0]
         j_ = 1
         f = f.reshape((j_, t_))
+        price = price.reshape((j_, t_))
     elif f.ndim == 2:
         j_, t_ = f.shape
 
     Markovitz = np.zeros((j_, t_))
     for t in range(t_):
-        Markovitz[:, t] = (gamma*Sigma)**(-1)*B*f[:, t]
+
+        resc_f = price[:, t]*(f[:, t] + mu_u)
+        resc_Sigma = price[:, t]**2 * Sigma
+
+        Markovitz[:, t] = (gamma*resc_Sigma)**(-1)*B*resc_f
 
     return Markovitz.squeeze()
 

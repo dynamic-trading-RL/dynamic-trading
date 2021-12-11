@@ -33,11 +33,11 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 15000
-n_batches = 5
+j_episodes = 200
+n_batches = 3
 t_ = 50
 
-parallel_computing = True
+parallel_computing = False
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
@@ -47,7 +47,7 @@ optimizer = 'brute'
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
-gamma = 3  # risk aversion
+gamma = 10**-4  # risk aversion
 lam_perc = .01  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 factorType = FactorType.Observable
@@ -88,13 +88,21 @@ print('Approximate cost per unit trade: $ %.0f' % (price.mean()*Lambda_r))
 if (market._marketDynamics._returnDynamics._returnDynamicsType
         == ReturnDynamicsType.Linear):
     B = market._marketDynamics._returnDynamics._parameters['B']
+    mu_u = market._marketDynamics._returnDynamics._parameters['mu']
 else:
     B_0 = market._marketDynamics._returnDynamics._parameters['B_0']
     B_1 = market._marketDynamics._returnDynamics._parameters['B_1']
-    B = .5*(B_0 + B_1)
+    B = 0.5*(B_0 + B_1)
+    mu_0 = market._marketDynamics._returnDynamics._parameters['mu_0']
+    mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
+    mu_u = 0.5*(mu_0 + mu_1)
 
-Markowitz = compute_markovitz(f.flatten(), gamma, B*price.mean(),
-                              Sigma_r*price.mean())
+Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r, price.flatten(),
+                              mu_u)
+
+a = 1
+
+plt.plot(Markowitz)
 
 bound = np.abs(Markowitz).max()
 
