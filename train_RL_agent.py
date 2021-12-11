@@ -33,11 +33,11 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 200
-n_batches = 3
+j_episodes = 15000
+n_batches = 5
 t_ = 50
 
-parallel_computing = False
+parallel_computing = True
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
@@ -48,7 +48,7 @@ optimizer = 'brute'
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
 gamma = 10**-4  # risk aversion
-lam_perc = .01  # costs: percentage of unit trade value
+lam_perc = .001  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 factorType = FactorType.Observable
 
@@ -78,31 +78,25 @@ market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice)
 # Simulations
 price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
 Sigma_r = get_Sigma(market)
-lam = lam_perc / Sigma_r
+lam = lam_perc * 2 / Sigma_r
 Lambda_r = lam*Sigma_r
-
-print('Approximate cost per unit trade: $ %.0f' % (price.mean()*Lambda_r))
 
 
 # Use Markowitz to determine bounds
 if (market._marketDynamics._returnDynamics._returnDynamicsType
         == ReturnDynamicsType.Linear):
     B = market._marketDynamics._returnDynamics._parameters['B']
-    mu_u = market._marketDynamics._returnDynamics._parameters['mu']
+    mu_r = market._marketDynamics._returnDynamics._parameters['mu']
 else:
     B_0 = market._marketDynamics._returnDynamics._parameters['B_0']
     B_1 = market._marketDynamics._returnDynamics._parameters['B_1']
     B = 0.5*(B_0 + B_1)
     mu_0 = market._marketDynamics._returnDynamics._parameters['mu_0']
     mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
-    mu_u = 0.5*(mu_0 + mu_1)
+    mu_r = 0.5*(mu_0 + mu_1)
 
 Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r, price.flatten(),
-                              mu_u)
-
-a = 1
-
-plt.plot(Markowitz)
+                              mu_r)
 
 bound = np.abs(Markowitz).max()
 
@@ -174,7 +168,13 @@ for b in range(n_batches):  # loop on batches
             reward_sort.append(episodes[3])
             cost_sort.append(episodes[4])
 
-    X = np.array(X).reshape((j_episodes*(t_-1), 3))
+    if factorType == FactorType.Observable:
+        X = np.array(X).reshape((j_episodes*(t_-1), 3))
+    elif factorType == FactorType.Latent:
+        X = np.array(X).reshape((j_episodes*(t_-1), 2))
+    else:
+        raise NameError('Invalid factorType: ' + factorType.value)
+
     Y = np.array(Y).reshape((j_episodes*(t_-1)))
 
     ind_sort = np.argsort(j_sort)
@@ -218,14 +218,20 @@ for b in range(n_batches):  # loop on batches
 print(optimizers)
 dump(n_batches, 'data/n_batches.joblib')
 dump(optimizers, 'data/optimizers.joblib')
-dump(lam_perc, 'data/lam_perc.joblib')
+dump(lam, 'data/lam.joblib')
 dump(gamma, 'data/gamma.joblib')
 dump(rho, 'data/rho.joblib')
+dump(factorType, 'data/factorType.joblib')
 
 
 # ------------------------------------- Plots ---------------------------------
 
-X_plot = X.reshape((j_episodes, t_-1, 3))
+if factorType == FactorType.Observable:
+    X_plot = X.reshape((j_episodes, t_-1, 3))
+elif factorType == FactorType.Latent:
+    X_plot = X.reshape((j_episodes, t_-1, 2))
+else:
+    raise NameError('Invalid factorType: ' + factorType.value)
 
 j_plot = min(X_plot.shape[0], 50)
 
@@ -236,16 +242,9 @@ for j in range(j_plot):
     plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
 plt.title('shares')
 plt.savefig('figures/shares.png')
-
 plt.figure()
 for j in range(j_plot):
-    plt.plot(X_plot[j, :, 1], color='k', alpha=0.5)
-plt.title('pnl')
-plt.savefig('figures/pnl.png')
-
-plt.figure()
-for j in range(j_plot):
-    plt.bar(range(t_-1), X_plot[j, :, 2], color='k', alpha=0.5)
+    plt.bar(range(t_-1), X_plot[j, :, -1], color='k', alpha=0.5)
 plt.title('trades')
 plt.savefig('figures/trades.png')
 

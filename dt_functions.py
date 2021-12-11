@@ -154,7 +154,8 @@ class Market:
         factorDynamicsType =\
             self._marketDynamics._factorDynamics._factorDynamicsType
 
-        self._marketId = returnDynamicsType.value + '-' + factorDynamicsType.value
+        self._marketId =\
+            returnDynamicsType.value + '-' + factorDynamicsType.value
 
     def simulate(self, j_, t_):
 
@@ -198,8 +199,10 @@ class Market:
                 ind_0 = f[:, t-1] < c
                 ind_1 = f[:, t-1] >= c
 
-                f[ind_0, t] = B_0*f[ind_0, t-1] + mu_0 + np.sqrt(sig2_0)*norm[ind_0, t]
-                f[ind_1, t] = B_1*f[ind_1, t-1] + mu_1 + np.sqrt(sig2_1)*norm[ind_1, t]
+                f[ind_0, t] =\
+                    B_0*f[ind_0, t-1] + mu_0 + np.sqrt(sig2_0)*norm[ind_0, t]
+                f[ind_1, t] =\
+                    B_1*f[ind_1, t-1] + mu_1 + np.sqrt(sig2_1)*norm[ind_1, t]
 
         elif factorDynamicsType == FactorDynamicsType.GARCH:
 
@@ -856,7 +859,7 @@ def q_hat(state, action,
 # compute_markovitz
 # -----------------------------------------------------------------------------
 
-def compute_markovitz(f, gamma, B, Sigma, price, mu_u):
+def compute_markovitz(f, gamma, B, Sigma, price, mu_r):
 
     if f.ndim == 1:
         t_ = f.shape[0]
@@ -869,7 +872,7 @@ def compute_markovitz(f, gamma, B, Sigma, price, mu_u):
     Markovitz = np.zeros((j_, t_))
     for t in range(t_):
 
-        resc_f = price[:, t]*(f[:, t] + mu_u)
+        resc_f = price[:, t]*(f[:, t] + mu_r/B)
         resc_Sigma = price[:, t]**2 * Sigma
 
         Markovitz[:, t] = (gamma*resc_Sigma)**(-1)*B*resc_f
@@ -878,10 +881,10 @@ def compute_markovitz(f, gamma, B, Sigma, price, mu_u):
 
 
 # -----------------------------------------------------------------------------
-# compute_GP  # ??? should be corrected, no price.mean()
+# compute_GP
 # -----------------------------------------------------------------------------
 
-def compute_GP(f, gamma, lam, rho, B, Sigma, Phi):
+def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
 
     if f.ndim == 1:
         t_ = f.shape[0]
@@ -890,18 +893,23 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi):
     elif f.ndim == 2:
         j_, t_ = f.shape
 
-    a = (-(gamma*(1 - rho) + lam*rho) +
-         np.sqrt((gamma*(1-rho) + lam*rho)**2 +
-                 4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
-
     x = np.zeros((j_, t_))
     for t in range(t_):
+
+        resc_f = price[:, t]*(f[:, t] + mu_r/B)
+        resc_Sigma = price[:, t]**2 * Sigma
+
+        a = (-(gamma*(1 - rho) + lam*rho) +
+             np.sqrt((gamma*(1-rho) + lam*rho)**2 +
+                     4*gamma*lam*(1-rho)**2)) / (2*(1-rho))
+
+        aim_t = (gamma*resc_Sigma)**(-1) * (B/(1+Phi*a/gamma))*resc_f
+
         if t == 0:
-            x[:, t] = a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+            x[:, t] = a/lam * aim_t
 
         else:
-            x[:, t] = (1 - a/lam)*x[:, t-1] +\
-                a/lam * 1/(gamma*Sigma) * (B/(1+Phi*a/gamma))*f[:, t]
+            x[:, t] = (1 - a/lam)*x[:, t-1] + a/lam * aim_t
 
     return x.squeeze()
 
@@ -940,7 +948,7 @@ def compute_rl(j, pnl, q_value, optimizers, optimizer=None, bound=100):
 # compute_wealth
 # -----------------------------------------------------------------------------
 
-def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma):
+def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma, price):
 
     if pnl.ndim == 1:
         t_ = pnl.shape[0]
@@ -960,9 +968,13 @@ def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma):
     cost = np.zeros((j_, t_))
     for t in range(1, t_):
         delta_strat = strat[:, t] - strat[:, t-1]
+
+        resc_Sigma = price[:, t]**2 * Sigma
+        resc_Lambda = price[:, t]**2 * Lambda
+
         cost[:, t] =\
-            gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*Sigma*strat[:, t] +\
-            0.5*(1 - rho)**t * delta_strat*Lambda*delta_strat
+            gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*resc_Sigma*strat[:, t] +\
+            0.5*(1 - rho)**t * delta_strat*resc_Lambda*delta_strat
     cost = np.cumsum(cost, axis=1)
 
     # Wealth

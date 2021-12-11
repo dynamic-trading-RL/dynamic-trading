@@ -29,7 +29,7 @@ if not sys.warnoptions:
 j_oos = 1000
 t_ = 50
 
-optimizer = 'dual_annealing'
+optimizer = 'brute'
 
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
@@ -43,9 +43,12 @@ startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 
 n_batches = load('data/n_batches.joblib')
 optimizers = load('data/optimizers.joblib')
-lam_perc = load('data/lam_perc.joblib')
+lam = load('data/lam.joblib')
+lam = lam/10000
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
+factorType = load('data/factorType.joblib')
+
 
 # ------------------------------------- Simulations ---------------------------
 
@@ -60,7 +63,6 @@ pnl = pnl.squeeze()
 f = f.squeeze()
 
 Sigma_r = get_Sigma(market)
-lam = lam_perc / Sigma_r
 Lambda_r = lam*Sigma_r
 
 if (market._marketDynamics._returnDynamics._returnDynamicsType
@@ -100,29 +102,19 @@ else:
 
 # ------------------------------------- Markowitz -----------------------------
 
-
-Markowitz = compute_markovitz((f + mu_r)*price.mean(), gamma, B,
-                              Sigma_r*price.mean())
+Markowitz = compute_markovitz(f, gamma, B, Sigma_r, price, mu_r)
 bound = np.abs(Markowitz).max()
 
 wealth_M, value_M, cost_M =\
-    compute_wealth(pnl, Markowitz, gamma, Lambda_r*price.mean(), rho,
-                   Sigma_r*price.mean())
+    compute_wealth(pnl, Markowitz, gamma, Lambda_r, rho, Sigma_r, price)
 
 
 # ------------------------------------- GP ------------------------------------
 
-GP = compute_GP((f + mu_r)*price.mean(),
-                gamma,
-                lam,
-                rho,
-                B,
-                Sigma_r*price.mean(),
-                Phi)
+GP = compute_GP(f, gamma, lam, rho, B, Sigma_r, Phi, price, mu_r)
 
 wealth_GP, value_GP, cost_GP =\
-    compute_wealth(pnl, GP, gamma, Lambda_r*price.mean(), rho,
-                   Sigma_r*price.mean())
+    compute_wealth(pnl, GP, gamma, Lambda_r, rho, Sigma_r, price)
 
 
 # ------------------------------------- RL ------------------------------------
@@ -144,8 +136,7 @@ for j in range(j_oos):
                        optimizer=optimizer, bound=bound)
 
 wealth_RL, value_RL, cost_RL =\
-    compute_wealth(pnl, RL, gamma, Lambda_r*price.mean(), rho,
-                   Sigma_r*price.mean())
+    compute_wealth(pnl, RL, gamma, Lambda_r, rho, Sigma_r, price)
 
 
 # ------------------------------------- Plots ---------------------------------
@@ -163,7 +154,7 @@ plt.title('out-of-sample-shares')
 plt.savefig('figures/out-of-sample-shares.png')
 
 
-for j in range(7):
+for j in range(min(7, j_oos)):
     plt.figure()
     plt.plot(Markowitz[j, :], color='m', label='Markowitz')
     plt.plot(GP[j, :], color='g', label='GP')
