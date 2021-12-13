@@ -8,8 +8,8 @@ Created on Fri May 28 17:16:57 2021
 import numpy as np
 import pandas as pd
 from enum import Enum
-from scipy.optimize import (dual_annealing, shgo,
-                            differential_evolution, brute)
+from scipy.optimize import (dual_annealing, shgo, differential_evolution,
+                            brute, minimize)
 
 
 # -----------------------------------------------------------------------------
@@ -375,6 +375,7 @@ class Optimizers:
         self._dual_annealing = 0
         self._differential_evolution = 0
         self._brute = 0
+        self._local = 0
 
     def __repr__(self):
 
@@ -382,7 +383,8 @@ class Optimizers:
             '  shgo: ' + str(self._shgo) + '\n' +\
             '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
             '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
-            '  brute: ' + str(self._brute)
+            '  brute: ' + str(self._brute) + '\n' +\
+            '  local: ' + str(self._local)
 
     def __str__(self):
 
@@ -390,7 +392,8 @@ class Optimizers:
             '  shgo: ' + str(self._shgo) + '\n' +\
             '  dual_annealing: ' + str(self._dual_annealing) + '\n' +\
             '  differential_evolution: ' + str(self._differential_evolution) + '\n' +\
-            '  brute: ' + str(self._brute)
+            '  brute: ' + str(self._brute) + '\n' +\
+            '  local: ' + str(self._local)
 
 
 # -----------------------------------------------------------------------------
@@ -723,7 +726,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
         if optimizer == 'best':
             n = np.array([optimizers._shgo, optimizers._dual_annealing,
                           optimizers._differential_evolution,
-                          optimizers._brute])
+                          optimizers._brute, optimizers._local])
             i = np.argmax(n)
             if i == 0:
                 optimizer = 'shgo'
@@ -732,7 +735,9 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             elif i == 2:
                 optimizer = 'differential_evolution'
             elif i == 3:
-                optimizer == 'brute'
+                optimizer = 'brute'
+            elif i == 4:
+                optimizer = 'local'
             else:
                 print('Wrong optimizer')
 
@@ -742,14 +747,15 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res1 = shgo(fun, bounds)
             res2 = dual_annealing(fun, bounds)
             res3 = differential_evolution(fun, bounds)
-
             res4 = brute(fun, ranges=bounds,
-                         Ns=max(100, bounds[0][1]-bounds[0][0]+1),
+                         Ns=max(100, int(bounds[0][1]-bounds[0][0]+1)),
                          finish=None,
                          full_output=True)
+            res5 = minimize(fun, x0=np.array([0]), bounds=bounds)
 
-            res = [res1, res2, res3, res4[0]]
-            res_fun = np.array([res1.fun, res2.fun, res3.fun, res4[1]])
+            res = [res1, res2, res3, res4[0], res5]
+            res_fun = np.array([res1.fun, res2.fun, res3.fun, res4[1],
+                                res5.fun])
 
             i = np.argmax(res_fun)
 
@@ -761,6 +767,8 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
                 optimizers._differential_evolution += 1
             elif i == 3:
                 optimizers._brute += 1
+            elif i == 4:
+                optimizers._local += 1
             else:
                 print('Wrong optimizer')
 
@@ -782,10 +790,14 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
             optimizers._brute += 1
             x_brute = brute(fun, ranges=bounds,
-                            Ns=max(100, bounds[0][1]-bounds[0][0]+1),
+                            Ns=max(100, int(bounds[0][1]-bounds[0][0]+1)),
                             finish=None)
 
             return x_brute
+
+        elif optimizer == 'local':
+            optimizers._local += 1
+            res = minimize(fun, x0=np.array([0]), bounds=bounds)
 
         else:
             raise NameError('Wrong optimizer: ' + optimizer)
