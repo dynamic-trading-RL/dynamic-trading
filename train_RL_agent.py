@@ -33,7 +33,7 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 20000
+j_episodes = 15000
 n_batches = 5
 t_ = 50
 
@@ -49,8 +49,8 @@ flag_qaverage = True
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
-gamma = 10**-4  # risk aversion
-lam_perc = 10**-6  # costs: percentage of unit trade value
+gamma = 0.0002  # risk aversion
+lam_perc = 0.00001  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 factorType = FactorType.Observable
 
@@ -100,7 +100,7 @@ else:
 Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r, price.flatten(),
                               mu_r)
 
-bound = np.abs(Markowitz).max()
+bound = .75*np.abs(Markowitz).max()
 
 reward = np.zeros((n_batches, j_episodes))
 cost = np.zeros((n_batches, j_episodes))

@@ -29,7 +29,7 @@ if not sys.warnoptions:
 j_oos = 10
 t_ = 50
 
-optimizer = 'brute'
+optimizer = 'local'
 
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
@@ -113,9 +113,13 @@ def q_value(state, action):
 
 Markowitz = compute_markovitz(f, gamma, B, Sigma_r, price, mu_r)
 bound = np.abs(Markowitz).max()
-state = [0, 0]
-aa = np.linspace(-bound, bound, 100)
-qq = np.zeros(len(aa))
-for i in range(len(qq)):
-    qq[i] = q_value(state, aa[i])
-plt.plot(aa, qq)
+
+aa = np.linspace(-3, 0, 100)
+
+for n in np.linspace(-5, 5):
+    state = [n, f.flatten()[np.random.randint(f.flatten().shape[0])]]
+    qq = np.zeros(len(aa))
+    for i in range(len(qq)):
+        qq[i] = q_value(state, aa[i])
+    print(qq[3])
+    plt.plot(aa, qq)

@@ -628,10 +628,12 @@ def generate_episode(
 
     # Choose action
 
+    lb = -bound
+    ub = bound
     if np.random.rand() < eps:
-        action = np.random.rand()
+        action = lb + (ub - lb)*np.random.rand()
     else:
-        action = maxAction(q_value, state, [-bound, bound], b,
+        action = maxAction(q_value, state, [lb, ub], b,
                            optimizers, optimizer)
 
     for t in range(1, t_):
@@ -714,7 +716,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
     if b == 0:
 
-        return 0.5*(bounds[1] + bounds[0])
+        return -bounds[0] + (bounds[1] - bounds[0])*np.random.rand()
 
     else:
 
@@ -848,6 +850,7 @@ def q_hat(state, action,
     is_simulation = (np.ndim(state) > 1)
 
     if flag_qaverage:
+
         if n_models is None or n_models > len(qb_list):
             n_models = len(qb_list)
         for b in range(1, n_models+1):

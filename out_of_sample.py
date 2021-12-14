@@ -29,7 +29,7 @@ if not sys.warnoptions:
 j_oos = 100
 t_ = 50
 
-optimizer = 'brute'
+optimizer = 'local'
 
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
@@ -103,7 +103,7 @@ else:
 # ------------------------------------- Markowitz -----------------------------
 
 Markowitz = compute_markovitz(f, gamma, B, Sigma_r, price, mu_r)
-bound = np.abs(Markowitz).max()
+bound = .75*np.abs(Markowitz).max()
 
 wealth_M, value_M, cost_M =\
     compute_wealth(pnl, Markowitz, gamma, Lambda_r, rho, Sigma_r, price)
@@ -125,7 +125,8 @@ for b in range(n_batches):
 
 
 def q_value(state, action):
-    return q_hat(state, action, qb_list, flag_qaverage=True, n_models=None)
+    return q_hat(state, action, qb_list, flag_qaverage=flag_qaverage,
+                 n_models=None)
 
 
 RL = np.zeros((j_oos, t_))
