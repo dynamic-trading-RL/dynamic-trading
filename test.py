@@ -47,6 +47,7 @@ lam = load('data/lam.joblib')
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
 factorType = load('data/factorType.joblib')
+bound = load('data/bound.joblib')
 
 
 # ------------------------------------- Simulations ---------------------------
@@ -112,7 +113,6 @@ def q_value(state, action):
 
 
 Markowitz = compute_markovitz(f, gamma, B, Sigma_r, price, mu_r)
-bound = np.abs(Markowitz).max()
 
 aa = np.linspace(-3, 0, 100)
 

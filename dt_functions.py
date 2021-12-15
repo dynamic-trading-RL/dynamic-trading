@@ -620,9 +620,9 @@ def generate_episode(
 
     # Observe state
     if factorType == FactorType.Observable:
-        state = [0, f[j, 0]]
+        state = [0., f[j, 0]]
     elif factorType == FactorType.Latent:
-        state = [0]
+        state = [0.]
     else:
         raise NameError('Invalid factorType: ' + factorType.value)
 

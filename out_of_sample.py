@@ -48,6 +48,7 @@ gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
 factorType = load('data/factorType.joblib')
 flag_qaverage = load('data/flag_qaverage.joblib')
+bound = load('data/bound.joblib')
 
 
 # ------------------------------------- Simulations ---------------------------
@@ -103,7 +104,6 @@ else:
 # ------------------------------------- Markowitz -----------------------------
 
 Markowitz = compute_markovitz(f, gamma, B, Sigma_r, price, mu_r)
-bound = .75*np.abs(Markowitz).max()
 
 wealth_M, value_M, cost_M =\
     compute_wealth(pnl, Markowitz, gamma, Lambda_r, rho, Sigma_r, price)

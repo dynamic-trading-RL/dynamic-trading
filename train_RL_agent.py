@@ -33,11 +33,11 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 15000
+j_episodes = 15
 n_batches = 5
 t_ = 50
 
-parallel_computing = True
+parallel_computing = False
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
@@ -184,14 +184,6 @@ for b in range(n_batches):  # loop on batches
     reward[b, :] = np.array(reward_sort)[ind_sort]
     cost[b, :] = np.array(cost_sort)[ind_sort]
 
-    # used as ylim in plots below
-    if b == 0:
-        min_Y = np.min(Y)
-        max_Y = np.max(Y)
-    else:
-        min_Y = min(np.min(Y), min_Y)
-        max_Y = max(np.max(Y), max_Y)
-
     print('Fitting model %d of %d' % (b+1, n_batches))
     if sup_model == 'random_forest':
         model = RandomForestRegressor(n_estimators=20, max_features=0.333,
@@ -225,6 +217,7 @@ dump(gamma, 'data/gamma.joblib')
 dump(rho, 'data/rho.joblib')
 dump(factorType, 'data/factorType.joblib')
 dump(flag_qaverage, 'data/flag_qaverage.joblib')
+dump(bound, 'data/bound.joblib')
 
 # ------------------------------------- Plots ---------------------------------
 
