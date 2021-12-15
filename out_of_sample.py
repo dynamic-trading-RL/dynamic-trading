@@ -125,8 +125,7 @@ for b in range(n_batches):
 
 
 def q_value(state, action):
-    return q_hat(state, action, qb_list, flag_qaverage=flag_qaverage,
-                 n_models=None)
+    return q_hat(state, action, qb_list, flag_qaverage=flag_qaverage)
 
 
 RL = np.zeros((j_oos, t_))

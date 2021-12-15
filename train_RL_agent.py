@@ -33,11 +33,11 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 # RL parameters
-j_episodes = 15
+j_episodes = 10000
 n_batches = 5
 t_ = 50
 
-parallel_computing = False
+parallel_computing = True
 n_cores_max = 50
 alpha = 1.
 eps = 0.1
@@ -49,7 +49,7 @@ flag_qaverage = True
 # Market parameters
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
-gamma = 0.0002  # risk aversion
+gamma = 0.02  # risk aversion
 lam_perc = 0.00001  # costs: percentage of unit trade value
 rho = 1 - np.exp(-.02/252)  # discount
 factorType = FactorType.Observable
@@ -127,8 +127,7 @@ for b in range(n_batches):  # loop on batches
 
         def q_value(state, action):
             return q_hat(state, action, qb_list,
-                         flag_qaverage=flag_qaverage,
-                         n_models=None)
+                         flag_qaverage=flag_qaverage)
 
     # generate episodes
     # create alias for generate_episode that fixes all the parameters but j
@@ -228,20 +227,32 @@ elif factorType == FactorType.Latent:
 else:
     raise NameError('Invalid factorType: ' + factorType.value)
 
+Y_plot = Y.reshape((j_episodes, t_-1))
+
 j_plot = min(X_plot.shape[0], 50)
 
 color = cm.Greens(np.linspace(0, 1, n_batches))
 
+
+plt.figure()
+for j in range(j_plot):
+    plt.plot(Y_plot[j, :], color='k', alpha=0.5)
+plt.title('q')
+plt.savefig('figures/q.png')
+
+
 plt.figure()
 for j in range(j_plot):
     plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
-plt.title('shares')
-plt.savefig('figures/shares.png')
+plt.title('state_0')
+plt.savefig('figures/state_0.png')
+
+
 plt.figure()
 for j in range(j_plot):
     plt.bar(range(t_-1), X_plot[j, :, -1], color='k', alpha=0.5)
-plt.title('trades')
-plt.savefig('figures/trades.png')
+plt.title('action')
+plt.savefig('figures/action.png')
 
 plt.figure()
 for b in range(n_batches):

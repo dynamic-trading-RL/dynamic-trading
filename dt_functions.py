@@ -598,11 +598,17 @@ def generate_episode(
                      eps, q_value, alpha,
                      optimizers, optimizer,
                      b,
-                     bound=400):
+                     bound=400,
+                     rescale_n_a=True):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
     """
+
+    if rescale_n_a:
+        resc_n_a = bound
+    else:
+        resc_n_a = 1.
 
     reward_total = 0
     cost_total = 0
@@ -628,8 +634,8 @@ def generate_episode(
 
     # Choose action
 
-    lb = -bound
-    ub = bound
+    lb = -bound / resc_n_a
+    ub = bound / resc_n_a
     if np.random.rand() < eps:
         action = lb + (ub - lb)*np.random.rand()
     else:
@@ -647,8 +653,8 @@ def generate_episode(
             raise NameError('Invalid factorType: ' + factorType.value)
 
         # Choose a' from s' using policy derived from q_value
-        lb = -bound
-        ub = bound
+        lb = -bound / resc_n_a
+        ub = bound / resc_n_a
         if np.random.rand() < eps:
             action_ = lb + (ub - lb)*np.random.rand()
         else:
@@ -656,14 +662,14 @@ def generate_episode(
                                 optimizers, optimizer)
 
         # Observe reward
-        x_tm1 = state_[0]
+        x_tm1 = state_[0] * resc_n_a
         r_t = pnl[j, t]
-        a_tm1 = action
+        dx_tm1 = action * resc_n_a
 
         Sigma = price[j, t-1]*Sigma_r
         Lambda = price[j, t-1]*Lambda_r
 
-        cost_tm1 = cost(x_tm1, a_tm1, rho, gamma, Sigma, Lambda)
+        cost_tm1 = cost(x_tm1, dx_tm1, rho, gamma, Sigma, Lambda)
         reward_t = reward(x_tm1, r_t, cost_tm1, rho)
 
         cost_total += cost_tm1
@@ -699,9 +705,9 @@ def reward(x_tm1, r_t, cost_tm1, rho):
 # cost
 # -----------------------------------------------------------------------------
 
-def cost(x_tm1, a_tm1, rho, gamma, Sigma, Lambda):
+def cost(x_tm1, dx_tm1, rho, gamma, Sigma, Lambda):
 
-    return 0.5*((1 - rho)*gamma*x_tm1*Sigma*x_tm1 + a_tm1*Lambda*a_tm1)
+    return 0.5*((1 - rho)*gamma*x_tm1*Sigma*x_tm1 + dx_tm1*Lambda*dx_tm1)
 
 
 # -----------------------------------------------------------------------------
@@ -716,7 +722,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
     if b == 0:
 
-        return -bounds[0] + (bounds[1] - bounds[0])*np.random.rand()
+        return bounds[0] + (bounds[1] - bounds[0])*np.random.rand()
 
     else:
 
@@ -934,7 +940,12 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
 # -----------------------------------------------------------------------------
 
 def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
-               bound=100):
+               bound=400, rescale_n_a=True):
+
+    if rescale_n_a:
+        resc_n_a = bound
+    else:
+        resc_n_a = 1.
 
     if f.ndim == 1:
         t_ = f.shape[0]
@@ -954,22 +965,25 @@ def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
             else:
                 raise NameError('Invalid factorType: ' + factorType.value)
 
-            action = maxAction(q_value, state, [-bound, bound], 1, optimizers,
+            lb = -bound / resc_n_a
+            ub = bound / resc_n_a
+            action = maxAction(q_value, state, [lb, ub], 1, optimizers,
                                optimizer=optimizer)
-            shares[t] = state[0] + action
+            shares[t] = (state[0] + action) * resc_n_a
         else:
 
             if factorType == FactorType.Observable:
-                state = np.array([shares[t-1], f[t]])
+                state = np.array([shares[t-1] / resc_n_a, f[t]])
             elif factorType == FactorType.Latent:
-                state = np.array([shares[t-1]])
+                state = np.array([shares[t-1] / resc_n_a])
             else:
                 raise NameError('Invalid factorType: ' + factorType.value)
 
-            bounds = [-bound, bound]
-            action = maxAction(q_value, state, bounds, 1, optimizers,
+            lb = -bound / resc_n_a
+            ub = bound / resc_n_a
+            action = maxAction(q_value, state, [lb, ub], 1, optimizers,
                                optimizer=optimizer)
-            shares[t] = state[0] + action
+            shares[t] = (state[0] + action) * resc_n_a
 
     return shares
 
