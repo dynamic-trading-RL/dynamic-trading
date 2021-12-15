@@ -29,8 +29,6 @@ if not sys.warnoptions:
 j_oos = 10
 t_ = 50
 
-optimizer = 'local'
-
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
 
@@ -43,6 +41,7 @@ startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 
 n_batches = load('data/n_batches.joblib')
 optimizers = load('data/optimizers.joblib')
+optimizer = load('data/optimizer.joblib')
 lam = load('data/lam.joblib')
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
@@ -110,16 +109,12 @@ for b in range(n_batches):
 def q_value(state, action):
     return q_hat(state, action, qb_list, flag_qaverage=True, n_models=None)
 
+aa = np.linspace(-1, 1, 50)
 
-
-Markowitz = compute_markovitz(f, gamma, B, Sigma_r, price, mu_r)
-
-aa = np.linspace(-3, 0, 100)
-
-for n in np.linspace(-5, 5):
+for n in np.linspace(-1, 1, 5):
     state = [n, f.flatten()[np.random.randint(f.flatten().shape[0])]]
     qq = np.zeros(len(aa))
     for i in range(len(qq)):
         qq[i] = q_value(state, aa[i])
-    print(qq[3])
-    plt.plot(aa, qq)
+    plt.plot(aa, qq, label='n=%.3f, f=%.3f' % (state[0], state[1]))
+plt.legend()

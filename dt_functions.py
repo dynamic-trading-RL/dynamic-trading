@@ -8,6 +8,7 @@ Created on Fri May 28 17:16:57 2021
 import numpy as np
 import pandas as pd
 from enum import Enum
+from joblib import load
 from scipy.optimize import (dual_annealing, shgo, differential_evolution,
                             brute, minimize)
 
@@ -595,7 +596,7 @@ def generate_episode(
                      # reward/cost parameters
                      rho, gamma, Sigma_r, Lambda_r,
                      # RL parameters
-                     eps, q_value, alpha,
+                     eps, qb_list, flag_qaverage, alpha,
                      optimizers, optimizer,
                      b,
                      bound=400,
@@ -623,6 +624,9 @@ def generate_episode(
         raise NameError('Invalid factorType: ' + factorType.value)
 
     y_episode = np.zeros(t_-1)
+
+    # Define value function
+    q_value = get_q_value(b, qb_list, flag_qaverage)
 
     # Observe state
     if factorType == FactorType.Observable:
@@ -821,8 +825,8 @@ def set_regressor_parameters(sup_model):
 
     if sup_model == 'ann_fast':
         hidden_layer_sizes = (64, 32, 8)
-        max_iter = 10
-        n_iter_no_change = 2
+        max_iter = 80
+        n_iter_no_change = 10
         alpha_ann = 0.0001
 
         return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
@@ -831,7 +835,7 @@ def set_regressor_parameters(sup_model):
         hidden_layer_sizes = (70, 50, 30, 10)
         max_iter = 200
         n_iter_no_change = 10
-        alpha_ann = 0.001
+        alpha_ann = 0.0001
 
         return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
 
@@ -1025,3 +1029,24 @@ def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma, price):
     wealth = value - cost
 
     return wealth.squeeze(), value.squeeze(), cost.squeeze()
+
+
+# -----------------------------------------------------------------------------
+# get_q_value
+# -----------------------------------------------------------------------------
+
+def get_q_value(b, qb_list, flag_qaverage):
+
+    if b == 0:  # initialize q_value arbitrarily
+
+        def q_value(state, action):
+
+            return 0.
+
+    else:  # average models across previous batches
+
+        def q_value(state, action):
+            return q_hat(state, action, qb_list,
+                         flag_qaverage=flag_qaverage)
+
+    return q_value

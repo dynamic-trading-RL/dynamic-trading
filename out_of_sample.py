@@ -27,9 +27,7 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 j_oos = 100
-t_ = 50
-
-optimizer = 'local'
+t_ = 10
 
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
@@ -43,6 +41,7 @@ startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 
 n_batches = load('data/n_batches.joblib')
 optimizers = load('data/optimizers.joblib')
+optimizer = load('data/optimizer.joblib')
 lam = load('data/lam.joblib')
 gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
