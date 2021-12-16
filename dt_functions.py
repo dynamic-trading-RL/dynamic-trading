@@ -818,10 +818,10 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
 
 # -----------------------------------------------------------------------------
-# set_regressor_parameters
+# set_regressor_parameters_ann
 # -----------------------------------------------------------------------------
 
-def set_regressor_parameters(sup_model):
+def set_regressor_parameters_ann(sup_model):
 
     if sup_model == 'ann_fast':
         hidden_layer_sizes = (64, 32, 8)
@@ -842,6 +842,35 @@ def set_regressor_parameters(sup_model):
     elif sup_model == 'random_forest':
 
         return None
+
+
+# -----------------------------------------------------------------------------
+# set_regressor_parameters_tree
+# -----------------------------------------------------------------------------
+
+def set_regressor_parameters_tree():
+    n_estimators = 100
+    min_samples_split = 0.01
+    max_samples = 0.9
+    warm_start = True
+
+    return n_estimators, min_samples_split, max_samples, warm_start
+
+
+def set_regressor_parameters_gb():
+
+    n_estimators, min_samples_split, _, warm_start =\
+        set_regressor_parameters_tree()
+
+    n_estimators = 100
+    learning_rate = 10/n_estimators
+    subsample = 0.8
+    min_samples_split=min_samples_split
+    warm_start=warm_start
+    n_iter_no_change=10
+
+    return learning_rate, n_estimators, subsample, min_samples_split,\
+        warm_start, n_iter_no_change
 
 
 # -----------------------------------------------------------------------------

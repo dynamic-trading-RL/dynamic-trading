@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neural_network import MLPRegressor
 from joblib import dump
 from functools import partial
@@ -21,7 +21,9 @@ from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           simulate_market,
                           generate_episode,
                           Optimizers,
-                          set_regressor_parameters,
+                          set_regressor_parameters_ann,
+                          set_regressor_parameters_tree,
+                          set_regressor_parameters_gb,
                           compute_markovitz)
 import sys
 import warnings
@@ -57,7 +59,7 @@ if __name__ == '__main__':
     factorType = FactorType.Observable
 
     # RL model
-    sup_model = 'ann_deep'  # or random_forest or ann_deep or ann_fast
+    sup_model = 'gradient_boosting'  # random_forest or gradient_boosting or ann_deep or ann_fast
 
 
     # ------------------------------------- Reinforcement learning ----------------
@@ -69,7 +71,15 @@ if __name__ == '__main__':
 
     if sup_model in ('ann_fast', 'ann_deep'):
         hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann =\
-            set_regressor_parameters(sup_model)
+            set_regressor_parameters_ann(sup_model)
+    elif sup_model == 'random_forest':
+        n_estimators, min_samples_split, max_samples, warm_start =\
+            set_regressor_parameters_tree()
+    elif sup_model == 'gradient_boosting':
+        learning_rate, n_estimators, subsample, min_samples_split,\
+            warm_start, n_iter_no_change = set_regressor_parameters_gb()
+    else:
+        raise NameError('Invalid sup_model: ' + str(sup_model))
 
     if parallel_computing:
         print('Number of cores available: %d' % mp.cpu_count())
@@ -173,20 +183,34 @@ if __name__ == '__main__':
         cost[b, :] = np.array(cost_sort)[ind_sort]
 
         print('Fitting model %d of %d' % (b+1, n_batches))
+
         if sup_model == 'random_forest':
-            model = RandomForestRegressor(n_estimators=20, max_features=0.333,
-                                          min_samples_split=0.01,
-                                          max_samples=0.9,
-                                          oob_score=True,
-                                          n_jobs=1,
-                                          verbose=0,
-                                          warm_start=True)
+
+            model = RandomForestRegressor(n_estimators=n_estimators,
+                                          min_samples_split=min_samples_split,
+                                          max_samples=max_samples,
+                                          warm_start=warm_start)
+
         elif sup_model == 'ann_fast' or sup_model == 'ann_deep':
+
             model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
                                  alpha=alpha_ann,
                                  max_iter=max_iter,
                                  n_iter_no_change=n_iter_no_change
                                  )
+
+        elif sup_model == 'gradient_boosting':
+
+            model = GradientBoostingRegressor(learning_rate=learning_rate,
+                                              subsample=subsample,
+                                              n_estimators=n_estimators,
+                                              min_samples_split=min_samples_split,
+                                              warm_start=warm_start,
+                                              n_iter_no_change=n_iter_no_change)
+
+        else:
+
+            raise NameError('Invalid sup_model: ' + str(sup_model))
 
         qb_list.append(model.fit(X, Y))
         dump(model.fit(X, Y), 'models/q%d.joblib' % b)  # export regressor
