@@ -31,24 +31,23 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 
-
 if __name__ == '__main__':
 
-    # ------------------------------------- Parameters ----------------------------
+    # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 10000
-    n_batches = 8
-    t_ = 10
+    j_episodes = 5000
+    n_batches = 5
+    t_ = 50
 
     parallel_computing = True
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
-    optimizer = 'brute'
+    optimizer = 'local'
     flag_qaverage = True
-    # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best', 'brute',
-    # 'local'
+    # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
+    # 'brute', 'local'
 
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.Linear
@@ -58,14 +57,14 @@ if __name__ == '__main__':
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable
 
-    # RL model
-    sup_model = 'gradient_boosting'  # random_forest or gradient_boosting or ann_deep or ann_fast
+    # RL model # random_forest, gradient_boosting, ann_deep, ann_fast
+    sup_model = 'ann_fast'
 
-
-    # ------------------------------------- Reinforcement learning ----------------
+    # ------------------------------------- Reinforcement learning ------------
     calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
                                            index_col=0)
-    startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
+    startPrice = calibration_parameters.loc['startPrice',
+                                            'calibration-parameters']
     qb_list = []  # list to store models
     optimizers = Optimizers()
 
@@ -73,11 +72,12 @@ if __name__ == '__main__':
         hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann =\
             set_regressor_parameters_ann(sup_model)
     elif sup_model == 'random_forest':
-        n_estimators, min_samples_split, max_samples, warm_start =\
+        n_estimators, min_samples_split, max_samples, warm_start, verbose =\
             set_regressor_parameters_tree()
     elif sup_model == 'gradient_boosting':
         learning_rate, n_estimators, subsample, min_samples_split,\
-            warm_start, n_iter_no_change = set_regressor_parameters_gb()
+            warm_start, n_iter_no_change, verbose =\
+            set_regressor_parameters_gb()
     else:
         raise NameError('Invalid sup_model: ' + str(sup_model))
 
@@ -87,14 +87,14 @@ if __name__ == '__main__':
         print('Number of cores used: %d' % n_cores)
 
     # Instantiate market
-    market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice)
+    market = instantiate_market(returnDynamicsType, factorDynamicsType,
+                                startPrice)
 
     # Simulations
     price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
     Sigma_r = get_Sigma(market)
     lam = lam_perc * 2 / Sigma_r
     Lambda_r = lam*Sigma_r
-
 
     # Use Markowitz to determine bounds
     if (market._marketDynamics._returnDynamics._returnDynamicsType
@@ -109,8 +109,8 @@ if __name__ == '__main__':
         mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
         mu_r = 0.5*(mu_0 + mu_1)
 
-    Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r, price.flatten(),
-                                  mu_r)
+    Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r,
+                                  price.flatten(), mu_r)
 
     bound = .75*np.abs(Markowitz).max()
 
@@ -132,7 +132,8 @@ if __name__ == '__main__':
 
         gen_ep_part = partial(generate_episode,
                               # market simulations
-                              price=price[:, b, ], pnl=pnl[:, b, :], f=f[:, b, :],
+                              price=price[:, b, ], pnl=pnl[:, b, :],
+                              f=f[:, b, :],
                               factorType=factorType,
                               # reward/cost parameters
                               rho=rho, gamma=gamma, Sigma_r=Sigma_r,
@@ -184,12 +185,15 @@ if __name__ == '__main__':
 
         print('Fitting model %d of %d' % (b+1, n_batches))
 
+        a = 1
+
         if sup_model == 'random_forest':
 
             model = RandomForestRegressor(n_estimators=n_estimators,
                                           min_samples_split=min_samples_split,
                                           max_samples=max_samples,
-                                          warm_start=warm_start)
+                                          warm_start=warm_start,
+                                          verbose=verbose).fit(X, Y)
 
         elif sup_model == 'ann_fast' or sup_model == 'ann_deep':
 
@@ -197,31 +201,32 @@ if __name__ == '__main__':
                                  alpha=alpha_ann,
                                  max_iter=max_iter,
                                  n_iter_no_change=n_iter_no_change
-                                 )
+                                 ).fit(X, Y)
 
         elif sup_model == 'gradient_boosting':
 
-            model = GradientBoostingRegressor(learning_rate=learning_rate,
-                                              subsample=subsample,
-                                              n_estimators=n_estimators,
-                                              min_samples_split=min_samples_split,
-                                              warm_start=warm_start,
-                                              n_iter_no_change=n_iter_no_change)
+            model =\
+                GradientBoostingRegressor(learning_rate=learning_rate,
+                                          subsample=subsample,
+                                          n_estimators=n_estimators,
+                                          min_samples_split=min_samples_split,
+                                          warm_start=warm_start,
+                                          n_iter_no_change=n_iter_no_change,
+                                          verbose=verbose).fit(X, Y)
 
         else:
 
             raise NameError('Invalid sup_model: ' + str(sup_model))
 
-        qb_list.append(model.fit(X, Y))
-        dump(model.fit(X, Y), 'models/q%d.joblib' % b)  # export regressor
+        qb_list.append(model)
+        dump(model, 'models/q%d.joblib' % b)  # export regressor
         print('    Score: %.3f' % model.score(X, Y))
-        print('    Average reward: %.3f' % np.mean(reward[b, :]))
-        print('    Average cost: %.3f' % np.mean(cost[b, :]))
+        print('    Reward: %.3f' % np.cumsum(reward[b, :])[-1])
+        print('    Cost: %.3f' % np.cumsum(cost[b, :])[-1])
 
         eps = max(eps/3, 0.00001)  # update epsilon
 
-
-    # ------------------------------------- Dump data -----------------------------
+    # ------------------------------------- Dump data -------------------------
     print(optimizers)
     dump(n_batches, 'data/n_batches.joblib')
     dump(optimizers, 'data/optimizers.joblib')
@@ -233,7 +238,7 @@ if __name__ == '__main__':
     dump(flag_qaverage, 'data/flag_qaverage.joblib')
     dump(bound, 'data/bound.joblib')
 
-    # ------------------------------------- Plots ---------------------------------
+    # ------------------------------------- Plots -----------------------------
 
     if factorType == FactorType.Observable:
         X_plot = X.reshape((j_episodes, t_-1, 3))
@@ -248,20 +253,17 @@ if __name__ == '__main__':
 
     color = cm.Greens(np.linspace(0, 1, n_batches))
 
-
     plt.figure()
     for j in range(j_plot):
         plt.plot(Y_plot[j, :], color='k', alpha=0.5)
     plt.title('q')
     plt.savefig('figures/q.png')
 
-
     plt.figure()
     for j in range(j_plot):
         plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
     plt.title('state_0')
     plt.savefig('figures/state_0.png')
-
 
     plt.figure()
     for j in range(j_plot):
@@ -271,7 +273,8 @@ if __name__ == '__main__':
 
     plt.figure()
     for b in range(n_batches):
-        plt.plot(reward[b, :], label='Batch: %d' % b, alpha=0.5, color=color[b])
+        plt.plot(reward[b, :], label='Batch: %d' % b, alpha=0.5,
+                 color=color[b])
     plt.legend()
     plt.title('reward')
     plt.savefig('figures/reward.png')

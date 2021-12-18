@@ -27,7 +27,7 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 j_oos = 10
-t_ = 50
+t_ = 10
 
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR
@@ -109,7 +109,8 @@ for b in range(n_batches):
 def q_value(state, action):
     return q_hat(state, action, qb_list, flag_qaverage=True, n_models=None)
 
-aa = np.linspace(-1, 1, 50)
+
+aa = np.linspace(-10, 10, 50)
 
 for n in np.linspace(-1, 1, 5):
     state = [n, f.flatten()[np.random.randint(f.flatten().shape[0])]]
