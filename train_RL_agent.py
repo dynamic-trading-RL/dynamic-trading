@@ -36,15 +36,15 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 5000
-    n_batches = 5
+    j_episodes = 15000
+    n_batches = 8
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
-    optimizer = 'local'
+    optimizer = 'brute'
     flag_qaverage = True
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
@@ -52,13 +52,13 @@ if __name__ == '__main__':
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
-    gamma = 0.02  # risk aversion
-    lam_perc = 0.00001  # costs: percentage of unit trade value
+    gamma = 2*10**-5  # risk aversion
+    lam_perc = 10**-8  # costs: percentage of unit trade value
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable
 
     # RL model # random_forest, gradient_boosting, ann_deep, ann_fast
-    sup_model = 'ann_fast'
+    sup_model = 'ann_deep'
 
     # ------------------------------------- Reinforcement learning ------------
     calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
@@ -184,8 +184,6 @@ if __name__ == '__main__':
         cost[b, :] = np.array(cost_sort)[ind_sort]
 
         print('Fitting model %d of %d' % (b+1, n_batches))
-
-        a = 1
 
         if sup_model == 'random_forest':
 
