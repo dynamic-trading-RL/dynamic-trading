@@ -38,6 +38,7 @@ if __name__ == '__main__':
     # RL parameters
     j_episodes = 15000
     n_batches = 5
+    t_ = 50
 
     parallel_computing = True
     n_cores_max = 50
