@@ -8,7 +8,6 @@ Created on Fri May 28 17:16:57 2021
 import numpy as np
 import pandas as pd
 from enum import Enum
-from joblib import load
 from scipy.optimize import (dual_annealing, shgo, differential_evolution,
                             brute, minimize)
 
@@ -145,6 +144,7 @@ class Market:
         self._marketDynamics = marketDynamics
         self._startPrice = startPrice
         self._marketId = self._setMarketId()
+        self._next_step = None
         self._simulations = {}
 
     def _setMarketId(self):
@@ -294,6 +294,12 @@ class Market:
 
         if returnDynamicsType == ReturnDynamicsType.Linear:
 
+            def next_step(f):
+
+                return parameters['mu'] + parameters['B']*f
+
+            self._next_step = next_step
+
             mu = parameters['mu']
             B = parameters['B']
             sig2 = parameters['sig2']
@@ -301,6 +307,18 @@ class Market:
             r[:, 1:] = mu + B*f[:, :-1] + np.sqrt(sig2)*norm[:, 1:]
 
         elif returnDynamicsType == ReturnDynamicsType.NonLinear:
+
+            def next_step(f):
+
+                if f < parameters['c']:
+
+                    return parameters['mu_0'] + parameters['B_0']*f
+
+                else:
+
+                    return parameters['mu_1'] + parameters['B_1']*f
+
+            self._next_step = next_step
 
             c = parameters['c']
             mu_0 = parameters['mu_0']
@@ -592,7 +610,7 @@ def generate_episode(
                      # dummy for parallel computing
                      j,
                      # market simulations
-                     price, pnl, f, factorType,
+                     price, pnl, f, market, factorType,
                      # reward/cost parameters
                      rho, gamma, Sigma_r, Lambda_r,
                      # RL parameters
@@ -600,7 +618,7 @@ def generate_episode(
                      optimizers, optimizer,
                      b,
                      bound=400,
-                     rescale_n_a=True):
+                     rescale_n_a=True, predict_r=True):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
@@ -667,7 +685,10 @@ def generate_episode(
 
         # Observe reward
         x_tm1 = state_[0] * resc_n_a
-        r_t = pnl[j, t]
+        if predict_r:
+            r_t = price[j, t-1]*market._next_step(f[j, t-1])
+        else:
+            r_t = pnl[j, t]
         dx_tm1 = action * resc_n_a
 
         Sigma = price[j, t-1]*Sigma_r
@@ -824,7 +845,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 def set_regressor_parameters_ann(sup_model):
 
     if sup_model == 'ann_fast':
-        hidden_layer_sizes = (64, 32, 8)
+        hidden_layer_sizes = (100,)
         max_iter = 80
         n_iter_no_change = 10
         alpha_ann = 0.0001
