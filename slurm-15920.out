@@ -1,6 +1,0 @@
-Number of cores available: 144
-Number of cores used: 50
-Traceback (most recent call last):
-  File "train_RL_agent.py", line 95, in <module>
-    price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
-NameError: name 't_' is not defined

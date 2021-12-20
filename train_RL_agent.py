@@ -36,11 +36,11 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 15000
+    j_episodes = 15
     n_batches = 5
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # 'brute', 'local'
 
     # Market parameters
-    returnDynamicsType = ReturnDynamicsType.Linear
+    returnDynamicsType = ReturnDynamicsType.NonLinear
     factorDynamicsType = FactorDynamicsType.AR
     gamma = 2*10**-5  # risk aversion
     lam_perc = 10**-8  # costs: percentage of unit trade value

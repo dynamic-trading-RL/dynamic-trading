@@ -144,7 +144,6 @@ class Market:
         self._marketDynamics = marketDynamics
         self._startPrice = startPrice
         self._marketId = self._setMarketId()
-        self._next_step = None
         self._simulations = {}
 
     def _setMarketId(self):
@@ -157,6 +156,26 @@ class Market:
 
         self._marketId =\
             returnDynamicsType.value + '-' + factorDynamicsType.value
+
+    def next_step(self, f):
+
+        returnDynamicsType =\
+            self._marketDynamics._returnDynamics._returnDynamicsType
+        parameters = self._marketDynamics._returnDynamics._parameters
+
+        if returnDynamicsType == ReturnDynamicsType.Linear:
+
+            return parameters['mu'] + parameters['B']*f
+
+        elif returnDynamicsType == ReturnDynamicsType.NonLinear:
+
+            if f < parameters['c']:
+
+                return parameters['mu_0'] + parameters['B_0']*f
+
+            else:
+
+                return parameters['mu_1'] + parameters['B_1']*f
 
     def simulate(self, j_, t_):
 
@@ -294,38 +313,13 @@ class Market:
 
         if returnDynamicsType == ReturnDynamicsType.Linear:
 
-            def next_step(f):
-
-                return parameters['mu'] + parameters['B']*f
-
-            self._next_step = next_step
-
-            mu = parameters['mu']
-            B = parameters['B']
-            sig2 = parameters['sig2']
-
-            r[:, 1:] = mu + B*f[:, :-1] + np.sqrt(sig2)*norm[:, 1:]
+            r[:, 1:] = self.next_step(f[:, :-1]) +\
+                np.sqrt(parameters['sig2'])*norm[:, 1:]
 
         elif returnDynamicsType == ReturnDynamicsType.NonLinear:
 
-            def next_step(f):
-
-                if f < parameters['c']:
-
-                    return parameters['mu_0'] + parameters['B_0']*f
-
-                else:
-
-                    return parameters['mu_1'] + parameters['B_1']*f
-
-            self._next_step = next_step
-
             c = parameters['c']
-            mu_0 = parameters['mu_0']
-            B_0 = parameters['B_0']
             sig2_0 = parameters['sig2_0']
-            mu_1 = parameters['mu_1']
-            B_1 = parameters['B_1']
             sig2_1 = parameters['sig2_1']
 
             for t in range(1, t_):
@@ -333,11 +327,13 @@ class Market:
                 ind_0 = f[:, t-1] < c
                 ind_1 = f[:, t-1] >= c
 
-                r[ind_0, t] =\
-                    mu_0 + B_0*f[ind_0, t-1] + np.sqrt(sig2_0)*norm[ind_0, t]
+                r[ind_0, t] = np.vectorize(self.next_step,
+                                           otypes=[float])(f[ind_0, t-1])\
+                    + np.sqrt(sig2_0)*norm[ind_0, t]
 
-                r[ind_1, t] =\
-                    mu_1 + B_1*f[ind_1, t-1] + np.sqrt(sig2_1)*norm[ind_1, t]
+                r[ind_1, t] = np.vectorize(self.next_step,
+                                           otypes=[float])(f[ind_1, t-1])\
+                    + np.sqrt(sig2_1)*norm[ind_1, t]
 
         else:
             raise NameError('Invalid returnDynamicsType')
@@ -686,7 +682,7 @@ def generate_episode(
         # Observe reward
         n = state_[0] * resc_n_a
         if predict_r:
-            r = price[j, t-1]*market._next_step(f[j, t-1])
+            r = price[j, t-1]*market.next_step(f[j, t-1])
         else:
             r = pnl[j, t]
         dn = action * resc_n_a
