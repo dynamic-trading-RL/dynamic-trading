@@ -38,7 +38,6 @@ if __name__ == '__main__':
     # RL parameters
     j_episodes = 15000
     n_batches = 5
-    t_ = 50
 
     parallel_computing = True
     n_cores_max = 50
@@ -47,6 +46,7 @@ if __name__ == '__main__':
     optimizer = 'local'
     flag_qaverage = True
     predict_r = True
+
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
 

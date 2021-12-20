@@ -26,8 +26,9 @@ if not sys.warnoptions:
 
 # ------------------------------------- Parameters ----------------------------
 
-j_oos = 10
-t_ = 10
+
+j_oos = 15000
+t_ = 50
 
 returnDynamicsType = ReturnDynamicsType.Linear
 factorDynamicsType = FactorDynamicsType.AR

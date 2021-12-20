@@ -675,8 +675,8 @@ def generate_episode(
             raise NameError('Invalid factorType: ' + factorType.value)
 
         # Choose a' from s' using policy derived from q_value
-        lb = -bound / resc_n_a
-        ub = bound / resc_n_a
+        lb = -bound / resc_n_a - state_[0]
+        ub = bound / resc_n_a - state_[0]
         if np.random.rand() < eps:
             action_ = lb + (ub - lb)*np.random.rand()
         else:
@@ -684,20 +684,20 @@ def generate_episode(
                                 optimizers, optimizer)
 
         # Observe reward
-        x_tm1 = state_[0] * resc_n_a
+        n = state_[0] * resc_n_a
         if predict_r:
-            r_t = price[j, t-1]*market._next_step(f[j, t-1])
+            r = price[j, t-1]*market._next_step(f[j, t-1])
         else:
-            r_t = pnl[j, t]
-        dx_tm1 = action * resc_n_a
+            r = pnl[j, t]
+        dn = action * resc_n_a
 
-        Sigma = price[j, t-1]*Sigma_r
-        Lambda = price[j, t-1]*Lambda_r
+        Sigma = price[j, t]*Sigma_r
+        Lambda = price[j, t]*Lambda_r
 
-        cost_tm1 = cost(x_tm1, dx_tm1, rho, gamma, Sigma, Lambda)
-        reward_t = reward(x_tm1, r_t, cost_tm1, rho)
+        cost_t = cost(n, dn, rho, gamma, Sigma, Lambda)
+        reward_t = reward(n, r, cost_t, rho)
 
-        cost_total += cost_tm1
+        cost_total += cost_t
         reward_total += reward_t
 
         # Update value function
@@ -721,18 +721,18 @@ def generate_episode(
 # reward
 # -----------------------------------------------------------------------------
 
-def reward(x_tm1, r_t, cost_tm1, rho):
+def reward(n, r, cost_t, rho):
 
-    return (1 - rho)*x_tm1*r_t - cost_tm1
+    return (1 - rho)*n*r - cost_t
 
 
 # -----------------------------------------------------------------------------
 # cost
 # -----------------------------------------------------------------------------
 
-def cost(x_tm1, dx_tm1, rho, gamma, Sigma, Lambda):
+def cost(n, dn, rho, gamma, Sigma, Lambda):
 
-    return 0.5*((1 - rho)*gamma*x_tm1*Sigma*x_tm1 + dx_tm1*Lambda*dx_tm1)
+    return 0.5*((1 - rho)*gamma*n*Sigma*n + dn*Lambda*dn)
 
 
 # -----------------------------------------------------------------------------
@@ -781,7 +781,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res2 = dual_annealing(fun, bounds)
             res3 = differential_evolution(fun, bounds)
             res4 = brute(fun, ranges=bounds,
-                         Ns=max(100, int(bounds[0][1]-bounds[0][0]+1)),
+                         Ns=max(200, int(bounds[0][1]-bounds[0][0]+1)),
                          finish=None,
                          full_output=True)
             res5 = minimize(fun, x0=np.array([0]), bounds=bounds)
@@ -823,7 +823,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
             optimizers._brute += 1
             x_brute = brute(fun, ranges=bounds,
-                            Ns=max(100, int(bounds[0][1]-bounds[0][0]+1)),
+                            Ns=max(200, int(bounds[0][1]-bounds[0][0]+1)),
                             finish=None)
 
             return x_brute
@@ -860,9 +860,9 @@ def set_regressor_parameters_ann(sup_model):
 
         return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
 
-    elif sup_model == 'random_forest':
+    else:
 
-        return None
+        raise NameError('sup_model must be either ann_fast or ann_deep')
 
 
 # -----------------------------------------------------------------------------
@@ -874,24 +874,26 @@ def set_regressor_parameters_tree():
     min_samples_split = 0.01
     max_samples = 0.9
     warm_start = True
+    verbose = 0
 
-    return n_estimators, min_samples_split, max_samples, warm_start
+    return n_estimators, min_samples_split, max_samples, warm_start, verbose
 
 
 def set_regressor_parameters_gb():
 
-    n_estimators, min_samples_split, _, warm_start =\
+    n_estimators, min_samples_split, _, warm_start, verbose =\
         set_regressor_parameters_tree()
 
-    n_estimators = 100
-    learning_rate = 10/n_estimators
+    n_estimators = n_estimators
+    learning_rate = 1/n_estimators
     subsample = 0.8
-    min_samples_split=min_samples_split
-    warm_start=warm_start
-    n_iter_no_change=10
+    min_samples_split = min_samples_split
+    warm_start = warm_start
+    n_iter_no_change = 100
+    verbose = verbose
 
     return learning_rate, n_estimators, subsample, min_samples_split,\
-        warm_start, n_iter_no_change
+        warm_start, n_iter_no_change, verbose
 
 
 # -----------------------------------------------------------------------------
@@ -1019,8 +1021,8 @@ def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
             else:
                 raise NameError('Invalid factorType: ' + factorType.value)
 
-            lb = -bound / resc_n_a
-            ub = bound / resc_n_a
+            lb = -bound / resc_n_a - state[0]
+            ub = bound / resc_n_a - state[0]
             action = maxAction(q_value, state, [lb, ub], 1, optimizers,
                                optimizer=optimizer)
             shares[t] = (state[0] + action) * resc_n_a
@@ -1033,8 +1035,8 @@ def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
             else:
                 raise NameError('Invalid factorType: ' + factorType.value)
 
-            lb = -bound / resc_n_a
-            ub = bound / resc_n_a
+            lb = -bound / resc_n_a - state[0]
+            ub = bound / resc_n_a - state[0]
             action = maxAction(q_value, state, [lb, ub], 1, optimizers,
                                optimizer=optimizer)
             shares[t] = (state[0] + action) * resc_n_a
