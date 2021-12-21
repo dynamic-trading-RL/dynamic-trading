@@ -1127,7 +1127,7 @@ def get_q_value(b, qb_list, flag_qaverage):
 # get_q_value_iter
 # -----------------------------------------------------------------------------
 
-def get_q_value_iter(q_value, x_episode, y_episode, t):
+def get_q_value_iter(q_value, x_episode, y_episode, t, h=1):
 
     if t == 1:
 
@@ -1139,13 +1139,18 @@ def get_q_value_iter(q_value, x_episode, y_episode, t):
 
             summ = 0.
 
+            cov = h*np.eye(len(x_episode[0]))
+
             for s in range(t-1):
                 summ +=\
-                    (y_episode[s] - q_value(x_episode[s][:-1], x_episode[s][-1])) *\
+                    (y_episode[s] - q_value(x_episode[s][:-1],
+                                            x_episode[s][-1])) *\
                     multivariate_normal.pdf(np.r_[state, action],
-                                            mean=x_episode[s]) /\
+                                            mean=x_episode[s],
+                                            cov=cov) /\
                     multivariate_normal.pdf(np.zeros(len(x_episode[s])),
-                                            mean=np.zeros(len(x_episode[s])))
+                                            mean=np.zeros(len(x_episode[s])),
+                                            cov=cov)
 
             return q_value(state, action) + s
 
