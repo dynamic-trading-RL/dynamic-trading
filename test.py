@@ -110,12 +110,12 @@ def q_value(state, action):
     return q_hat(state, action, qb_list, flag_qaverage=True, n_models=None)
 
 
-aa = np.linspace(-10, 10, 50)
+aa = np.linspace(-1, 1, 50)
 
-for n in np.linspace(-1, 1, 5):
+for n in np.linspace(-1, 1, 50):
     state = [n, f.flatten()[np.random.randint(f.flatten().shape[0])]]
     qq = np.zeros(len(aa))
     for i in range(len(qq)):
         qq[i] = q_value(state, aa[i])
     plt.plot(aa, qq, label='n=%.3f, f=%.3f' % (state[0], state[1]))
-plt.legend()
+#plt.legend()

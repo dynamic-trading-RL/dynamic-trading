@@ -36,8 +36,8 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 15000
-    n_batches = 5
+    j_episodes = 1000
+    n_batches = 3
     t_ = 50
 
     parallel_computing = True
@@ -45,8 +45,15 @@ if __name__ == '__main__':
     alpha = 1.
     eps = 0.1
     optimizer = 'local'
+    # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
+    sup_model = 'ann_small'
+
     flag_qaverage = True
     predict_r = True
+    dyn_update_q_value = True
+    random_act_batch0 = False
+    make_plots = True
+    dump_XY = True
 
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
@@ -59,9 +66,6 @@ if __name__ == '__main__':
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable
 
-    # RL model # random_forest, gradient_boosting, ann_deep, ann_fast
-    sup_model = 'ann_fast'
-
     # ------------------------------------- Reinforcement learning ------------
     calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
                                            index_col=0)
@@ -70,7 +74,7 @@ if __name__ == '__main__':
     qb_list = []  # list to store models
     optimizers = Optimizers()
 
-    if sup_model in ('ann_fast', 'ann_deep'):
+    if sup_model in ('ann_fast', 'ann_deep', 'ann_small'):
         hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann =\
             set_regressor_parameters_ann(sup_model)
     elif sup_model == 'random_forest':
@@ -144,7 +148,9 @@ if __name__ == '__main__':
                               eps=eps, qb_list=qb_list,
                               flag_qaverage=flag_qaverage, alpha=alpha,
                               optimizers=optimizers, optimizer=optimizer,
-                              b=b, bound=bound, predict_r=predict_r)
+                              b=b, bound=bound, predict_r=predict_r,
+                              dyn_update_q_value=dyn_update_q_value,
+                              random_act_batch0=random_act_batch0)
 
         if parallel_computing:
 
@@ -187,8 +193,6 @@ if __name__ == '__main__':
 
         print('Fitting model %d of %d' % (b+1, n_batches))
 
-        a = 1
-
         if sup_model == 'random_forest':
 
             model = RandomForestRegressor(n_estimators=n_estimators,
@@ -197,7 +201,9 @@ if __name__ == '__main__':
                                           warm_start=warm_start,
                                           verbose=verbose).fit(X, Y)
 
-        elif sup_model == 'ann_fast' or sup_model == 'ann_deep':
+        elif (sup_model == 'ann_fast'
+              or sup_model == 'ann_deep'
+              or sup_model == 'ann_small'):
 
             model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
                                  alpha=alpha_ann,
@@ -222,6 +228,9 @@ if __name__ == '__main__':
 
         qb_list.append(model)
         dump(model, 'models/q%d.joblib' % b)  # export regressor
+        if dump_XY:
+            dump(X, 'data/X%d.joblib' % b)
+            dump(Y, 'data/Y%d.joblib' % b)
         print('    Score: %.3f' % model.score(X, Y))
         print('    Reward: %.3f' % np.cumsum(reward[b, :])[-1])
         print('    Cost: %.3f' % np.cumsum(cost[b, :])[-1])
@@ -242,74 +251,76 @@ if __name__ == '__main__':
 
     # ------------------------------------- Plots -----------------------------
 
-    if factorType == FactorType.Observable:
-        X_plot = X.reshape((j_episodes, t_-1, 3))
-    elif factorType == FactorType.Latent:
-        X_plot = X.reshape((j_episodes, t_-1, 2))
-    else:
-        raise NameError('Invalid factorType: ' + factorType.value)
+    if make_plots:
 
-    Y_plot = Y.reshape((j_episodes, t_-1))
+        if factorType == FactorType.Observable:
+            X_plot = X.reshape((j_episodes, t_-1, 3))
+        elif factorType == FactorType.Latent:
+            X_plot = X.reshape((j_episodes, t_-1, 2))
+        else:
+            raise NameError('Invalid factorType: ' + factorType.value)
 
-    j_plot = min(X_plot.shape[0], 50)
+        Y_plot = Y.reshape((j_episodes, t_-1))
 
-    color = cm.Greens(np.linspace(0, 1, n_batches))
+        j_plot = min(X_plot.shape[0], 50)
 
-    plt.figure()
-    for j in range(j_plot):
-        plt.plot(Y_plot[j, :], color='k', alpha=0.5)
-    plt.title('q')
-    plt.savefig('figures/q.png')
+        color = cm.Greens(np.linspace(0, 1, n_batches))
 
-    plt.figure()
-    for j in range(j_plot):
-        plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
-    plt.title('state_0')
-    plt.savefig('figures/state_0.png')
+        plt.figure()
+        for j in range(j_plot):
+            plt.plot(Y_plot[j, :], color='k', alpha=0.5)
+        plt.title('q')
+        plt.savefig('figures/q.png')
 
-    plt.figure()
-    for j in range(j_plot):
-        plt.bar(range(t_-1), X_plot[j, :, -1], color='k', alpha=0.5)
-    plt.title('action')
-    plt.savefig('figures/action.png')
+        plt.figure()
+        for j in range(j_plot):
+            plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
+        plt.title('state_0')
+        plt.savefig('figures/state_0.png')
 
-    plt.figure()
-    for b in range(n_batches):
-        plt.plot(reward[b, :], label='Batch: %d' % b, alpha=0.5,
-                 color=color[b])
-    plt.legend()
-    plt.title('reward')
-    plt.savefig('figures/reward.png')
+        plt.figure()
+        for j in range(j_plot):
+            plt.bar(range(t_-1), X_plot[j, :, -1], color='k', alpha=0.5)
+        plt.title('action')
+        plt.savefig('figures/action.png')
 
-    plt.figure()
-    for b in range(n_batches):
-        plt.plot(np.cumsum(reward[b, :]), label='Batch: %d' % b, alpha=0.5,
-                 color=color[b])
-    plt.legend()
-    plt.title('cum-reward')
-    plt.savefig('figures/cum-reward.png')
+        plt.figure()
+        for b in range(n_batches):
+            plt.plot(reward[b, :], label='Batch: %d' % b, alpha=0.5,
+                     color=color[b])
+        plt.legend()
+        plt.title('reward')
+        plt.savefig('figures/reward.png')
 
-    plt.figure()
-    plt.plot(np.cumsum(reward[-1, :]), alpha=0.5)
-    plt.title('cum-reward-final')
-    plt.savefig('figures/cum-reward-final.png')
+        plt.figure()
+        for b in range(n_batches):
+            plt.plot(np.cumsum(reward[b, :]), label='Batch: %d' % b, alpha=0.5,
+                     color=color[b])
+        plt.legend()
+        plt.title('cum-reward')
+        plt.savefig('figures/cum-reward.png')
 
-    plt.figure()
-    for b in range(n_batches):
-        plt.plot(cost[b, :], label='Batch: %d' % b, alpha=0.5, color=color[b])
-    plt.legend()
-    plt.title('cost')
-    plt.savefig('figures/cost.png')
+        plt.figure()
+        plt.plot(np.cumsum(reward[-1, :]), alpha=0.5)
+        plt.title('cum-reward-final')
+        plt.savefig('figures/cum-reward-final.png')
 
-    plt.figure()
-    for b in range(n_batches):
-        plt.plot(np.cumsum(cost[b, :]), label='Batch: %d' % b, alpha=0.5,
-                 color=color[b])
-    plt.legend()
-    plt.title('cum-cost')
-    plt.savefig('figures/cum-cost.png')
+        plt.figure()
+        for b in range(n_batches):
+            plt.plot(cost[b, :], label='Batch: %d' % b, alpha=0.5, color=color[b])
+        plt.legend()
+        plt.title('cost')
+        plt.savefig('figures/cost.png')
 
-    plt.figure()
-    plt.plot(np.cumsum(cost[-1, :]), alpha=0.5)
-    plt.title('cum-cost-final')
-    plt.savefig('figures/cum-cost-final.png')
+        plt.figure()
+        for b in range(n_batches):
+            plt.plot(np.cumsum(cost[b, :]), label='Batch: %d' % b, alpha=0.5,
+                     color=color[b])
+        plt.legend()
+        plt.title('cum-cost')
+        plt.savefig('figures/cum-cost.png')
+
+        plt.figure()
+        plt.plot(np.cumsum(cost[-1, :]), alpha=0.5)
+        plt.title('cum-cost-final')
+        plt.savefig('figures/cum-cost-final.png')

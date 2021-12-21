@@ -10,6 +10,7 @@ import pandas as pd
 from enum import Enum
 from scipy.optimize import (dual_annealing, shgo, differential_evolution,
                             brute, minimize)
+from scipy.stats import norm, multivariate_normal
 
 
 # -----------------------------------------------------------------------------
@@ -614,7 +615,8 @@ def generate_episode(
                      optimizers, optimizer,
                      b,
                      bound=400,
-                     rescale_n_a=True, predict_r=True):
+                     rescale_n_a=True, predict_r=True,
+                     dyn_update_q_value=True, random_act_batch0=False):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
@@ -639,7 +641,9 @@ def generate_episode(
 
     y_episode = np.zeros(t_-1)
 
-    # Define value function
+    # Define initial value function:
+    # If b=0, it is set = 0. If b>0, it averages on models fitted on previous
+    # batches
     q_value = get_q_value(b, qb_list, flag_qaverage)
 
     # Observe state
@@ -657,10 +661,20 @@ def generate_episode(
     if np.random.rand() < eps:
         action = lb + (ub - lb)*np.random.rand()
     else:
-        action = maxAction(q_value, state, [lb, ub], b,
-                           optimizers, optimizer)
+        if random_act_batch0:
+            action = maxAction(q_value, state, [lb, ub], b,
+                               optimizers, optimizer)
+        else:
+            action = maxAction(q_value, state, [lb, ub], 1,
+                               optimizers, optimizer)
 
     for t in range(1, t_):
+
+        if dyn_update_q_value:
+            # update q_value by imposing that q_value(x_episode) = y_episode
+            q_value_iter = get_q_value_iter(q_value, x_episode, y_episode, t)
+        else:
+            q_value_iter = q_value
 
         # Observe s'
         if factorType == FactorType.Observable:
@@ -676,7 +690,7 @@ def generate_episode(
         if np.random.rand() < eps:
             action_ = lb + (ub - lb)*np.random.rand()
         else:
-            action_ = maxAction(q_value, state_, [lb, ub], b,
+            action_ = maxAction(q_value_iter, state_, [lb, ub], b,
                                 optimizers, optimizer)
 
         # Observe reward
@@ -685,10 +699,11 @@ def generate_episode(
             r = price[j, t-1]*market.next_step(f[j, t-1])
         else:
             r = pnl[j, t]
+
         dn = action * resc_n_a
 
-        Sigma = price[j, t]*Sigma_r
-        Lambda = price[j, t]*Lambda_r
+        Sigma = price[j, t-1]*Sigma_r
+        Lambda = price[j, t-1]*Lambda_r
 
         cost_t = cost(n, dn, rho, gamma, Sigma, Lambda)
         reward_t = reward(n, r, cost_t, rho)
@@ -697,10 +712,10 @@ def generate_episode(
         reward_total += reward_t
 
         # Update value function
-        y = q_value(state, action) +\
+        y = q_value_iter(state, action) +\
             alpha*(reward_t +
-                   (1 - rho)*q_value(state_, action_) -
-                   q_value(state, action))
+                   (1 - rho)*q_value_iter(state_, action_) -
+                   q_value_iter(state, action))
 
         # Update fitting pairs
         x_episode[t-1] = np.r_[state, action]
@@ -856,9 +871,17 @@ def set_regressor_parameters_ann(sup_model):
 
         return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
 
+    elif sup_model == 'ann_small':
+        hidden_layer_sizes = (10,)
+        max_iter = 50
+        n_iter_no_change = 10
+        alpha_ann = 0.0001
+
+        return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
+
     else:
 
-        raise NameError('sup_model must be either ann_fast or ann_deep')
+        raise NameError('sup_model must be either ann_fast or ann_deep or ann_small')
 
 
 # -----------------------------------------------------------------------------
@@ -1098,3 +1121,32 @@ def get_q_value(b, qb_list, flag_qaverage):
                          flag_qaverage=flag_qaverage)
 
     return q_value
+
+
+# -----------------------------------------------------------------------------
+# get_q_value_iter
+# -----------------------------------------------------------------------------
+
+def get_q_value_iter(q_value, x_episode, y_episode, t):
+
+    if t == 1:
+
+        return q_value
+
+    else:
+
+        def q_value_iter(state, action):
+
+            summ = 0.
+
+            for s in range(t-1):
+                summ +=\
+                    (y_episode[s] - q_value(x_episode[s][:-1], x_episode[s][-1])) *\
+                    multivariate_normal.pdf(np.r_[state, action],
+                                            mean=x_episode[s]) /\
+                    multivariate_normal.pdf(np.zeros(len(x_episode[s])),
+                                            mean=np.zeros(len(x_episode[s])))
+
+            return q_value(state, action) + s
+
+        return q_value_iter
