@@ -641,10 +641,14 @@ def generate_episode(
 
     y_episode = np.zeros(t_-1)
 
+    if dyn_update_q_value:
+        anchor_points = np.zeros(t_-1)
+
     # Define initial value function:
     # If b=0, it is set = 0. If b>0, it averages on models fitted on previous
     # batches
     q_value = get_q_value(b, qb_list, flag_qaverage)
+    q_value_iter = q_value
 
     # Observe state
     if factorType == FactorType.Observable:
@@ -670,12 +674,6 @@ def generate_episode(
 
     for t in range(1, t_):
 
-        if dyn_update_q_value:
-            # update q_value by imposing that q_value(x_episode) = y_episode
-            q_value_iter = get_q_value_iter(q_value, x_episode, y_episode, t)
-        else:
-            q_value_iter = q_value
-
         # Observe s'
         if factorType == FactorType.Observable:
             state_ = [state[0] + action, f[j, t]]
@@ -690,8 +688,13 @@ def generate_episode(
         if np.random.rand() < eps:
             action_ = lb + (ub - lb)*np.random.rand()
         else:
-            action_ = maxAction(q_value_iter, state_, [lb, ub], b,
-                                optimizers, optimizer)
+            if random_act_batch0:
+                action_ = maxAction(q_value_iter, state_, [lb, ub], b,
+                                    optimizers, optimizer)
+            else:
+                action_ = maxAction(q_value_iter, state_, [lb, ub], 1,
+                                    optimizers, optimizer)
+
 
         # Observe reward
         n = state_[0] * resc_n_a
@@ -724,6 +727,11 @@ def generate_episode(
         # Update state and action
         state = state_
         action = action_
+
+        if dyn_update_q_value:
+            # update q_value by imposing that q_value(x_episode) = y_episode
+            q_value_iter = get_q_value_iter(q_value, anchor_points, x_episode,
+                                            y_episode, t)
 
     return x_episode, y_episode, j, reward_total, cost_total
 
@@ -1112,7 +1120,7 @@ def get_q_value(b, qb_list, flag_qaverage):
 
         def q_value(state, action):
 
-            return 0.
+            return 0.01*np.random.randn()
 
     else:  # average models across previous batches
 
@@ -1127,31 +1135,21 @@ def get_q_value(b, qb_list, flag_qaverage):
 # get_q_value_iter
 # -----------------------------------------------------------------------------
 
-def get_q_value_iter(q_value, x_episode, y_episode, t, h=1):
+def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t, h=0.1):
 
-    if t == 1:
+    def q_value_iter(state, action):
 
-        return q_value
+        cov = h*np.eye(len(x_episode[0]))
 
-    else:
+        anchor_points[t-1] = y_episode[t-1] - q_value(x_episode[t-1][:-1],
+                                                      x_episode[t-1][-1])
 
-        def q_value_iter(state, action):
+        moll = multivariate_normal.pdf(x=x_episode,
+                                       mean=np.r_[state, action],
+                                       cov=cov)
 
-            summ = 0.
+        moll *= np.sqrt(np.linalg.det(2*np.pi*cov))
 
-            cov = h*np.eye(len(x_episode[0]))
+        return q_value(state, action) + anchor_points@moll
 
-            for s in range(t-1):
-                summ +=\
-                    (y_episode[s] - q_value(x_episode[s][:-1],
-                                            x_episode[s][-1])) *\
-                    multivariate_normal.pdf(np.r_[state, action],
-                                            mean=x_episode[s],
-                                            cov=cov) /\
-                    multivariate_normal.pdf(np.zeros(len(x_episode[s])),
-                                            mean=np.zeros(len(x_episode[s])),
-                                            cov=cov)
-
-            return q_value(state, action) + s
-
-        return q_value_iter
+    return q_value_iter

@@ -31,22 +31,3 @@ plt.scatter(X[j_plot, 1], model.predict(X)[j_plot], s=1)
 plt.figure()
 plt.scatter(X[j_plot, 2], Y[j_plot], s=1)
 plt.scatter(X[j_plot, 2], model.predict(X)[j_plot], s=1)
-
-
-
-def fun(x):
-    return x
-
-def update_fun(f):
-
-    def new_f(x):
-
-        return f(x) + 2
-
-    return new_f
-
-
-x = 1
-print(fun(x))
-fun = update_fun(fun)
-print(fun(x))

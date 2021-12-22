@@ -36,27 +36,26 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 1000
+    j_episodes = 2000
     n_batches = 3
-    t_ = 50
+    t_ = 1000
 
     parallel_computing = True
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
+    # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
+    # 'brute', 'local'
     optimizer = 'local'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
-    sup_model = 'ann_small'
+    sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
     dyn_update_q_value = True
     random_act_batch0 = False
-    make_plots = True
-    dump_XY = True
-
-    # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
-    # 'brute', 'local'
+    make_plots = False
+    dump_XY = False
 
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.Linear
