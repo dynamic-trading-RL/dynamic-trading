@@ -1,10 +1,10 @@
                             AutoReg Model Results                             
 ==============================================================================
 Dep. Variable:                      f   No. Observations:                 7259
-Model:                     AutoReg(1)   Log Likelihood               -3651.973
+Model:                     AutoReg(1)   Log Likelihood               -3651.970
 Method:               Conditional MLE   S.D. of innovations              0.400
 Date:                Sat, 25 Dec 2021   AIC                             -1.831
-Time:                        09:52:06   BIC                             -1.828
+Time:                        12:02:42   BIC                             -1.828
 Sample:                             1   HQIC                            -1.830
                                  7259                                         
 ==============================================================================

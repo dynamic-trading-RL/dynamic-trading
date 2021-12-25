@@ -40,7 +40,7 @@ if __name__ == '__main__':
     n_batches = 5
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
@@ -48,13 +48,16 @@ if __name__ == '__main__':
     # 'brute', 'local'
     optimizer = 'shgo'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
-    sup_model = 'ann_fast'
+    sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
     dyn_update_q_value = False
     scale_upd_q_value = .01
-    random_act_batch0 = False
+    if dyn_update_q_value:
+        random_act_batch0 = False
+    else:
+        random_act_batch0 = True
     make_plots = True
     dump_XY = False
     standardize_Y = True
@@ -119,10 +122,19 @@ if __name__ == '__main__':
     Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r,
                                   price.flatten(), mu_r)
 
-    bound = .75*np.abs(Markowitz).max()
+    bound = np.abs(Markowitz).max()
 
     reward = np.zeros((n_batches, j_episodes))
     cost = np.zeros((n_batches, j_episodes))
+
+    if make_plots:
+        Y_plot = np.zeros((n_batches, j_episodes*(t_-1)))
+        if factorType == FactorType.Observable:
+            X_plot = np.zeros((n_batches, j_episodes*(t_-1), 3))
+        elif factorType == FactorType.Latent:
+            X_plot = np.zeros((n_batches, j_episodes*(t_-1), 2))
+        else:
+            raise NameError('Invalid factorType: ' + factorType.value)
 
     for b in range(n_batches):  # loop on batches
 
@@ -236,9 +248,12 @@ if __name__ == '__main__':
         if dump_XY:
             dump(X, 'data/X%d.joblib' % b)
             dump(Y, 'data/Y%d.joblib' % b)
+        if make_plots:
+            X_plot[b] = X
+            Y_plot[b] = Y
         print('    Score: %.3f' % model.score(X, Y))
-        print('    Reward: %.3f' % np.cumsum(reward[b, :])[-1])
-        print('    Cost: %.3f' % np.cumsum(cost[b, :])[-1])
+        print('    Average reward: %.3f' % np.mean(reward[b, :]))
+        print('    Average cost: %.3f' % np.mean(cost[b, :]))
 
         eps = max(eps/3, 0.00001)  # update epsilon
 
@@ -258,36 +273,39 @@ if __name__ == '__main__':
 
     if make_plots:
 
-        if factorType == FactorType.Observable:
-            X_plot = X.reshape((j_episodes, t_-1, 3))
-        elif factorType == FactorType.Latent:
-            X_plot = X.reshape((j_episodes, t_-1, 2))
-        else:
-            raise NameError('Invalid factorType: ' + factorType.value)
-
-        Y_plot = Y.reshape((j_episodes, t_-1))
-
-        j_plot = min(X_plot.shape[0], 20)
-
         color = cm.Greens(np.linspace(0.3, 1, n_batches))
 
-        plt.figure()
-        for j in range(j_plot):
-            plt.bar(range(t_-1), Y_plot[j, :], color='b', alpha=0.5)
-        plt.title('q')
-        plt.savefig('figures/q.png')
+        for b in range(n_batches):
+            plt.figure()
+            plt.plot(X_plot[b, :, 0], Y_plot[b, :], '.', color='b',
+                     label='actual')
+            plt.plot(X_plot[b, :, 0], qb_list[b].predict(X_plot[b]), '.',
+                     color='r', label='predicted')
+            plt.legend()
+            plt.title('state_0 vs q; batch=%d' % b)
+            plt.savefig('figures/state_0 vs q; batch=%d.png' % b)
 
-        plt.figure()
-        for j in range(j_plot):
-            plt.plot(range(t_-1), X_plot[j, :, 0], '.', color='b', alpha=0.5)
-        plt.title('state_0')
-        plt.savefig('figures/state_0.png')
+        for b in range(n_batches):
+            plt.figure()
+            plt.plot(X_plot[b, :, -1], Y_plot[b, :], '.', color='b',
+                     label='actual')
+            plt.plot(X_plot[b, :, -1], qb_list[b].predict(X_plot[b]), '.',
+                     color='r', label='predicted')
+            plt.legend()
+            plt.title('action vs q; batch=%d' % b)
+            plt.savefig('figures/action vs q; batch=%d.png' % b)
 
-        plt.figure()
-        for j in range(j_plot):
-            plt.bar(range(t_-1), X_plot[j, :, -1], color='b', alpha=0.5)
-        plt.title('action')
-        plt.savefig('figures/action.png')
+        if factorType == FactorType.Observable:
+            for b in range(n_batches):
+                plt.figure()
+                plt.plot(X_plot[b, :, 1], Y_plot[b, :], '.', color='b',
+                         label='actual')
+                plt.plot(X_plot[b, :, 1], qb_list[b].predict(X_plot[b]), '.',
+                         color='r', label='predicted')
+                plt.legend()
+                plt.title('state_1 vs q; batch=%d' % b)
+                plt.savefig('figures/state_1 vs q; batch=%d.png' % b)
+
 
         plt.figure()
         for b in range(n_batches):
