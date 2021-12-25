@@ -36,9 +36,9 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 2000
-    n_batches = 3
-    t_ = 1000
+    j_episodes = 15000
+    n_batches = 8
+    t_ = 50
 
     parallel_computing = True
     n_cores_max = 50
@@ -46,16 +46,18 @@ if __name__ == '__main__':
     eps = 0.1
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
-    optimizer = 'local'
+    optimizer = 'brute'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
-    sup_model = 'ann_deep'
+    sup_model = 'ann_fast'
 
     flag_qaverage = True
     predict_r = True
-    dyn_update_q_value = True
+    dyn_update_q_value = False
+    scale_upd_q_value = .01
     random_act_batch0 = False
-    make_plots = False
+    make_plots = True
     dump_XY = False
+    standardize_Y = True
 
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.Linear
@@ -149,7 +151,8 @@ if __name__ == '__main__':
                               optimizers=optimizers, optimizer=optimizer,
                               b=b, bound=bound, predict_r=predict_r,
                               dyn_update_q_value=dyn_update_q_value,
-                              random_act_batch0=random_act_batch0)
+                              random_act_batch0=random_act_batch0,
+                              scale_upd_q_value=scale_upd_q_value)
 
         if parallel_computing:
 
@@ -184,6 +187,9 @@ if __name__ == '__main__':
             raise NameError('Invalid factorType: ' + factorType.value)
 
         Y = np.array(Y).reshape((j_episodes*(t_-1)))
+
+        if standardize_Y:
+            Y = (Y - np.mean(Y)) / np.std(Y)
 
         ind_sort = np.argsort(j_sort)
         j_sort = np.sort(j_sort)

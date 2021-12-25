@@ -616,7 +616,7 @@ def generate_episode(
                      b,
                      bound=400,
                      rescale_n_a=True, predict_r=True,
-                     dyn_update_q_value=True, random_act_batch0=False):
+                     dyn_update_q_value=True, random_act_batch0=False, scale_upd_q_value=1.):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
@@ -699,14 +699,15 @@ def generate_episode(
         # Observe reward
         n = state_[0] * resc_n_a
         if predict_r:
-            r = price[j, t-1]*market.next_step(f[j, t-1])
+            # r = price[j, t-1]*market.next_step(f[j, t-1])
+            r = price[j, t]*market.next_step(f[j, t])
         else:
             r = pnl[j, t]
 
         dn = action * resc_n_a
 
-        Sigma = price[j, t-1]*Sigma_r
-        Lambda = price[j, t-1]*Lambda_r
+        Sigma = price[j, t]*Sigma_r  # revert to t-1 if above is reverted
+        Lambda = price[j, t]*Lambda_r
 
         cost_t = cost(n, dn, rho, gamma, Sigma, Lambda)
         reward_t = reward(n, r, cost_t, rho)
@@ -731,7 +732,7 @@ def generate_episode(
         if dyn_update_q_value:
             # update q_value by imposing that q_value(x_episode) = y_episode
             q_value_iter = get_q_value_iter(q_value, anchor_points, x_episode,
-                                            y_episode, t)
+                                            y_episode, t, scale_upd_q_value)
 
     return x_episode, y_episode, j, reward_total, cost_total
 
@@ -800,7 +801,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res2 = dual_annealing(fun, bounds)
             res3 = differential_evolution(fun, bounds)
             res4 = brute(fun, ranges=bounds,
-                         Ns=max(200, int(bounds[0][1]-bounds[0][0]+1)),
+                         Ns=300,
                          finish=None,
                          full_output=True)
             res5 = minimize(fun, x0=np.array([0]), bounds=bounds)
@@ -842,7 +843,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
             optimizers._brute += 1
             x_brute = brute(fun, ranges=bounds,
-                            Ns=max(200, int(bounds[0][1]-bounds[0][0]+1)),
+                            Ns=300,
                             finish=None)
 
             return x_brute
@@ -864,9 +865,9 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 def set_regressor_parameters_ann(sup_model):
 
     if sup_model == 'ann_fast':
-        hidden_layer_sizes = (100,)
-        max_iter = 80
-        n_iter_no_change = 10
+        hidden_layer_sizes = (64, 32, 8)
+        max_iter = 10
+        n_iter_no_change = 2
         alpha_ann = 0.0001
 
         return hidden_layer_sizes, max_iter, n_iter_no_change, alpha_ann
@@ -1120,7 +1121,7 @@ def get_q_value(b, qb_list, flag_qaverage):
 
         def q_value(state, action):
 
-            return 0.01*np.random.randn()
+            return np.random.randn()
 
     else:  # average models across previous batches
 
@@ -1135,7 +1136,7 @@ def get_q_value(b, qb_list, flag_qaverage):
 # get_q_value_iter
 # -----------------------------------------------------------------------------
 
-def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t, h=0.1):
+def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t, h):
 
     def q_value_iter(state, action):
 
