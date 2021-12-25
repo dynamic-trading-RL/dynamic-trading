@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     # RL parameters
     j_episodes = 15000
-    n_batches = 8
+    n_batches = 5
     t_ = 50
 
     parallel_computing = True
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     eps = 0.1
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
-    optimizer = 'brute'
+    optimizer = 'shgo'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
     sup_model = 'ann_fast'
 
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
-    gamma = 2*10**-5  # risk aversion
-    lam_perc = 10**-8  # costs: percentage of unit trade value
+    gamma = 10**-4  # 2*10**-5  # risk aversion
+    lam_perc = 10**-6  # costs: percentage of unit trade value
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable
 
@@ -267,25 +267,25 @@ if __name__ == '__main__':
 
         Y_plot = Y.reshape((j_episodes, t_-1))
 
-        j_plot = min(X_plot.shape[0], 50)
+        j_plot = min(X_plot.shape[0], 20)
 
-        color = cm.Greens(np.linspace(0, 1, n_batches))
+        color = cm.Greens(np.linspace(0.3, 1, n_batches))
 
         plt.figure()
         for j in range(j_plot):
-            plt.plot(Y_plot[j, :], color='k', alpha=0.5)
+            plt.bar(range(t_-1), Y_plot[j, :], color='b', alpha=0.5)
         plt.title('q')
         plt.savefig('figures/q.png')
 
         plt.figure()
         for j in range(j_plot):
-            plt.plot(X_plot[j, :, 0], color='k', alpha=0.5)
+            plt.plot(range(t_-1), X_plot[j, :, 0], '.', color='b', alpha=0.5)
         plt.title('state_0')
         plt.savefig('figures/state_0.png')
 
         plt.figure()
         for j in range(j_plot):
-            plt.bar(range(t_-1), X_plot[j, :, -1], color='k', alpha=0.5)
+            plt.bar(range(t_-1), X_plot[j, :, -1], color='b', alpha=0.5)
         plt.title('action')
         plt.savefig('figures/action.png')
 

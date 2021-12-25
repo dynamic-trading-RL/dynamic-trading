@@ -616,7 +616,8 @@ def generate_episode(
                      b,
                      bound=400,
                      rescale_n_a=True, predict_r=True,
-                     dyn_update_q_value=True, random_act_batch0=False, scale_upd_q_value=1.):
+                     dyn_update_q_value=True, random_act_batch0=False,
+                     scale_upd_q_value=1.):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
@@ -695,19 +696,17 @@ def generate_episode(
                 action_ = maxAction(q_value_iter, state_, [lb, ub], 1,
                                     optimizers, optimizer)
 
-
         # Observe reward
         n = state_[0] * resc_n_a
         if predict_r:
-            # r = price[j, t-1]*market.next_step(f[j, t-1])
-            r = price[j, t]*market.next_step(f[j, t])
+            r = price[j, t-1]*market.next_step(f[j, t-1])
         else:
             r = pnl[j, t]
 
-        dn = action * resc_n_a
+        Sigma = price[j, t-1]*Sigma_r
+        Lambda = price[j, t-1]*Lambda_r
 
-        Sigma = price[j, t]*Sigma_r  # revert to t-1 if above is reverted
-        Lambda = price[j, t]*Lambda_r
+        dn = action * resc_n_a
 
         cost_t = cost(n, dn, rho, gamma, Sigma, Lambda)
         reward_t = reward(n, r, cost_t, rho)
@@ -801,7 +800,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res2 = dual_annealing(fun, bounds)
             res3 = differential_evolution(fun, bounds)
             res4 = brute(fun, ranges=bounds,
-                         Ns=300,
+                         Ns=1000,
                          finish=None,
                          full_output=True)
             res5 = minimize(fun, x0=np.array([0]), bounds=bounds)
@@ -843,7 +842,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
             optimizers._brute += 1
             x_brute = brute(fun, ranges=bounds,
-                            Ns=300,
+                            Ns=1000,
                             finish=None)
 
             return x_brute
