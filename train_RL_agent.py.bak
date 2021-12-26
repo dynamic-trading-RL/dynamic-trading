@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 5000
+    j_episodes = 15000
     n_batches = 5
     t_ = 50
 
@@ -48,12 +48,12 @@ if __name__ == '__main__':
     # 'brute', 'local'
     optimizer = 'shgo'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
-    sup_model = 'ann_fast'
+    sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
     dyn_update_q_value = False
-    scale_upd_q_value = .1
+    scale_upd_q_value = .01
     if dyn_update_q_value:
         random_act_batch0 = False
     else:
@@ -225,8 +225,8 @@ if __name__ == '__main__':
             model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
                                  alpha=alpha_ann,
                                  max_iter=max_iter,
-                                 n_iter_no_change=n_iter_no_change,
-                                 activation='logistic').fit(X, Y)
+                                 n_iter_no_change=n_iter_no_change
+                                 ).fit(X, Y)
 
         elif sup_model == 'gradient_boosting':
 

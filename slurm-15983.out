@@ -1,0 +1,34 @@
+Number of cores available: 144
+Number of cores used: 50
+Creating batch 1 of 5; eps=0.100000
+Fitting model 1 of 5
+    Score: 0.970
+    Average reward: -3525.174
+    Average cost: 3526.417
+Creating batch 2 of 5; eps=0.033333
+Fitting model 2 of 5
+    Score: 0.965
+    Average reward: 3959.211
+    Average cost: 662.856
+Creating batch 3 of 5; eps=0.011111
+Fitting model 3 of 5
+    Score: 0.962
+    Average reward: 4268.290
+    Average cost: 512.307
+Creating batch 4 of 5; eps=0.003704
+Fitting model 4 of 5
+    Score: 0.959
+    Average reward: 4370.908
+    Average cost: 454.914
+Creating batch 5 of 5; eps=0.001235
+Fitting model 5 of 5
+    Score: 0.959
+    Average reward: 4433.494
+    Average cost: 431.040
+Used optimizers:
+  shgo: 0
+  dual_annealing: 0
+  differential_evolution: 0
+  brute: 0
+  local: 0
+#### END

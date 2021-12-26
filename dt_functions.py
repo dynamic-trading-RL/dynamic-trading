@@ -10,7 +10,7 @@ import pandas as pd
 from enum import Enum
 from scipy.optimize import (dual_annealing, shgo, differential_evolution,
                             brute, minimize)
-from scipy.stats import norm, multivariate_normal
+from scipy.stats import multivariate_normal
 
 
 # -----------------------------------------------------------------------------
@@ -192,8 +192,10 @@ class Market:
             self._marketDynamics._factorDynamics._factorDynamicsType
         parameters = self._marketDynamics._factorDynamics._parameters
 
-        f = np.zeros((j_, t_))
-        norm = np.random.randn(j_, t_)
+        t_stationary = t_ + 50
+
+        f = np.zeros((j_, t_stationary))
+        norm = np.random.randn(j_, t_stationary)
 
         if factorDynamicsType == FactorDynamicsType.AR:
 
@@ -201,7 +203,7 @@ class Market:
             B = parameters['B']
             sig2 = parameters['sig2']
 
-            for t in range(1, t_):
+            for t in range(1, t_stationary):
 
                 f[:, t] = B*f[:, t-1] + mu + np.sqrt(sig2)*norm[:, t]
 
@@ -215,7 +217,7 @@ class Market:
             B_1 = parameters['B_1']
             sig2_1 = parameters['sig2_1']
 
-            for t in range(1, t_):
+            for t in range(1, t_stationary):
 
                 ind_0 = f[:, t-1] < c
                 ind_1 = f[:, t-1] >= c
@@ -232,12 +234,12 @@ class Market:
             alpha = parameters['alpha']
             beta = parameters['beta']
 
-            sig = np.zeros((j_, t_))
+            sig = np.zeros((j_, t_stationary))
             sig[:, 0] = np.sqrt(omega)
 
-            epsi = np.zeros((j_, t_))
+            epsi = np.zeros((j_, t_stationary))
 
-            for t in range(1, t_):
+            for t in range(1, t_stationary):
 
                 sig[:, t] = np.sqrt(omega
                                     + alpha*epsi[:, t-1]**2
@@ -256,12 +258,12 @@ class Market:
             gamma = parameters['gamma']
             c = parameters['c']
 
-            sig = np.zeros((j_, t_))
+            sig = np.zeros((j_, t_stationary))
             sig[:, 0] = np.sqrt(omega)
 
-            epsi = np.zeros((j_, t_))
+            epsi = np.zeros((j_, t_stationary))
 
-            for t in range(1, t_):
+            for t in range(1, t_stationary):
 
                 sig2 = omega + alpha*epsi[:, t-1]**2 + beta*sig[:, t-1]**2
                 sig2[epsi[:, t-1] < c] += gamma*epsi[epsi[:, t-1] < c, t-1]
@@ -281,12 +283,12 @@ class Market:
             gamma = parameters['gamma']
             c = parameters['c']
 
-            sig = np.zeros((j_, t_))
+            sig = np.zeros((j_, t_stationary))
             sig[:, 0] = np.sqrt(omega)
 
-            epsi = np.zeros((j_, t_))
+            epsi = np.zeros((j_, t_stationary))
 
-            for t in range(1, t_):
+            for t in range(1, t_stationary):
 
                 sig2 = omega + alpha*epsi[:, t-1]**2 + beta*sig[:, t-1]**2
                 sig2[epsi[:, t-1] < c] += gamma*epsi[epsi[:, t-1] < c, t-1]
@@ -299,7 +301,7 @@ class Market:
         else:
             raise NameError('Invalid factorDynamicsType')
 
-        self._simulations['f'] = f
+        self._simulations['f'] = f[:, -t_:]
 
     def _simulate_return(self):
 
@@ -1024,6 +1026,8 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
 
 def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
                bound=400, rescale_n_a=True):
+
+    a = 1
 
     if rescale_n_a:
         resc_n_a = bound
