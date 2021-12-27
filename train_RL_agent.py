@@ -36,19 +36,19 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 5000
+    j_episodes = 1000
     n_batches = 5
     t_ = 50
 
-    parallel_computing = False
+    parallel_computing = True
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
-    optimizer = 'shgo'
+    optimizer = 'local'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
-    sup_model = 'ann_fast'
+    sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
@@ -60,7 +60,8 @@ if __name__ == '__main__':
         random_act_batch0 = True
     make_plots = True
     dump_XY = False
-    standardize_Y = True
+    standardize_Y = False
+    rescale_n_a = False
 
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.Linear
@@ -122,7 +123,7 @@ if __name__ == '__main__':
     Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r,
                                   price.flatten(), mu_r)
 
-    bound = np.abs(Markowitz).max()
+    bound = 0.5*np.abs(Markowitz).max()
 
     reward = np.zeros((n_batches, j_episodes))
     cost = np.zeros((n_batches, j_episodes))
@@ -164,7 +165,8 @@ if __name__ == '__main__':
                               b=b, bound=bound, predict_r=predict_r,
                               dyn_update_q_value=dyn_update_q_value,
                               random_act_batch0=random_act_batch0,
-                              scale_upd_q_value=scale_upd_q_value)
+                              scale_upd_q_value=scale_upd_q_value,
+                              rescale_n_a=rescale_n_a)
 
         if parallel_computing:
 
@@ -226,7 +228,7 @@ if __name__ == '__main__':
                                  alpha=alpha_ann,
                                  max_iter=max_iter,
                                  n_iter_no_change=n_iter_no_change,
-                                 activation='logistic').fit(X, Y)
+                                 activation='relu').fit(X, Y)
 
         elif sup_model == 'gradient_boosting':
 

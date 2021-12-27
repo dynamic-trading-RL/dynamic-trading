@@ -899,7 +899,7 @@ def set_regressor_parameters_ann(sup_model):
 # -----------------------------------------------------------------------------
 
 def set_regressor_parameters_tree():
-    n_estimators = 100
+    n_estimators = 20
     min_samples_split = 0.01
     max_samples = 0.9
     warm_start = True
