@@ -37,24 +37,24 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 10
+    j_episodes = 1000
     n_batches = 1
     t_ = 50
 
-    parallel_computing = False
+    parallel_computing = True
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
-    optimizer = 'shgo'
+    optimizer = 'brute'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
     sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
 
-    resc_by_M = True
+    resc_by_M = False
 
     dyn_update_q_value = True
 
