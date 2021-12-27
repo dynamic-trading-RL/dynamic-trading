@@ -113,10 +113,10 @@ def q_value(state, action):
 aa = np.linspace(-2, 2, 50)
 
 plt.figure()
-for n in np.linspace(-1, 1, 10):
+for n in np.linspace(-1, 1, 100):
     state = [n, f.flatten()[np.random.randint(f.flatten().shape[0])]]
     qq = np.zeros(len(aa))
     for i in range(len(qq)):
         qq[i] = q_value(state, aa[i])
-    plt.plot(aa, qq, label='n=%.3f, f=%.3f' % (state[0], state[1]))
+    plt.plot(aa, qq, label='n=%.3f, f=%.3f' % (state[0], state[1]), alpha=0.5)
 plt.savefig('figures/qvalue.png')

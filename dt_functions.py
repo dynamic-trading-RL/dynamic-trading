@@ -1144,9 +1144,11 @@ def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t):
         if t == 1:
             h = 1
         else:
-            dist = np.linalg.norm(np.diff(x_episode[:t], axis=0), axis=1).min()
-            q = chi2.ppf(.99, len(x_episode[0]))
-            h = dist/(2*np.sqrt(q))
+
+            dist =\
+                np.linalg.norm(np.diff(x_episode[:t], axis=0), axis=1).min()/2
+            c = 0.01
+            h = -dist**2/(2*np.log(c))
 
         cov = h*np.eye(len(x_episode[0]))
 

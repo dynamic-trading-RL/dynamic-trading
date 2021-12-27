@@ -38,8 +38,8 @@ if __name__ == '__main__':
 
     # RL parameters
     j_episodes = 1000
-    n_batches = 1
-    t_ = 50
+    n_batches = 5
+    t_ = 1000
 
     parallel_computing = True
     n_cores_max = 50
@@ -47,14 +47,14 @@ if __name__ == '__main__':
     eps = 0.1
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
-    optimizer = 'brute'
+    optimizer = 'dual_annealing'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
     sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
 
-    resc_by_M = False
+    resc_by_M = True
 
     dyn_update_q_value = True
 
@@ -149,11 +149,11 @@ if __name__ == '__main__':
     if resc_by_M:
         Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r,
                                       price.flatten(), mu_r)
-        bound = np.percentile(np.abs(Markowitz), 99)
+        bound = np.percentile(np.abs(Markowitz), 95)
     else:
         GP = compute_GP(f.flatten(), gamma, lam, rho, B, Sigma_r, Phi,
                         price.flatten(), mu_r)
-        bound = np.percentile(np.abs(GP), 99)
+        bound = np.percentile(np.abs(GP), 95)
 
     reward = np.zeros((n_batches, j_episodes))
     cost = np.zeros((n_batches, j_episodes))
