@@ -10,7 +10,7 @@ import pandas as pd
 from enum import Enum
 from scipy.optimize import (dual_annealing, shgo, differential_evolution,
                             brute, minimize)
-from scipy.stats import multivariate_normal
+from scipy.stats import multivariate_normal, chi2
 
 
 # -----------------------------------------------------------------------------
@@ -618,8 +618,7 @@ def generate_episode(
                      b,
                      bound=400,
                      rescale_n_a=True, predict_r=True,
-                     dyn_update_q_value=True, random_act_batch0=False,
-                     scale_upd_q_value=1.):
+                     dyn_update_q_value=True, random_act_batch0=False):
     """
     Given a market simulation, this function generates an episode for the
     reinforcement learning agent training
@@ -733,7 +732,7 @@ def generate_episode(
         if dyn_update_q_value:
             # update q_value by imposing that q_value(x_episode) = y_episode
             q_value_iter = get_q_value_iter(q_value, anchor_points, x_episode,
-                                            y_episode, t, scale_upd_q_value)
+                                            y_episode, t)
 
     return x_episode, y_episode, j, reward_total, cost_total
 
@@ -802,7 +801,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
             res2 = dual_annealing(fun, bounds)
             res3 = differential_evolution(fun, bounds)
             res4 = brute(fun, ranges=bounds,
-                         Ns=1000,
+                         Ns=200,
                          finish=None,
                          full_output=True)
             res5 = minimize(fun, x0=np.array([0]), bounds=bounds)
@@ -844,7 +843,7 @@ def maxAction(q_value, state, bounds, b, optimizers, optimizer=None):
 
             optimizers._brute += 1
             x_brute = brute(fun, ranges=bounds,
-                            Ns=1000,
+                            Ns=200,
                             finish=None)
 
             return x_brute
@@ -996,6 +995,7 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
         t_ = f.shape[0]
         j_ = 1
         f = f.reshape((j_, t_))
+        price = price.reshape((j_, t_))
     elif f.ndim == 2:
         j_, t_ = f.shape
 
@@ -1026,8 +1026,6 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
 
 def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
                bound=400, rescale_n_a=True):
-
-    a = 1
 
     if rescale_n_a:
         resc_n_a = bound
@@ -1139,9 +1137,16 @@ def get_q_value(b, qb_list, flag_qaverage):
 # get_q_value_iter
 # -----------------------------------------------------------------------------
 
-def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t, h):
+def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t):
 
     def q_value_iter(state, action):
+
+        if t == 1:
+            h = 1
+        else:
+            dist = np.linalg.norm(np.diff(x_episode[:t], axis=0), axis=1).min()
+            q = chi2.ppf(.99, len(x_episode[0]))
+            h = dist/(2*np.sqrt(q))
 
         cov = h*np.eye(len(x_episode[0]))
 

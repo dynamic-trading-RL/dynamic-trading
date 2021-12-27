@@ -27,7 +27,7 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 
-j_oos = 100
+j_oos = 10
 t_ = 50
 
 returnDynamicsType = ReturnDynamicsType.Linear
@@ -49,6 +49,7 @@ rho = load('data/rho.joblib')
 factorType = load('data/factorType.joblib')
 flag_qaverage = load('data/flag_qaverage.joblib')
 bound = load('data/bound.joblib')
+rescale_n_a = load('data/rescale_n_a.joblib')
 
 
 # ------------------------------------- Simulations ---------------------------
@@ -133,7 +134,8 @@ RL = np.zeros((j_oos, t_))
 for j in range(j_oos):
 
     RL[j] = compute_rl(j, f=f[j], q_value=q_value, factorType=factorType,
-                       optimizers=optimizers, optimizer=optimizer, bound=bound)
+                       optimizers=optimizers, optimizer=optimizer, bound=bound,
+                       rescale_n_a=rescale_n_a)
 
 wealth_RL, value_RL, cost_RL =\
     compute_wealth(pnl, RL, gamma, Lambda_r, rho, Sigma_r, price)

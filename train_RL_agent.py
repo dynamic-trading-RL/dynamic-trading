@@ -24,7 +24,8 @@ from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           set_regressor_parameters_ann,
                           set_regressor_parameters_tree,
                           set_regressor_parameters_gb,
-                          compute_markovitz)
+                          compute_markovitz,
+                          compute_GP)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -36,32 +37,37 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 1000
-    n_batches = 5
+    j_episodes = 10
+    n_batches = 1
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
     eps = 0.1
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
-    optimizer = 'local'
+    optimizer = 'shgo'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
     sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
-    dyn_update_q_value = False
-    scale_upd_q_value = .1
+
+    resc_by_M = True
+
+    dyn_update_q_value = True
+
+    standardize_Y = True
+    rescale_n_a = True
+
     if dyn_update_q_value:
         random_act_batch0 = False
     else:
         random_act_batch0 = True
+
     make_plots = True
     dump_XY = False
-    standardize_Y = False
-    rescale_n_a = False
 
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.Linear
@@ -107,7 +113,7 @@ if __name__ == '__main__':
     lam = lam_perc * 2 / Sigma_r
     Lambda_r = lam*Sigma_r
 
-    # Use Markowitz to determine bounds
+    # Get dynamics
     if (market._marketDynamics._returnDynamics._returnDynamicsType
             == ReturnDynamicsType.Linear):
         B = market._marketDynamics._returnDynamics._parameters['B']
@@ -119,11 +125,35 @@ if __name__ == '__main__':
         mu_0 = market._marketDynamics._returnDynamics._parameters['mu_0']
         mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
         mu_r = 0.5*(mu_0 + mu_1)
+    if (market._marketDynamics._factorDynamics._factorDynamicsType
+            in (FactorDynamicsType.AR, FactorDynamicsType.AR_TARCH)):
 
-    Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r,
-                                  price.flatten(), mu_r)
+        Phi = 1 - market._marketDynamics._factorDynamics._parameters['B']
+        mu_f = 1 - market._marketDynamics._factorDynamics._parameters['mu']
 
-    bound = 0.5*np.abs(Markowitz).max()
+    elif (market._marketDynamics._factorDynamics._factorDynamicsType
+          == FactorDynamicsType.SETAR):
+
+        Phi_0 = 1 - market._marketDynamics._factorDynamics._parameters['B_0']
+        Phi_1 = 1 - market._marketDynamics._factorDynamics._parameters['B_1']
+        mu_f_0 = 1 - market._marketDynamics._factorDynamics._parameters['mu_0']
+        mu_f_1 = 1 - market._marketDynamics._factorDynamics._parameters['mu_1']
+        Phi = 0.5*(Phi_0 + Phi_1)
+        mu_f = .5*(mu_f_0 + mu_f_1)
+
+    else:
+
+        Phi = 0.
+        mu_f = market._marketDynamics._factorDynamics._parameters['mu']
+
+    if resc_by_M:
+        Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r,
+                                      price.flatten(), mu_r)
+        bound = np.percentile(np.abs(Markowitz), 99)
+    else:
+        GP = compute_GP(f.flatten(), gamma, lam, rho, B, Sigma_r, Phi,
+                        price.flatten(), mu_r)
+        bound = np.percentile(np.abs(GP), 99)
 
     reward = np.zeros((n_batches, j_episodes))
     cost = np.zeros((n_batches, j_episodes))
@@ -165,7 +195,6 @@ if __name__ == '__main__':
                               b=b, bound=bound, predict_r=predict_r,
                               dyn_update_q_value=dyn_update_q_value,
                               random_act_batch0=random_act_batch0,
-                              scale_upd_q_value=scale_upd_q_value,
                               rescale_n_a=rescale_n_a)
 
         if parallel_computing:
@@ -270,6 +299,7 @@ if __name__ == '__main__':
     dump(factorType, 'data/factorType.joblib')
     dump(flag_qaverage, 'data/flag_qaverage.joblib')
     dump(bound, 'data/bound.joblib')
+    dump(rescale_n_a, 'data/rescale_n_a.joblib')
 
     # ------------------------------------- Plots -----------------------------
 
