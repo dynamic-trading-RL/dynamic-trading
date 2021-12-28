@@ -645,6 +645,7 @@ def generate_episode(
 
     if dyn_update_q_value:
         anchor_points = np.zeros(t_-1)
+        dist_list = []
 
     # Define initial value function:
     # If b=0, it is set = 0. If b>0, it averages on models fitted on previous
@@ -732,7 +733,7 @@ def generate_episode(
         if dyn_update_q_value:
             # update q_value by imposing that q_value(x_episode) = y_episode
             q_value_iter = get_q_value_iter(q_value, anchor_points, x_episode,
-                                            y_episode, t)
+                                            y_episode, t, dist_list)
 
     return x_episode, y_episode, j, reward_total, cost_total
 
@@ -1137,18 +1138,21 @@ def get_q_value(b, qb_list, flag_qaverage):
 # get_q_value_iter
 # -----------------------------------------------------------------------------
 
-def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t):
+def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t,
+                     dist_list):
+
+    if t == 1:
+        h = 1
+    else:
+        x_last = x_episode[t-1]
+        for i in range(t-1):
+            dist_list.append(np.linalg.norm(x_last - x_episode[i]))
+
+        dist = min(dist_list)/2
+        c = 0.01
+        h = -dist**2/(2*np.log(c))
 
     def q_value_iter(state, action):
-
-        if t == 1:
-            h = 1
-        else:
-
-            dist =\
-                np.linalg.norm(np.diff(x_episode[:t], axis=0), axis=1).min()/2
-            c = 0.01
-            h = -dist**2/(2*np.log(c))
 
         cov = h*np.eye(len(x_episode[0]))
 
