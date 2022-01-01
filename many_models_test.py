@@ -15,13 +15,15 @@ from dt_functions import (ReturnDynamics, FactorDynamics,
                           read_factor_parameters)
 
 # Input parameters
-j_ = 100
+j_ = 10
 t_ = 50
 
 calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
                                        index_col=0)
 ticker = calibration_parameters.loc['ticker', 'calibration-parameters']
 startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
+
+return_is_pnl = True
 
 # Specify model
 for returnDynamicsType in ReturnDynamicsType:
@@ -40,7 +42,7 @@ for returnDynamicsType in ReturnDynamicsType:
         factorDynamics.set_parameters(factor_parameters)
         marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
                                         factorDynamics=factorDynamics)
-        market = Market(marketDynamics, startPrice)
+        market = Market(marketDynamics, startPrice, return_is_pnl=return_is_pnl)
 
         # Simulations
         market.simulate(j_=j_, t_=t_)

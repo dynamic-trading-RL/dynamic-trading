@@ -13,11 +13,7 @@ from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           instantiate_market,
                           get_Sigma,
                           simulate_market,
-                          q_hat,
-                          compute_markovitz,
-                          compute_GP,
-                          compute_rl,
-                          compute_wealth)
+                          q_hat)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -47,12 +43,14 @@ gamma = load('data/gamma.joblib')
 rho = load('data/rho.joblib')
 factorType = load('data/factorType.joblib')
 bound = load('data/bound.joblib')
+return_is_pnl = load('data/return_is_pnl.joblib')
 
 
 # ------------------------------------- Simulations ---------------------------
 
 # Instantiate market
-market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice)
+market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice,
+                            return_is_pnl)
 
 # Simulations
 price, pnl, f = simulate_market(market, j_episodes=j_oos, n_batches=1, t_=t_)

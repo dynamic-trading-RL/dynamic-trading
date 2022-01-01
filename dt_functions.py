@@ -10,7 +10,7 @@ import pandas as pd
 from enum import Enum
 from scipy.optimize import (dual_annealing, shgo, differential_evolution,
                             brute, minimize)
-from scipy.stats import multivariate_normal, chi2
+from scipy.stats import multivariate_normal
 
 
 # -----------------------------------------------------------------------------
@@ -140,11 +140,13 @@ class MarketDynamics:
 class Market:
 
     def __init__(self, marketDynamics: MarketDynamics,
-                 startPrice: float):
+                 startPrice: float,
+                 return_is_pnl: bool = False):
 
         self._marketDynamics = marketDynamics
         self._startPrice = startPrice
         self._marketId = self._setMarketId()
+        self._return_is_pnl = return_is_pnl
         self._simulations = {}
 
     def _setMarketId(self):
@@ -353,7 +355,13 @@ class Market:
 
         for t in range(1, t_):
 
-            price[:, t] = price[:, t-1]*(1 + r[:, t])
+            if self._return_is_pnl:
+
+                price[:, t] = price[:, t-1] + r[:, t]
+
+            else:
+
+                price[:, t] = price[:, t-1]*(1 + r[:, t])
 
         self._simulations['price'] = price
 
@@ -363,6 +371,15 @@ class Market:
 
         self._simulations['pnl'] =\
             np.c_[np.zeros(j_), np.diff(self._simulations['price'], axis=1)]
+
+        if self._return_is_pnl:
+
+            must_be_zero = np.max(np.abs(self._simulations['pnl'] -
+                                         self._simulations['r']))
+
+            if must_be_zero > 10**-10:
+
+                raise NameError('Return must be equal to PnL')
 
 
 # -----------------------------------------------------------------------------
@@ -543,7 +560,8 @@ def read_factor_parameters(factorDynamicsType):
 # instantiate_market
 # -----------------------------------------------------------------------------
 
-def instantiate_market(returnDynamicsType, factorDynamicsType, startPrice):
+def instantiate_market(returnDynamicsType, factorDynamicsType, startPrice,
+                       return_is_pnl):
 
     # Instantiate dynamics
     returnDynamics = ReturnDynamics(returnDynamicsType)
@@ -558,7 +576,7 @@ def instantiate_market(returnDynamicsType, factorDynamicsType, startPrice):
     factorDynamics.set_parameters(factor_parameters)
     marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
                                     factorDynamics=factorDynamics)
-    market = Market(marketDynamics, startPrice)
+    market = Market(marketDynamics, startPrice, return_is_pnl=return_is_pnl)
 
     return market
 
@@ -611,7 +629,7 @@ def generate_episode(
                      # market simulations
                      price, pnl, f, market, factorType,
                      # reward/cost parameters
-                     rho, gamma, Sigma_r, Lambda_r,
+                     rho, gamma, Sigma, Lambda, return_is_pnl,
                      # RL parameters
                      eps, qb_list, flag_qaverage, alpha,
                      optimizers, optimizer,
@@ -701,16 +719,25 @@ def generate_episode(
         # Observe reward
         n = state_[0] * resc_n_a
         if predict_r:
-            r = price[j, t-1]*market.next_step(f[j, t-1])
+
+            if return_is_pnl:
+                r = market.next_step(f[j, t-1])
+            else:
+                r = price[j, t-1]*market.next_step(f[j, t-1])
         else:
             r = pnl[j, t]
 
-        Sigma = price[j, t-1]*Sigma_r
-        Lambda = price[j, t-1]*Lambda_r
+        if return_is_pnl:
+            Sigma_t = Sigma
+            Lambda_t = Lambda
+
+        else:
+            Sigma_t = price[j, t-1]*Sigma
+            Lambda_t = price[j, t-1]*Lambda
 
         dn = action * resc_n_a
 
-        cost_t = cost(n, dn, rho, gamma, Sigma, Lambda)
+        cost_t = cost(n, dn, rho, gamma, Sigma_t, Lambda_t)
         reward_t = reward(n, r, cost_t, rho)
 
         cost_total += cost_t
@@ -899,7 +926,7 @@ def set_regressor_parameters_ann(sup_model):
 # -----------------------------------------------------------------------------
 
 def set_regressor_parameters_tree():
-    n_estimators = 20
+    n_estimators = 80
     min_samples_split = 0.01
     max_samples = 0.9
     warm_start = True
@@ -914,7 +941,7 @@ def set_regressor_parameters_gb():
         set_regressor_parameters_tree()
 
     n_estimators = n_estimators
-    learning_rate = 1/n_estimators
+    learning_rate = 10/n_estimators
     subsample = 0.8
     min_samples_split = min_samples_split
     warm_start = warm_start
@@ -965,7 +992,7 @@ def q_hat(state, action,
 # compute_markovitz
 # -----------------------------------------------------------------------------
 
-def compute_markovitz(f, gamma, B, Sigma, price, mu_r):
+def compute_markovitz(f, gamma, B, Sigma, price, mu_r, return_is_pnl):
 
     if f.ndim == 1:
         t_ = f.shape[0]
@@ -978,8 +1005,13 @@ def compute_markovitz(f, gamma, B, Sigma, price, mu_r):
     Markovitz = np.zeros((j_, t_))
     for t in range(t_):
 
-        resc_f = price[:, t]*(f[:, t] + mu_r/B)
-        resc_Sigma = price[:, t]**2 * Sigma
+        if return_is_pnl:
+            resc_f = f[:, t] + mu_r/B
+            resc_Sigma = Sigma
+
+        else:
+            resc_f = price[:, t]*(f[:, t] + mu_r/B)
+            resc_Sigma = price[:, t]**2 * Sigma
 
         Markovitz[:, t] = (gamma*resc_Sigma)**(-1)*B*resc_f
 
@@ -990,7 +1022,7 @@ def compute_markovitz(f, gamma, B, Sigma, price, mu_r):
 # compute_GP
 # -----------------------------------------------------------------------------
 
-def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
+def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r, return_is_pnl):
 
     if f.ndim == 1:
         t_ = f.shape[0]
@@ -1003,8 +1035,13 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r):
     x = np.zeros((j_, t_))
     for t in range(t_):
 
-        resc_f = price[:, t]*(f[:, t] + mu_r/B)
-        resc_Sigma = price[:, t]**2 * Sigma
+        if return_is_pnl:
+            resc_f = f[:, t] + mu_r/B
+            resc_Sigma = Sigma
+
+        else:
+            resc_f = price[:, t]*(f[:, t] + mu_r/B)
+            resc_Sigma = price[:, t]**2 * Sigma
 
         a = (-(gamma*(1 - rho) + lam*rho) +
              np.sqrt((gamma*(1-rho) + lam*rho)**2 +
@@ -1078,7 +1115,8 @@ def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
 # compute_wealth
 # -----------------------------------------------------------------------------
 
-def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma, price):
+def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma, price,
+                   return_is_pnl):
 
     if pnl.ndim == 1:
         t_ = pnl.shape[0]
@@ -1099,8 +1137,12 @@ def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma, price):
     for t in range(1, t_):
         delta_strat = strat[:, t] - strat[:, t-1]
 
-        resc_Sigma = price[:, t]**2 * Sigma
-        resc_Lambda = price[:, t]**2 * Lambda
+        if return_is_pnl:
+            resc_Sigma = Sigma
+            resc_Lambda = Lambda
+        else:
+            resc_Sigma = price[:, t]**2 * Sigma
+            resc_Lambda = price[:, t]**2 * Lambda
 
         cost[:, t] =\
             gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*resc_Sigma*strat[:, t] +\
@@ -1168,3 +1210,64 @@ def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t,
         return q_value(state, action) + anchor_points@moll
 
     return q_value_iter
+
+
+# -----------------------------------------------------------------------------
+# get_dynamics_params
+# -----------------------------------------------------------------------------
+
+def get_dynamics_params(market):
+
+    if (market._marketDynamics._returnDynamics._returnDynamicsType
+            == ReturnDynamicsType.Linear):
+        B = market._marketDynamics._returnDynamics._parameters['B']
+        mu_r = market._marketDynamics._returnDynamics._parameters['mu']
+    else:
+        B_0 = market._marketDynamics._returnDynamics._parameters['B_0']
+        B_1 = market._marketDynamics._returnDynamics._parameters['B_1']
+        B = 0.5*(B_0 + B_1)
+        mu_0 = market._marketDynamics._returnDynamics._parameters['mu_0']
+        mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
+        mu_r = 0.5*(mu_0 + mu_1)
+
+    if (market._marketDynamics._factorDynamics._factorDynamicsType
+            in (FactorDynamicsType.AR, FactorDynamicsType.AR_TARCH)):
+
+        Phi = 1 - market._marketDynamics._factorDynamics._parameters['B']
+        mu_f = 1 - market._marketDynamics._factorDynamics._parameters['mu']
+
+    elif (market._marketDynamics._factorDynamics._factorDynamicsType
+          == FactorDynamicsType.SETAR):
+
+        Phi_0 = 1 - market._marketDynamics._factorDynamics._parameters['B_0']
+        Phi_1 = 1 - market._marketDynamics._factorDynamics._parameters['B_1']
+        mu_f_0 = 1 - market._marketDynamics._factorDynamics._parameters['mu_0']
+        mu_f_1 = 1 - market._marketDynamics._factorDynamics._parameters['mu_1']
+        Phi = 0.5*(Phi_0 + Phi_1)
+        mu_f = .5*(mu_f_0 + mu_f_1)
+
+    else:
+
+        Phi = 0.
+        mu_f = market._marketDynamics._factorDynamics._parameters['mu']
+
+    return B, mu_r, Phi, mu_f
+
+
+# -----------------------------------------------------------------------------
+# get_bound
+# -----------------------------------------------------------------------------
+
+def get_bound(resc_by_M, return_is_pnl, f, price, gamma, lam, rho, B, mu_r,
+              Sigma, Phi):
+
+    if resc_by_M:
+        Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma,
+                                      price.flatten(), mu_r, return_is_pnl)
+        bound = np.percentile(np.abs(Markowitz), 95)
+    else:
+        GP = compute_GP(f.flatten(), gamma, lam, rho, B, Sigma, Phi,
+                        price.flatten(), mu_r, return_is_pnl)
+        bound = np.percentile(np.abs(GP), 95)
+
+    return bound

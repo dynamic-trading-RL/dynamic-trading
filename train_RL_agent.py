@@ -24,8 +24,8 @@ from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           set_regressor_parameters_ann,
                           set_regressor_parameters_tree,
                           set_regressor_parameters_gb,
-                          compute_markovitz,
-                          compute_GP)
+                          get_dynamics_params,
+                          get_bound)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -37,26 +37,27 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 1000
-    n_batches = 5
-    t_ = 1000
+    j_episodes = 3000
+    n_batches = 1
+    t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
-    eps = 0.1
+    eps = 0.01
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
-    optimizer = 'dual_annealing'
+    optimizer = 'shgo'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
     sup_model = 'ann_deep'
 
     flag_qaverage = True
     predict_r = True
+    return_is_pnl = True
 
     resc_by_M = True
 
-    dyn_update_q_value = True
+    dyn_update_q_value = False
 
     standardize_Y = True
     rescale_n_a = True
@@ -105,56 +106,22 @@ if __name__ == '__main__':
 
     # Instantiate market
     market = instantiate_market(returnDynamicsType, factorDynamicsType,
-                                startPrice)
+                                startPrice, return_is_pnl)
 
     # Simulations
     price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
-    Sigma_r = get_Sigma(market)
-    lam = lam_perc * 2 / Sigma_r
-    Lambda_r = lam*Sigma_r
+    Sigma = get_Sigma(market)
+    lam = lam_perc * 2 / Sigma
+    Lambda = lam*Sigma
 
     # Get dynamics
-    if (market._marketDynamics._returnDynamics._returnDynamicsType
-            == ReturnDynamicsType.Linear):
-        B = market._marketDynamics._returnDynamics._parameters['B']
-        mu_r = market._marketDynamics._returnDynamics._parameters['mu']
-    else:
-        B_0 = market._marketDynamics._returnDynamics._parameters['B_0']
-        B_1 = market._marketDynamics._returnDynamics._parameters['B_1']
-        B = 0.5*(B_0 + B_1)
-        mu_0 = market._marketDynamics._returnDynamics._parameters['mu_0']
-        mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
-        mu_r = 0.5*(mu_0 + mu_1)
-    if (market._marketDynamics._factorDynamics._factorDynamicsType
-            in (FactorDynamicsType.AR, FactorDynamicsType.AR_TARCH)):
+    B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
-        Phi = 1 - market._marketDynamics._factorDynamics._parameters['B']
-        mu_f = 1 - market._marketDynamics._factorDynamics._parameters['mu']
+    # Get bound
+    bound = get_bound(resc_by_M, return_is_pnl, f, price, gamma, lam, rho, B,
+                      mu_r, Sigma, Phi)
 
-    elif (market._marketDynamics._factorDynamics._factorDynamicsType
-          == FactorDynamicsType.SETAR):
-
-        Phi_0 = 1 - market._marketDynamics._factorDynamics._parameters['B_0']
-        Phi_1 = 1 - market._marketDynamics._factorDynamics._parameters['B_1']
-        mu_f_0 = 1 - market._marketDynamics._factorDynamics._parameters['mu_0']
-        mu_f_1 = 1 - market._marketDynamics._factorDynamics._parameters['mu_1']
-        Phi = 0.5*(Phi_0 + Phi_1)
-        mu_f = .5*(mu_f_0 + mu_f_1)
-
-    else:
-
-        Phi = 0.
-        mu_f = market._marketDynamics._factorDynamics._parameters['mu']
-
-    if resc_by_M:
-        Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma_r,
-                                      price.flatten(), mu_r)
-        bound = np.percentile(np.abs(Markowitz), 95)
-    else:
-        GP = compute_GP(f.flatten(), gamma, lam, rho, B, Sigma_r, Phi,
-                        price.flatten(), mu_r)
-        bound = np.percentile(np.abs(GP), 95)
-
+    # Initialize reward and cost
     reward = np.zeros((n_batches, j_episodes))
     cost = np.zeros((n_batches, j_episodes))
 
@@ -186,8 +153,8 @@ if __name__ == '__main__':
                               f=f[:, b, :], market=market,
                               factorType=factorType,
                               # reward/cost parameters
-                              rho=rho, gamma=gamma, Sigma_r=Sigma_r,
-                              Lambda_r=Lambda_r,
+                              rho=rho, gamma=gamma, Sigma=Sigma,
+                              Lambda=Lambda, return_is_pnl=return_is_pnl,
                               # RL parameters
                               eps=eps, qb_list=qb_list,
                               flag_qaverage=flag_qaverage, alpha=alpha,
@@ -262,7 +229,9 @@ if __name__ == '__main__':
         elif sup_model == 'gradient_boosting':
 
             model =\
-                GradientBoostingRegressor(learning_rate=learning_rate,
+                GradientBoostingRegressor(loss='lad',
+                                          criterion='mae',
+                                          learning_rate=learning_rate,
                                           subsample=subsample,
                                           n_estimators=n_estimators,
                                           min_samples_split=min_samples_split,
@@ -300,6 +269,7 @@ if __name__ == '__main__':
     dump(flag_qaverage, 'data/flag_qaverage.joblib')
     dump(bound, 'data/bound.joblib')
     dump(rescale_n_a, 'data/rescale_n_a.joblib')
+    dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
     # ------------------------------------- Plots -----------------------------
 
@@ -338,7 +308,6 @@ if __name__ == '__main__':
                 plt.title('state_1 vs q; batch=%d' % b)
                 plt.savefig('figures/state_1 vs q; batch=%d.png' % b)
 
-
         plt.figure()
         for b in range(n_batches):
             plt.plot(reward[b, :], label='Batch: %d' % b, alpha=0.5,
@@ -362,7 +331,8 @@ if __name__ == '__main__':
 
         plt.figure()
         for b in range(n_batches):
-            plt.plot(cost[b, :], label='Batch: %d' % b, alpha=0.5, color=color[b])
+            plt.plot(cost[b, :], label='Batch: %d' % b, alpha=0.5,
+                     color=color[b])
         plt.legend()
         plt.title('cost')
         plt.savefig('figures/cost.png')

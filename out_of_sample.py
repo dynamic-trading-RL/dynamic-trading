@@ -17,7 +17,8 @@ from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           compute_markovitz,
                           compute_GP,
                           compute_rl,
-                          compute_wealth)
+                          compute_wealth,
+                          get_dynamics_params)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -27,7 +28,7 @@ if not sys.warnoptions:
 # ------------------------------------- Parameters ----------------------------
 
 
-j_oos = 100
+j_oos = 1000
 t_ = 50
 
 returnDynamicsType = ReturnDynamicsType.Linear
@@ -50,12 +51,14 @@ factorType = load('data/factorType.joblib')
 flag_qaverage = load('data/flag_qaverage.joblib')
 bound = load('data/bound.joblib')
 rescale_n_a = load('data/rescale_n_a.joblib')
+return_is_pnl = load('data/return_is_pnl.joblib')
 
 
 # ------------------------------------- Simulations ---------------------------
 
 # Instantiate market
-market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice)
+market = instantiate_market(returnDynamicsType, factorDynamicsType, startPrice,
+                            return_is_pnl)
 
 # Simulations
 price, pnl, f = simulate_market(market, j_episodes=j_oos, n_batches=1, t_=t_)
@@ -64,58 +67,28 @@ price = price.squeeze()
 pnl = pnl.squeeze()
 f = f.squeeze()
 
-Sigma_r = get_Sigma(market)
-Lambda_r = lam*Sigma_r
+Sigma = get_Sigma(market)
+Lambda = lam*Sigma
 
-if (market._marketDynamics._returnDynamics._returnDynamicsType
-        == ReturnDynamicsType.Linear):
-    B = market._marketDynamics._returnDynamics._parameters['B']
-    mu_r = market._marketDynamics._returnDynamics._parameters['mu']
-else:
-    B_0 = market._marketDynamics._returnDynamics._parameters['B_0']
-    B_1 = market._marketDynamics._returnDynamics._parameters['B_1']
-    mu_0 = market._marketDynamics._returnDynamics._parameters['mu_0']
-    mu_1 = market._marketDynamics._returnDynamics._parameters['mu_1']
-    B = .5*(B_0 + B_1)
-    mu_r = .5*(mu_0 + mu_1)
-
-
-if (market._marketDynamics._factorDynamics._factorDynamicsType
-        in (FactorDynamicsType.AR, FactorDynamicsType.AR_TARCH)):
-
-    Phi = 1 - market._marketDynamics._factorDynamics._parameters['B']
-    mu_f = 1 - market._marketDynamics._factorDynamics._parameters['mu']
-
-elif (market._marketDynamics._factorDynamics._factorDynamicsType
-      == FactorDynamicsType.SETAR):
-
-    Phi_0 = 1 - market._marketDynamics._factorDynamics._parameters['B_0']
-    Phi_1 = 1 - market._marketDynamics._factorDynamics._parameters['B_1']
-    mu_f_0 = 1 - market._marketDynamics._factorDynamics._parameters['mu_0']
-    mu_f_1 = 1 - market._marketDynamics._factorDynamics._parameters['mu_1']
-    Phi = 0.5*(Phi_0 + Phi_1)
-    mu_f = .5*(mu_f_0 + mu_f_1)
-
-else:
-
-    Phi = 0.
-    mu_f = market._marketDynamics._factorDynamics._parameters['mu']
+B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
 
 # ------------------------------------- Markowitz -----------------------------
 
-Markowitz = compute_markovitz(f, gamma, B, Sigma_r, price, mu_r)
+Markowitz = compute_markovitz(f, gamma, B, Sigma, price, mu_r, return_is_pnl)
 
 wealth_M, value_M, cost_M =\
-    compute_wealth(pnl, Markowitz, gamma, Lambda_r, rho, Sigma_r, price)
+    compute_wealth(pnl, Markowitz, gamma, Lambda, rho, Sigma, price,
+                   return_is_pnl)
 
 
 # ------------------------------------- GP ------------------------------------
 
-GP = compute_GP(f, gamma, lam, rho, B, Sigma_r, Phi, price, mu_r)
+GP = compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r, return_is_pnl)
 
 wealth_GP, value_GP, cost_GP =\
-    compute_wealth(pnl, GP, gamma, Lambda_r, rho, Sigma_r, price)
+    compute_wealth(pnl, GP, gamma, Lambda, rho, Sigma, price,
+                   return_is_pnl)
 
 
 # ------------------------------------- RL ------------------------------------
@@ -138,7 +111,8 @@ for j in range(j_oos):
                        rescale_n_a=rescale_n_a)
 
 wealth_RL, value_RL, cost_RL =\
-    compute_wealth(pnl, RL, gamma, Lambda_r, rho, Sigma_r, price)
+    compute_wealth(pnl, RL, gamma, Lambda, rho, Sigma, price,
+                   return_is_pnl)
 
 
 # ------------------------------------- Plots ---------------------------------
