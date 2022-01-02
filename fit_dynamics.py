@@ -16,7 +16,7 @@ from statsmodels.tsa.ar_model import AutoReg
 
 # ------------------------------------- Parameters ----------------------------
 
-ticker = 'MS'  # '^GSPC'
+ticker = '^GSPC'  # '^GSPC'
 end_date = '2021-12-24'
 c = 0.
 scale = 1

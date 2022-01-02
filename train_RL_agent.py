@@ -37,8 +37,8 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 3000
-    n_batches = 1
+    j_episodes = 15000
+    n_batches = 5
     t_ = 50
 
     parallel_computing = False
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     flag_qaverage = True
     predict_r = True
-    return_is_pnl = True
+    return_is_pnl = False
 
     resc_by_M = True
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     returnDynamicsType = ReturnDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
     gamma = 10**-4  # 2*10**-5  # risk aversion
-    lam_perc = 10**-6  # costs: percentage of unit trade value
+    lam_perc = 10**-7  # costs: percentage of unit trade value
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable
 

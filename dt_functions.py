@@ -607,16 +607,18 @@ def get_Sigma(market):
 
     if returnDynamicsType == ReturnDynamicsType.Linear:
 
-        Sigma_r = market._marketDynamics._returnDynamics._parameters['sig2']
+        Sigma = market._marketDynamics._returnDynamics._parameters['sig2']
 
     elif returnDynamicsType == ReturnDynamicsType.NonLinear:
 
         # ??? should become weighted average
-        Sigma_r =\
+        # ??? in the episode generation, it should get either sig2_0/1 and not
+        # the weighted average
+        Sigma =\
             0.5*(market._marketDynamics._returnDynamics._parameters['sig2_0'] +
                  market._marketDynamics._returnDynamics._parameters['sig2_0'])
 
-    return Sigma_r
+    return Sigma
 
 
 # -----------------------------------------------------------------------------
@@ -727,13 +729,9 @@ def generate_episode(
         else:
             r = pnl[j, t]
 
-        if return_is_pnl:
-            Sigma_t = Sigma
-            Lambda_t = Lambda
+        Sigma_t, Lambda_t = get_rescSigmaLambda(return_is_pnl, Sigma, Lambda,
+                                                price[j, t-1])
 
-        else:
-            Sigma_t = price[j, t-1]*Sigma
-            Lambda_t = price[j, t-1]*Lambda
 
         dn = action * resc_n_a
 
@@ -1137,12 +1135,8 @@ def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma, price,
     for t in range(1, t_):
         delta_strat = strat[:, t] - strat[:, t-1]
 
-        if return_is_pnl:
-            resc_Sigma = Sigma
-            resc_Lambda = Lambda
-        else:
-            resc_Sigma = price[:, t]**2 * Sigma
-            resc_Lambda = price[:, t]**2 * Lambda
+        resc_Sigma, resc_Lambda = get_rescSigmaLambda(return_is_pnl, Sigma,
+                                                      Lambda, price[:, t])
 
         cost[:, t] =\
             gamma/2 * (1 - rho)**(t + 1) * strat[:, t]*resc_Sigma*strat[:, t] +\
@@ -1271,3 +1265,20 @@ def get_bound(resc_by_M, return_is_pnl, f, price, gamma, lam, rho, B, mu_r,
         bound = np.percentile(np.abs(GP), 95)
 
     return bound
+
+
+# -----------------------------------------------------------------------------
+# get_rescSigmaLambda
+# -----------------------------------------------------------------------------
+
+def get_rescSigmaLambda(return_is_pnl, Sigma, Lambda, price):
+
+    if return_is_pnl:
+        rescSigma = Sigma
+        rescLambda = Lambda
+
+    else:
+        rescSigma = price**2*Sigma
+        rescLambda = price**2*Lambda
+
+    return rescSigma, rescLambda
