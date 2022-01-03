@@ -1061,7 +1061,7 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r, return_is_pnl):
 # -----------------------------------------------------------------------------
 
 def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
-               bound=400, rescale_n_a=True):
+               bound=400, rescale_n_a=True, GP=None):
 
     if rescale_n_a:
         resc_n_a = bound

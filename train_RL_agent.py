@@ -41,7 +41,7 @@ if __name__ == '__main__':
     n_batches = 5
     t_ = 50
 
-    parallel_computing = False
+    parallel_computing = True
     n_cores_max = 50
     alpha = 1.
     eps = 0.01
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     flag_qaverage = True
     predict_r = True
-    return_is_pnl = False
+    return_is_pnl = True
 
     resc_by_M = True
 
@@ -74,9 +74,9 @@ if __name__ == '__main__':
     returnDynamicsType = ReturnDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
     gamma = 10**-4  # 2*10**-5  # risk aversion
-    lam_perc = 10**-7  # costs: percentage of unit trade value
+    lam_perc = 10**-1  # costs: percentage of unit trade value
     rho = 1 - np.exp(-.02/252)  # discount
-    factorType = FactorType.Observable
+    factorType = FactorType.Observable  # ??? latent case to be discussed: issue with constant solutions
 
     # ------------------------------------- Reinforcement learning ------------
     calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',

@@ -24,6 +24,8 @@ scale_f = 1  # or "= scale"
 t_past = 8000
 window = 5
 
+return_is_pnl = True
+
 
 # ------------------------------------- Download data -------------------------
 
@@ -34,7 +36,10 @@ startPrice = stock.iloc[-1]
 stock.name = ticker
 stock = stock.to_frame()
 df = stock.copy().iloc[-t_past:]
-df['r'] = scale*df[ticker].pct_change()
+if return_is_pnl:
+    df['r'] = scale*df[ticker].diff()
+else:
+    df['r'] = scale*df[ticker].pct_change()
 
 # NB: returns and log returns are almost equal
 
