@@ -7,6 +7,7 @@ Created on Sun Nov 21 14:51:24 2021
 
 import numpy as np
 import pandas as pd
+from joblib import load
 import matplotlib.pyplot as plt
 from dt_functions import (ReturnDynamics, FactorDynamics,
                           ReturnDynamicsType, FactorDynamicsType,
@@ -23,7 +24,7 @@ calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
 ticker = calibration_parameters.loc['ticker', 'calibration-parameters']
 startPrice = calibration_parameters.loc['startPrice', 'calibration-parameters']
 
-return_is_pnl = True
+return_is_pnl = load('data/return_is_pnl.joblib')
 
 # Specify model
 for returnDynamicsType in ReturnDynamicsType:

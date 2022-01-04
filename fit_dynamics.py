@@ -7,6 +7,7 @@ Created on Tue Nov 23 15:27:18 2021
 
 import numpy as np
 import pandas as pd
+from joblib import dump
 import yfinance as yf
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
@@ -17,7 +18,7 @@ from statsmodels.tsa.ar_model import AutoReg
 # ------------------------------------- Parameters ----------------------------
 
 ticker = '^GSPC'  # '^GSPC'
-end_date = '2021-12-24'
+end_date = '2022-01-03'
 c = 0.
 scale = 1
 scale_f = 1  # or "= scale"
@@ -25,6 +26,7 @@ t_past = 8000
 window = 5
 
 return_is_pnl = True
+dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
 
 # ------------------------------------- Download data -------------------------

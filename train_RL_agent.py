@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neural_network import MLPRegressor
-from joblib import dump
+from joblib import dump, load
 from functools import partial
 import multiprocessing as mp
 from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
@@ -37,11 +37,11 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 15000
-    n_batches = 5
+    j_episodes = 5000
+    n_batches = 1
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
     eps = 0.01
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     flag_qaverage = True
     predict_r = True
-    return_is_pnl = True
+    return_is_pnl = load('data/return_is_pnl.joblib')
 
     resc_by_M = True
 
@@ -74,7 +74,10 @@ if __name__ == '__main__':
     returnDynamicsType = ReturnDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
     gamma = 10**-4  # 2*10**-5  # risk aversion
-    lam_perc = 10**-1  # costs: percentage of unit trade value
+    if return_is_pnl:  # costs: percentage of unit trade value
+        lam_perc = 10**-1
+    else:
+        lam_perc = 10**-7
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable  # ??? latent case to be discussed: issue with constant solutions
 
@@ -269,7 +272,6 @@ if __name__ == '__main__':
     dump(flag_qaverage, 'data/flag_qaverage.joblib')
     dump(bound, 'data/bound.joblib')
     dump(rescale_n_a, 'data/rescale_n_a.joblib')
-    dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
     # ------------------------------------- Plots -----------------------------
 
