@@ -732,7 +732,6 @@ def generate_episode(
         Sigma_t, Lambda_t = get_rescSigmaLambda(return_is_pnl, Sigma, Lambda,
                                                 price[j, t-1])
 
-
         dn = action * resc_n_a
 
         cost_t = cost(n, dn, rho, gamma, Sigma_t, Lambda_t)
@@ -916,7 +915,8 @@ def set_regressor_parameters_ann(sup_model):
 
     else:
 
-        raise NameError('sup_model must be either ann_fast or ann_deep or ann_small')
+        raise NameError('sup_model must be either ann_fast or ann_deep or '
+                        + 'ann_small')
 
 
 # -----------------------------------------------------------------------------

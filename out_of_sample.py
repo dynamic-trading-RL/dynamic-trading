@@ -14,8 +14,7 @@ from statsmodels.tools import add_constant
 from statsmodels.regression.linear_model import OLS
 import multiprocessing as mp
 import matplotlib.pyplot as plt
-from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
-                          instantiate_market,
+from dt_functions import (instantiate_market,
                           get_Sigma,
                           simulate_market,
                           compute_markovitz,

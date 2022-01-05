@@ -43,7 +43,8 @@ for returnDynamicsType in ReturnDynamicsType:
         factorDynamics.set_parameters(factor_parameters)
         marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
                                         factorDynamics=factorDynamics)
-        market = Market(marketDynamics, startPrice, return_is_pnl=return_is_pnl)
+        market = Market(marketDynamics, startPrice,
+                        return_is_pnl=return_is_pnl)
 
         # Simulations
         market.simulate(j_=j_, t_=t_)
