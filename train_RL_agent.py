@@ -37,11 +37,11 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 5000
-    n_batches = 1
+    j_episodes = 15000
+    n_batches = 6
     t_ = 50
 
-    parallel_computing = False
+    parallel_computing = True
     n_cores_max = 50
     alpha = 1.
     eps = 0.01
@@ -54,6 +54,7 @@ if __name__ == '__main__':
     flag_qaverage = True
     predict_r = True
     return_is_pnl = load('data/return_is_pnl.joblib')
+    fit_stock = load('data/fit_stock.joblib')
 
     resc_by_M = True
 
@@ -71,13 +72,23 @@ if __name__ == '__main__':
     dump_XY = False
 
     # Market parameters
-    returnDynamicsType = ReturnDynamicsType.Linear
+    returnDynamicsType = ReturnDynamicsType.NonLinear
     factorDynamicsType = FactorDynamicsType.AR
-    gamma = 10**-4  # 2*10**-5  # risk aversion
-    if return_is_pnl:  # costs: percentage of unit trade value
-        lam_perc = 10**-1
+    dump(returnDynamicsType, 'data/returnDynamicsType.joblib')
+    dump(factorDynamicsType, 'data/factorDynamicsType.joblib')
+
+    if fit_stock:
+        gamma = 10**-4  # risk aversion
+        if return_is_pnl:  # costs: percentage of unit trade value
+            lam_perc = 10**-1
+        else:
+            lam_perc = 10**-7
     else:
-        lam_perc = 10**-7
+        gamma = 10**-3  # risk aversion
+        if return_is_pnl:
+            lam_perc = 10**-2
+        else:
+            lam_perc = 10**-8
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable  # ??? latent case to be discussed: issue with constant solutions
 
@@ -106,6 +117,7 @@ if __name__ == '__main__':
         print('Number of cores available: %d' % mp.cpu_count())
         n_cores = min(mp.cpu_count(), n_cores_max)
         print('Number of cores used: %d' % n_cores)
+        dump(n_cores, 'data/n_cores.joblib')
 
     # Instantiate market
     market = instantiate_market(returnDynamicsType, factorDynamicsType,
@@ -272,6 +284,7 @@ if __name__ == '__main__':
     dump(flag_qaverage, 'data/flag_qaverage.joblib')
     dump(bound, 'data/bound.joblib')
     dump(rescale_n_a, 'data/rescale_n_a.joblib')
+    dump(parallel_computing, 'data/parallel_computing.joblib')
 
     # ------------------------------------- Plots -----------------------------
 

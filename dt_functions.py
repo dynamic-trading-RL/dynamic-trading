@@ -1060,7 +1060,7 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r, return_is_pnl):
 # compute_rl
 # -----------------------------------------------------------------------------
 
-def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
+def compute_rl(j, f, qb_list, factorType, optimizers, optimizer=None,
                bound=400, rescale_n_a=True, GP=None):
 
     if rescale_n_a:
@@ -1068,19 +1068,25 @@ def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
     else:
         resc_n_a = 1.
 
+    # if f.ndim == 1:
+    #     t_ = f.shape[0]
+    # else:
+    #     t_ = f.shape[1]
     if f.ndim == 1:
         t_ = f.shape[0]
-    else:
-        t_ = f.shape[1]
+        f = f.reshape((1, t_))
+    elif f.ndim == 2:
+        _, t_ = f.shape
 
     shares = np.zeros(t_)
+    q_value = get_q_value(1, qb_list, flag_qaverage=True)
 
     for t in range(t_):
 
         if t == 0:
 
             if factorType == FactorType.Observable:
-                state = np.array([0, f[t]])
+                state = np.array([0, f[j, t]])
             elif factorType == FactorType.Latent:
                 state = np.array([0])
             else:
@@ -1094,7 +1100,7 @@ def compute_rl(j, f, q_value, factorType, optimizers, optimizer=None,
         else:
 
             if factorType == FactorType.Observable:
-                state = np.array([shares[t-1] / resc_n_a, f[t]])
+                state = np.array([shares[t-1] / resc_n_a, f[j, t]])
             elif factorType == FactorType.Latent:
                 state = np.array([shares[t-1] / resc_n_a])
             else:

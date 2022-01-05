@@ -17,27 +17,48 @@ from statsmodels.tsa.ar_model import AutoReg
 
 # ------------------------------------- Parameters ----------------------------
 
-ticker = '^GSPC'  # '^GSPC'
-end_date = '2022-01-03'
-c = 0.
-scale = 1
-scale_f = 1  # or "= scale"
-t_past = 8000
-window = 5
-
+fit_stock = False
 return_is_pnl = True
+dump(fit_stock, 'data/fit_stock.joblib')
 dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
+if fit_stock:
+    ticker = '^GSPC'  # '^GSPC'
+    end_date = '2022-01-03'
+    c = 0.
+    scale = 1
+    scale_f = 1  # or "= scale"
+    t_past = 8000
+    window = 5
 
-# ------------------------------------- Download data -------------------------
+    # ------------------------------------- Download data ---------------------
 
-stock = yf.download(ticker, end=end_date)['Adj Close']
-first_valid_loc = stock.first_valid_index()
-stock = stock.loc[first_valid_loc:]
-startPrice = stock.iloc[-1]
-stock.name = ticker
-stock = stock.to_frame()
-df = stock.copy().iloc[-t_past:]
+    stock = yf.download(ticker, end=end_date)['Adj Close']
+    first_valid_loc = stock.first_valid_index()
+    stock = stock.loc[first_valid_loc:]
+    startPrice = stock.iloc[-1]
+    stock.name = ticker
+    stock = stock.to_frame()
+    df = stock.copy().iloc[-t_past:]
+
+else:
+    ticker = 'WTI'
+    c = 0.
+    scale = 1
+    scale_f = 1  # or "= scale"
+    t_past = 8000
+    window = 5
+
+    # ------------------------------------- Import data -----------------------
+
+    data_wti = pd.read_csv('data/DCOILWTICO.csv', index_col=0,
+                           na_values='.').fillna(method='pad')
+    data_wti.columns = ['WTI']
+    data_wti.index = pd.to_datetime(data_wti.index)
+    df = data_wti.copy().iloc[-t_past:]
+    end_date = str(df.index[-1])[:10]
+    startPrice = data_wti.iloc[-1]['WTI']
+
 if return_is_pnl:
     df['r'] = scale*df[ticker].diff()
 else:
@@ -46,7 +67,10 @@ else:
 # NB: returns and log returns are almost equal
 
 # Factors
-df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
+if fit_stock:
+    df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
+else:
+    df['f'] = df['r'].rolling(window).mean()
 
 df.dropna(inplace=True)
 
