@@ -109,10 +109,10 @@ def q_value(state, action):
     return q_hat(state, action, qb_list, flag_qaverage=True, n_models=None)
 
 
-aa = np.linspace(-2, 2, 50)
+aa = np.linspace(-50, 50, 50)
 
 plt.figure()
-for n in np.linspace(-1, 1, 100):
+for n in np.linspace(-100, 100, 5):
     if factorType == FactorType.Observable:
         state = [n, f.flatten()[np.random.randint(f.flatten().shape[0])]]
     else:

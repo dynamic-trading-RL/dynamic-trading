@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # ------------------------------------- Parameters ------------------------
 
-    j_oos = 10000
+    j_oos = 100
     t_ = 50
 
     returnDynamicsType = load('data/returnDynamicsType.joblib')
@@ -247,6 +247,38 @@ if __name__ == '__main__':
         plt.title('out-of-sample-shares %d' % j)
         plt.legend()
         plt.savefig('figures/out-of-sample-shares-%d.png' % j)
+
+    plt.figure()
+    # plt.plot(np.diff(Markowitz[0, :]), color='m', label='Markowitz', alpha=0.5)
+    plt.plot(np.diff(GP[0, :]), color='g', label='GP', alpha=0.5)
+    plt.plot(np.diff(RL[0, :]), color='r', label='RL', alpha=0.5)
+    for j in range(1, min(50, j_oos)):
+        # plt.plot(np.diff(Markowitz[j, :]), color='m', alpha=0.5)
+        plt.plot(np.diff(GP[j, :]), color='g', alpha=0.5)
+        plt.plot(np.diff(RL[j, :]), color='r', alpha=0.5)
+    plt.legend()
+    plt.title('out-of-sample-trades')
+    plt.savefig('figures/out-of-sample-trades.png')
+
+    for j in range(min(7, j_oos)):
+        plt.figure()
+        # plt.plot(np.diff(Markowitz[j, :]), color='m', label='Markowitz')
+        plt.plot(np.diff(GP[j, :]), color='g', label='GP')
+        plt.plot(np.diff(RL[j, :]), color='r', label='RL')
+        plt.title('out-of-sample-trades %d' % j)
+        plt.legend()
+        plt.savefig('figures/out-of-sample-trades-%d.png' % j)
+
+    plt.figure()
+    plt.hist(np.diff(RL, axis=1).flatten(),
+             color='r', density=True,
+             alpha=0.5, label='RL', bins='auto')
+    plt.hist(np.diff(GP, axis=1).flatten(),
+             color='g', density=True,
+             alpha=0.5, label='GP', bins='auto')
+    plt.title('|trade|')
+    plt.legend()
+    plt.savefig('figures/trades-histogram.png')
 
     plt.figure()
     plt.plot(wealth_M[0], color='m', label='Markowitz', alpha=0.5)

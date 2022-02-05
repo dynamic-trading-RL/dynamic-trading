@@ -1258,8 +1258,8 @@ def get_dynamics_params(market):
 # get_bound
 # -----------------------------------------------------------------------------
 
-def get_bound(resc_by_M, return_is_pnl, f, price, gamma, lam, rho, B, mu_r,
-              Sigma, Phi):
+def get_bound(return_is_pnl, f, price, gamma, lam, rho, B, mu_r,
+              Sigma, Phi, resc_by_M=True):
 
     if resc_by_M:
         Markowitz = compute_markovitz(f.flatten(), gamma, B, Sigma,

@@ -16,8 +16,8 @@ from dt_functions import (ReturnDynamics, FactorDynamics,
                           read_factor_parameters)
 
 # Input parameters
-j_ = 10
-t_ = 50
+j_ = 50
+t_ = 10
 
 calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
                                        index_col=0)

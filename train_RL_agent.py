@@ -38,10 +38,10 @@ if __name__ == '__main__':
 
     # RL parameters
     j_episodes = 15000
-    n_batches = 6
+    n_batches = 1
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
     eps = 0.01
@@ -56,12 +56,12 @@ if __name__ == '__main__':
     return_is_pnl = load('data/return_is_pnl.joblib')
     fit_stock = load('data/fit_stock.joblib')
 
-    resc_by_M = True
+    bound = 5
+
+    standardize_Y = False
+    rescale_n_a = True
 
     dyn_update_q_value = False
-
-    standardize_Y = True
-    rescale_n_a = True
 
     if dyn_update_q_value:
         random_act_batch0 = False
@@ -133,8 +133,9 @@ if __name__ == '__main__':
     B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
     # Get bound
-    bound = get_bound(resc_by_M, return_is_pnl, f, price, gamma, lam, rho, B,
-                      mu_r, Sigma, Phi)
+    if bound is None:
+        bound = get_bound(return_is_pnl, f, price, gamma, lam, rho, B,
+                          mu_r, Sigma, Phi, resc_by_M=True)
 
     # Initialize reward and cost
     reward = np.zeros((n_batches, j_episodes))
