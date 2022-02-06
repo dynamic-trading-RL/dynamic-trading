@@ -3,8 +3,8 @@
 Dep. Variable:                      r   R-squared:                       0.000
 Model:                            OLS   Adj. R-squared:                  0.000
 Method:                 Least Squares   F-statistic:                     2.143
-Date:                Fri, 07 Jan 2022   Prob (F-statistic):              0.143
-Time:                        17:05:45   Log-Likelihood:                 15107.
+Date:                Sun, 06 Feb 2022   Prob (F-statistic):              0.143
+Time:                        11:03:40   Log-Likelihood:                 15107.
 No. Observations:                4653   AIC:                        -3.021e+04
 Df Residuals:                    4651   BIC:                        -3.020e+04
 Df Model:                           1                                         

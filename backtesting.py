@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 from joblib import load
 from functools import partial
-import yfinance as yf
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 from dt_functions import (instantiate_market,
@@ -54,7 +53,6 @@ if __name__ == '__main__':
     return_is_pnl = load('data/return_is_pnl.joblib')
     parallel_computing = load('data/parallel_computing.joblib')
     n_cores = load('data/n_cores.joblib')
-    fit_stock = load('data/fit_stock.joblib')
 
     # ------------------------------------- Simulations -----------------------
 
@@ -68,58 +66,8 @@ if __name__ == '__main__':
     B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
     # Time series
-    if fit_stock:
-        ticker = '^GSPC'  # '^GSPC'
-        end_date = '2022-01-03'
-        c = 0.
-        scale = 1
-        scale_f = 1  # or "= scale"
-        t_past = 8000
-        window = 5
-
-        # ------------------------------------- Download data -----------------
-
-        stock = yf.download(ticker, end=end_date)['Adj Close']
-        first_valid_loc = stock.first_valid_index()
-        stock = stock.loc[first_valid_loc:]
-        startPrice = stock.iloc[-1]
-        stock.name = ticker
-        stock = stock.to_frame()
-        df = stock.copy().iloc[-t_past:]
-
-    else:
-        ticker = 'WTI'
-        c = 0.
-        scale = 1
-        scale_f = 1  # or "= scale"
-        t_past = 8000
-        window = 5
-
-        # ------------------------------------- Import data -------------------
-
-        data_wti = pd.read_csv('data/DCOILWTICO.csv', index_col=0,
-                               na_values='.').fillna(method='pad')
-        data_wti.columns = ['WTI']
-        data_wti.index = pd.to_datetime(data_wti.index)
-        df = data_wti.copy().iloc[-t_past:]
-        end_date = str(df.index[-1])[:10]
-        startPrice = data_wti.iloc[-1]['WTI']
-
-    if return_is_pnl:
-        df['r'] = scale*df[ticker].diff()
-    else:
-        df['r'] = scale*df[ticker].pct_change()
-
-    # NB: returns and log returns are almost equal
-
-    # Factors
-    if fit_stock:
-        df['f'] =\
-            df['r'].rolling(window).mean() / df['r'].rolling(window).std()
-    else:
-        df['f'] = df['r'].rolling(window).mean()
-
-    df.dropna(inplace=True)
+    df = load('data/df.joblib')
+    ticker = load('data/ticker.joblib')
 
     price = df[ticker][-t_:]
     pnl = df[ticker].diff()[-t_:]
@@ -180,6 +128,11 @@ if __name__ == '__main__':
                        return_is_pnl)
 
     # ------------------------------------- Plots -----------------------------
+
+    plt.figure()
+    plt.plot(df[ticker][-t_:])
+    plt.title('price')
+    plt.savefig('figures/price.png')
 
     plt.figure()
     plt.plot(Markowitz*price, color='m', label='Markowitz')

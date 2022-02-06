@@ -74,6 +74,9 @@ else:
 
 df.dropna(inplace=True)
 
+dump(df, 'data/df.joblib')
+dump(ticker, 'data/ticker.joblib')
+
 calibration_parameters = pd.DataFrame(index=['ticker', 'end_date',
                                              'startPrice', 't_past',
                                              'window'],
