@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # ------------------------------------- Parameters ------------------------
 
-    j_oos = 100
+    j_oos = 1000
     t_ = 50
 
     returnDynamicsType = load('data/returnDynamicsType.joblib')
@@ -65,6 +65,11 @@ if __name__ == '__main__':
     market = instantiate_market(returnDynamicsType, factorDynamicsType,
                                 startPrice, return_is_pnl)
 
+    Sigma = get_Sigma(market)
+    Lambda = lam*Sigma
+
+    B, mu_r, Phi, mu_f = get_dynamics_params(market)
+
     # Simulations
     price, pnl, f = simulate_market(market, j_episodes=j_oos, n_batches=1,
                                     t_=t_)
@@ -72,11 +77,6 @@ if __name__ == '__main__':
     price = price.squeeze()
     pnl = pnl.squeeze()
     f = f.squeeze()
-
-    Sigma = get_Sigma(market)
-    Lambda = lam*Sigma
-
-    B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
     # ------------------------------------- Markowitz -------------------------
 
@@ -101,9 +101,6 @@ if __name__ == '__main__':
     qb_list = []
     for b in range(n_batches):
         qb_list.append(load('models/q%d.joblib' % b))
-
-    # def q_value(state, action):
-    #     return q_hat(state, action, qb_list, flag_qaverage=flag_qaverage)
 
     RL = np.zeros((j_oos, t_))
 
@@ -165,12 +162,12 @@ if __name__ == '__main__':
                                alternative='larger')
 
     print('\n\n\nWelch\'s tests (absolute):\n')
-    print('    H0: GPw=Mw, H1: GPw>Mw. t: %.4f, p-value: %.4f' % (t_wealth_GP_M[0],
-                                                                  t_wealth_GP_M[1]))
-    print('    H0: RLw=Mw, H1: RLw>Mw. t: %.4f, p-value: %.4f' % (t_wealth_RL_M[0],
-                                                                  t_wealth_RL_M[1]))
-    print('    H0: RLw=GPw, H1: RLw>GPw. t: %.4f, p-value: %.4f' % (t_wealth_RL_GP[0],
-                                                                    t_wealth_RL_GP[1]))
+    print('    H0: GPw=Mw, H1: GPw>Mw. t: %.4f, p-value: %.4f' %
+          (t_wealth_GP_M[0], t_wealth_GP_M[1]))
+    print('    H0: RLw=Mw, H1: RLw>Mw. t: %.4f, p-value: %.4f' %
+          (t_wealth_RL_M[0], t_wealth_RL_M[1]))
+    print('    H0: RLw=GPw, H1: RLw>GPw. t: %.4f, p-value: %.4f' %
+          (t_wealth_RL_GP[0], t_wealth_RL_GP[1]))
 
     t_value_GP_M = ttest_ind(final_value_GP,
                              final_value_M,
@@ -187,12 +184,12 @@ if __name__ == '__main__':
                               usevar='unequal',
                               alternative='larger')
 
-    print('\n    H0: GPv=Mv, H1: GPv>Mv. t: %.4f, p-value: %.4f' % (t_value_GP_M[0],
-                                                                    t_value_GP_M[1]))
-    print('    H0: RLv=Mv, H1: RLv>Mv. t: %.4f, p-value: %.4f' % (t_value_RL_M[0],
-                                                                  t_value_RL_M[1]))
-    print('    H0: RLv=GPv, H1: RLv>GPv. t: %.4f, p-value: %.4f' % (t_value_RL_GP[0],
-                                                                     t_value_RL_GP[1]))
+    print('\n    H0: GPv=Mv, H1: GPv>Mv. t: %.4f, p-value: %.4f' %
+          (t_value_GP_M[0], t_value_GP_M[1]))
+    print('    H0: RLv=Mv, H1: RLv>Mv. t: %.4f, p-value: %.4f' %
+          (t_value_RL_M[0], t_value_RL_M[1]))
+    print('    H0: RLv=GPv, H1: RLv>GPv. t: %.4f, p-value: %.4f' %
+          (t_value_RL_GP[0], t_value_RL_GP[1]))
 
     t_cost_GP_M = ttest_ind(final_cost_GP,
                             final_cost_M,
@@ -209,12 +206,12 @@ if __name__ == '__main__':
                              usevar='unequal',
                              alternative='smaller')
 
-    print('\n    H0: GPc=Mc, H1: GPc<Mc. t: %.4f, p-value: %.4f' % (t_cost_GP_M[0],
-                                                                    t_cost_GP_M[1]))
-    print('    H0: RLc=Mc, H1: RLc<Mc. t: %.4f, p-value: %.4f' % (t_cost_RL_M[0],
-                                                                  t_cost_RL_M[1]))
-    print('    H0: RLc=GPc, H1: RLc<GPc. t: %.4f, p-value: %.4f' % (t_cost_RL_GP[0],
-                                                                     t_cost_RL_GP[1]))
+    print('\n    H0: GPc=Mc, H1: GPc<Mc. t: %.4f, p-value: %.4f' %
+          (t_cost_GP_M[0], t_cost_GP_M[1]))
+    print('    H0: RLc=Mc, H1: RLc<Mc. t: %.4f, p-value: %.4f' %
+          (t_cost_RL_M[0], t_cost_RL_M[1]))
+    print('    H0: RLc=GPc, H1: RLc<GPc. t: %.4f, p-value: %.4f' %
+          (t_cost_RL_GP[0], t_cost_RL_GP[1]))
 
     # ------------------------------------------------------- linear regression
 
@@ -249,11 +246,9 @@ if __name__ == '__main__':
         plt.savefig('figures/out-of-sample-shares-%d.png' % j)
 
     plt.figure()
-    # plt.plot(np.diff(Markowitz[0, :]), color='m', label='Markowitz', alpha=0.5)
     plt.plot(np.diff(GP[0, :]), color='g', label='GP', alpha=0.5)
     plt.plot(np.diff(RL[0, :]), color='r', label='RL', alpha=0.5)
     for j in range(1, min(50, j_oos)):
-        # plt.plot(np.diff(Markowitz[j, :]), color='m', alpha=0.5)
         plt.plot(np.diff(GP[j, :]), color='g', alpha=0.5)
         plt.plot(np.diff(RL[j, :]), color='r', alpha=0.5)
     plt.legend()
@@ -262,7 +257,6 @@ if __name__ == '__main__':
 
     for j in range(min(7, j_oos)):
         plt.figure()
-        # plt.plot(np.diff(Markowitz[j, :]), color='m', label='Markowitz')
         plt.plot(np.diff(GP[j, :]), color='g', label='GP')
         plt.plot(np.diff(RL[j, :]), color='r', label='RL')
         plt.title('out-of-sample-trades %d' % j)
@@ -276,7 +270,7 @@ if __name__ == '__main__':
     plt.hist(np.diff(GP, axis=1).flatten(),
              color='g', density=True,
              alpha=0.5, label='GP', bins='auto')
-    plt.title('|trade|')
+    plt.title('trade')
     plt.legend()
     plt.savefig('figures/trades-histogram.png')
 

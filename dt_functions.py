@@ -992,6 +992,12 @@ def q_hat(state, action,
 
 def compute_markovitz(f, gamma, B, Sigma, price, mu_r, return_is_pnl):
 
+    if type(f) in (pd.core.series.Series, pd.core.frame.DataFrame):
+        f = f.to_numpy()
+
+    if type(price) in (pd.core.series.Series, pd.core.frame.DataFrame):
+        price = price.to_numpy()
+
     if f.ndim == 1:
         t_ = f.shape[0]
         j_ = 1
@@ -1021,6 +1027,12 @@ def compute_markovitz(f, gamma, B, Sigma, price, mu_r, return_is_pnl):
 # -----------------------------------------------------------------------------
 
 def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r, return_is_pnl):
+
+    if type(f) in (pd.core.series.Series, pd.core.frame.DataFrame):
+        f = f.to_numpy()
+
+    if type(price) in (pd.core.series.Series, pd.core.frame.DataFrame):
+        price = price.to_numpy()
 
     if f.ndim == 1:
         t_ = f.shape[0]
@@ -1062,6 +1074,9 @@ def compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r, return_is_pnl):
 
 def compute_rl(j, f, qb_list, factorType, optimizers, optimizer=None,
                bound=400, rescale_n_a=True, GP=None):
+
+    if type(f) in (pd.core.series.Series, pd.core.frame.DataFrame):
+        f = f.to_numpy()
 
     if rescale_n_a:
         resc_n_a = bound
@@ -1122,11 +1137,18 @@ def compute_rl(j, f, qb_list, factorType, optimizers, optimizer=None,
 def compute_wealth(pnl, strat, gamma, Lambda, rho, Sigma, price,
                    return_is_pnl):
 
+    if type(pnl) in (pd.core.series.Series, pd.core.frame.DataFrame):
+        pnl = pnl.to_numpy()
+
+    if type(price) in (pd.core.series.Series, pd.core.frame.DataFrame):
+        price = price.to_numpy()
+
     if pnl.ndim == 1:
         t_ = pnl.shape[0]
         j_ = 1
         pnl = pnl.reshape((j_, t_))
         strat = strat.reshape((j_, t_))
+        price = price.reshape((j_, t_))
     elif pnl.ndim == 2:
         j_, t_ = pnl.shape
 

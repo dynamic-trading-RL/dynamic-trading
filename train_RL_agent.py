@@ -38,10 +38,10 @@ if __name__ == '__main__':
 
     # RL parameters
     j_episodes = 15000
-    n_batches = 1
+    n_batches = 5
     t_ = 50
 
-    parallel_computing = False
+    parallel_computing = True
     n_cores_max = 50
     alpha = 1.
     eps = 0.01
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     return_is_pnl = load('data/return_is_pnl.joblib')
     fit_stock = load('data/fit_stock.joblib')
 
-    bound = 5
+    bound = None
 
     standardize_Y = False
     rescale_n_a = True
@@ -90,7 +90,8 @@ if __name__ == '__main__':
         else:
             lam_perc = 10**-8
     rho = 1 - np.exp(-.02/252)  # discount
-    factorType = FactorType.Observable  # ??? latent case to be discussed: issue with constant solutions
+    factorType = FactorType.Observable
+    # ??? latent case to be discussed: issue with constant solutions
 
     # ------------------------------------- Reinforcement learning ------------
     calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',

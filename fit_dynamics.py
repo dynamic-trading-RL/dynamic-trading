@@ -143,7 +143,8 @@ res_ar = AutoReg(df['f'], lags=1, old_names=False).fit()
 mu_ar = res_ar.params.iloc[0] / scale_f
 Phi_ar = 1 - res_ar.params.iloc[1]
 Omega_ar = res_ar.sigma2 / scale_f**2
-epsi_ar = df['f'].iloc[1:] / scale_f - Phi_ar*df['f'].iloc[:-1] / scale_f - mu_ar
+epsi_ar =\
+    df['f'].iloc[1:] / scale_f - Phi_ar*df['f'].iloc[:-1] / scale_f - mu_ar
 
 with open('reports/' + ticker + '-factor_AR.txt', 'w+') as fh:
     fh.write(res_ar.summary().as_text())
