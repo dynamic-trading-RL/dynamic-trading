@@ -66,7 +66,7 @@ if __name__ == '__main__':
     B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
     # Time series
-    df = load('data/df.joblib')
+    df = pd.read_csv('data/df.csv', index_col=0, parse_dates=True)
     ticker = load('data/ticker.joblib')
 
     price = df[ticker][-t_:]
