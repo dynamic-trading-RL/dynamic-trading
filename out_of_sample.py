@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # ------------------------------------- Parameters ------------------------
 
-    j_oos = 1000
+    j_oos = 10000
     t_ = 50
 
     returnDynamicsType = load('data/returnDynamicsType.joblib')
