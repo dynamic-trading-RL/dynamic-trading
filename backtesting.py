@@ -51,8 +51,6 @@ if __name__ == '__main__':
     bound = load('data/bound.joblib')
     rescale_n_a = load('data/rescale_n_a.joblib')
     return_is_pnl = load('data/return_is_pnl.joblib')
-    parallel_computing = load('data/parallel_computing.joblib')
-    n_cores = load('data/n_cores.joblib')
 
     # ------------------------------------- Simulations -----------------------
 
@@ -97,31 +95,10 @@ if __name__ == '__main__':
     for b in range(n_batches):
         qb_list.append(load('models/q%d.joblib' % b))
 
-    RL = np.zeros((1, t_))
-
-    if parallel_computing:
-
-        compute_rl_part = partial(compute_rl, f=f, qb_list=qb_list,
-                                  factorType=factorType, optimizers=optimizers,
-                                  optimizer=optimizer, bound=bound,
-                                  rescale_n_a=rescale_n_a)
-
-        p = mp.Pool(n_cores)
-        shares = p.map(compute_rl_part, range(1))
-        p.close()
-        p.join()
-        RL = np.array(shares)
-
-    else:
-
-        for j in range(1):
-
-            RL[j] = compute_rl(j, f=f, qb_list=qb_list,
-                               factorType=factorType, optimizers=optimizers,
-                               optimizer=optimizer,
-                               bound=bound, rescale_n_a=rescale_n_a)
-
-    RL = RL.squeeze()
+    RL = compute_rl(0, f=f, qb_list=qb_list,
+                    factorType=factorType, optimizers=optimizers,
+                    optimizer=optimizer,
+                    bound=bound, rescale_n_a=rescale_n_a)
 
     wealth_RL, value_RL, cost_RL =\
         compute_wealth(pnl, RL, gamma, Lambda, rho, Sigma, price,

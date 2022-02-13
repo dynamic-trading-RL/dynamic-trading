@@ -37,8 +37,8 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 15000
-    n_batches = 6
+    j_episodes = 50000
+    n_batches = 1
     t_ = 50
 
     parallel_computing = True
@@ -326,7 +326,7 @@ if __name__ == '__main__':
                 plt.savefig('figures/state_1 vs q; batch=%d.png' % b)
 
         plt.figure()
-        for b in range(1, n_batches):
+        for b in range(n_batches):
             plt.plot(reward[b, :], label='Batch: %d' % b, alpha=0.5,
                      color=color[b])
         plt.legend()
@@ -334,7 +334,7 @@ if __name__ == '__main__':
         plt.savefig('figures/reward.png')
 
         plt.figure()
-        for b in range(1, n_batches):
+        for b in range(n_batches):
             plt.plot(np.cumsum(reward[b, :]), label='Batch: %d' % b, alpha=0.5,
                      color=color[b])
         plt.legend()
@@ -347,7 +347,7 @@ if __name__ == '__main__':
         plt.savefig('figures/cum-reward-final.png')
 
         plt.figure()
-        for b in range(1, n_batches):
+        for b in range(n_batches):
             plt.plot(cost[b, :], label='Batch: %d' % b, alpha=0.5,
                      color=color[b])
         plt.legend()
@@ -355,7 +355,7 @@ if __name__ == '__main__':
         plt.savefig('figures/cost.png')
 
         plt.figure()
-        for b in range(1, n_batches):
+        for b in range(n_batches):
             plt.plot(np.cumsum(cost[b, :]), label='Batch: %d' % b, alpha=0.5,
                      color=color[b])
         plt.legend()
