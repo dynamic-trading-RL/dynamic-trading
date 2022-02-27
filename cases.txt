@@ -1,0 +1,5 @@
+Cases:
+1: WTI
+2: WTI with bounds on trade size
+3: WTI with NonLinear - SETAR
+4: stock with logreturns, NonLinear - GARCH
