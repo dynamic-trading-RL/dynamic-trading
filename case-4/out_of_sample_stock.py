@@ -21,7 +21,11 @@ from dt_functions import (instantiate_market,
                           compute_GP,
                           compute_rl,
                           compute_wealth,
-                          get_dynamics_params)
+                          get_dynamics_params,
+                          ReturnDynamics,
+                          FactorDynamics,
+                          MarketDynamics,
+                          Market)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -55,15 +59,31 @@ if __name__ == '__main__':
     flag_qaverage = load('data/flag_qaverage.joblib')
     bound = load('data/bound.joblib')
     rescale_n_a = load('data/rescale_n_a.joblib')
-    return_is_pnl = load('data/return_is_pnl.joblib')
     parallel_computing = load('data/parallel_computing.joblib')
     n_cores = load('data/n_cores.joblib')
 
-    # ------------------------------------- Simulations -----------------------
 
+
+    # -------------------------- REINFORCEMENT LEARNING -----------------------
     # Instantiate market
-    market = instantiate_market(returnDynamicsType, factorDynamicsType,
-                                startPrice, return_is_pnl)
+    # Instantiate dynamics
+    returnDynamics = ReturnDynamics(returnDynamicsType)
+    factorDynamics = FactorDynamics(factorDynamicsType)
+
+    # Read calibrated parameters
+    return_parameters = pd.read_excel('data/return_calibrations.xlsx',
+                                      sheet_name='linear',
+                                      index_col=0)['param'].to_dict()
+    factor_parameters = pd.read_excel('data/factor_r_calibrations.xlsx',
+                                      sheet_name='AR',
+                                      index_col=0)['param'].to_dict()
+
+    # Set dynamics
+    returnDynamics.set_parameters(return_parameters)
+    factorDynamics.set_parameters(factor_parameters)
+    marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
+                                    factorDynamics=factorDynamics)
+    market = Market(marketDynamics, startPrice, return_is_pnl=False)
 
     Sigma = get_Sigma(market)
     Lambda = lam*Sigma
@@ -78,26 +98,7 @@ if __name__ == '__main__':
     pnl = pnl.squeeze()
     f = f.squeeze()
 
-    # ------------------------------------- Markowitz -------------------------
-
-    Markowitz = compute_markovitz(f, gamma, B, Sigma, price, mu_r,
-                                  return_is_pnl)
-
-    wealth_M, value_M, cost_M =\
-        compute_wealth(pnl, Markowitz, gamma, Lambda, rho, Sigma, price,
-                       return_is_pnl)
-
-    # ------------------------------------- GP --------------------------------
-
-    GP = compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r,
-                    return_is_pnl)
-
-    wealth_GP, value_GP, cost_GP =\
-        compute_wealth(pnl, GP, gamma, Lambda, rho, Sigma, price,
-                       return_is_pnl)
-
-    # ------------------------------------- RL --------------------------------
-
+    # Strategy
     qb_list = []
     for b in range(n_batches):
         qb_list.append(load('models/q%d.joblib' % b))
@@ -128,7 +129,60 @@ if __name__ == '__main__':
 
     wealth_RL, value_RL, cost_RL =\
         compute_wealth(pnl, RL, gamma, Lambda, rho, Sigma, price,
-                       return_is_pnl)
+                       return_is_pnl=False)
+
+    # -------------------------- GP & MARKOWITZ -------------------------------
+    lam_perc = 10**-1
+
+    # Instantiate market
+    # Instantiate dynamics
+    returnDynamics = ReturnDynamics(returnDynamicsType)
+    factorDynamics = FactorDynamics(factorDynamicsType)
+
+    # Read calibrated parameters
+    return_parameters = pd.read_excel('data/pnl_calibrations.xlsx',
+                                      sheet_name='linear',
+                                      index_col=0)['param'].to_dict()
+    factor_parameters = pd.read_excel('data/factor_pnl_calibrations.xlsx',
+                                      sheet_name='AR',
+                                      index_col=0)['param'].to_dict()
+
+    # Set dynamics
+    returnDynamics.set_parameters(return_parameters)
+    factorDynamics.set_parameters(factor_parameters)
+    marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
+                                    factorDynamics=factorDynamics)
+    market = Market(marketDynamics, startPrice, return_is_pnl=True)
+
+    Sigma = get_Sigma(market)
+    lam = lam_perc * 2 / Sigma
+    Lambda = lam*Sigma
+
+    B, mu_r, Phi, mu_f = get_dynamics_params(market)
+
+    # Simulations
+    price, pnl, f = simulate_market(market, j_episodes=j_oos, n_batches=1,
+                                    t_=t_)
+
+    price = price.squeeze()
+    pnl = pnl.squeeze()
+    f = f.squeeze()
+
+    # Strategy
+    Markowitz = compute_markovitz(f, gamma, B, Sigma, price, mu_r,
+                                  return_is_pnl=True)
+
+    wealth_M, value_M, cost_M =\
+        compute_wealth(pnl, Markowitz, gamma, Lambda, rho, Sigma, price,
+                       return_is_pnl=True)
+
+    GP = compute_GP(f, gamma, lam, rho, B, Sigma, Phi, price, mu_r,
+                    return_is_pnl=True)
+
+    wealth_GP, value_GP, cost_GP =\
+        compute_wealth(pnl, GP, gamma, Lambda, rho, Sigma, price,
+                       return_is_pnl=True)
+
 
     # ------------------------------------- Tests -----------------------------
 

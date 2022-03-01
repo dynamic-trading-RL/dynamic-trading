@@ -11,12 +11,11 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neural_network import MLPRegressor
-from joblib import dump, load
+from joblib import dump
 from functools import partial
 import multiprocessing as mp
 from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           FactorType,
-                          instantiate_market,
                           get_Sigma,
                           simulate_market,
                           generate_episode,
@@ -25,7 +24,11 @@ from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
                           set_regressor_parameters_tree,
                           set_regressor_parameters_gb,
                           get_dynamics_params,
-                          get_bound)
+                          get_bound,
+                          ReturnDynamics,
+                          FactorDynamics,
+                          MarketDynamics,
+                          Market)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -70,26 +73,16 @@ if __name__ == '__main__':
     dump_XY = False
 
     # Market parameters
-    returnDynamicsType = ReturnDynamicsType.NonLinear
-    factorDynamicsType = FactorDynamicsType.GARCH
+    returnDynamicsType = ReturnDynamicsType.Linear
+    factorDynamicsType = FactorDynamicsType.AR
     dump(returnDynamicsType, 'data/returnDynamicsType.joblib')
     dump(factorDynamicsType, 'data/factorDynamicsType.joblib')
 
-    if fit_stock:
-        gamma = 10**-4  # risk aversion
-        if return_is_pnl:  # costs: percentage of unit trade value
-            lam_perc = 10**-1
-        else:
-            lam_perc = 10**-7
-    else:
-        gamma = 10**-3  # risk aversion
-        if return_is_pnl:
-            lam_perc = 10**-2
-        else:
-            lam_perc = 10**-8
+    gamma = 10**-4  # risk aversion
+    lam_perc = 10**-7
+
     rho = 1 - np.exp(-.02/252)  # discount
     factorType = FactorType.Observable
-    # ??? latent case to be discussed: issue with constant solutions
 
     # ------------------------------------- Reinforcement learning ------------
     calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
@@ -119,8 +112,24 @@ if __name__ == '__main__':
         dump(n_cores, 'data/n_cores.joblib')
 
     # Instantiate market
-    market = instantiate_market(returnDynamicsType, factorDynamicsType,
-                                startPrice, return_is_pnl)
+    # Instantiate dynamics
+    returnDynamics = ReturnDynamics(returnDynamicsType)
+    factorDynamics = FactorDynamics(factorDynamicsType)
+
+    # Read calibrated parameters
+    return_parameters = pd.read_excel('data/return_calibrations.xlsx',
+                                      sheet_name='linear',
+                                      index_col=0)['param'].to_dict()
+    factor_parameters = pd.read_excel('data/factor_r_calibrations.xlsx',
+                                      sheet_name='AR',
+                                      index_col=0)['param'].to_dict()
+
+    # Set dynamics
+    returnDynamics.set_parameters(return_parameters)
+    factorDynamics.set_parameters(factor_parameters)
+    marketDynamics = MarketDynamics(returnDynamics=returnDynamics,
+                                    factorDynamics=factorDynamics)
+    market = Market(marketDynamics, startPrice, return_is_pnl=False)
 
     # Simulations
     price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
@@ -133,7 +142,7 @@ if __name__ == '__main__':
 
     # Get bound
     if bound is None:
-        bound = get_bound(return_is_pnl, f, price, gamma, lam, rho, B,
+        bound = get_bound(False, f, price, gamma, lam, rho, B,
                           mu_r, Sigma, Phi, resc_by_M=True)
 
     # Initialize reward and cost
@@ -169,7 +178,7 @@ if __name__ == '__main__':
                               factorType=factorType,
                               # reward/cost parameters
                               rho=rho, gamma=gamma, Sigma=Sigma,
-                              Lambda=Lambda, return_is_pnl=return_is_pnl,
+                              Lambda=Lambda, return_is_pnl=False,
                               # RL parameters
                               eps=eps, qb_list=qb_list,
                               flag_qaverage=flag_qaverage, alpha=alpha,

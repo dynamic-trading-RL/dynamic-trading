@@ -3,8 +3,8 @@
 Dep. Variable:                    pnl   R-squared:                       0.001
 Model:                            OLS   Adj. R-squared:                  0.001
 Method:                 Least Squares   F-statistic:                     10.58
-Date:                Sun, 27 Feb 2022   Prob (F-statistic):            0.00115
-Time:                        16:30:53   Log-Likelihood:                -34665.
+Date:                Tue, 01 Mar 2022   Prob (F-statistic):            0.00115
+Time:                        16:14:51   Log-Likelihood:                -34665.
 No. Observations:                7994   AIC:                         6.933e+04
 Df Residuals:                    7992   BIC:                         6.935e+04
 Df Model:                           1                                         

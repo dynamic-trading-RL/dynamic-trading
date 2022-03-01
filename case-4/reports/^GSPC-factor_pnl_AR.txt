@@ -3,9 +3,9 @@
 Dep. Variable:                  f_pnl   No. Observations:                 7995
 Model:                     AutoReg(1)   Log Likelihood               -3521.719
 Method:               Conditional MLE   S.D. of innovations              0.376
-Date:                Sun, 27 Feb 2022   AIC                             -1.956
-Time:                        16:30:53   BIC                             -1.953
-Sample:                             1   HQIC                            -1.955
+Date:                Tue, 01 Mar 2022   AIC                           7049.437
+Time:                        16:14:51   BIC                           7070.396
+Sample:                             1   HQIC                          7056.611
                                  7995                                         
 ==============================================================================
                  coef    std err          z      P>|z|      [0.025      0.975]
