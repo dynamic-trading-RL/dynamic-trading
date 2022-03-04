@@ -1,0 +1,25 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      r   R-squared:                       0.005
+Model:                            OLS   Adj. R-squared:                  0.004
+Method:                 Least Squares   F-statistic:                     15.45
+Date:                Fri, 04 Mar 2022   Prob (F-statistic):           8.64e-05
+Time:                        16:06:22   Log-Likelihood:                 9642.8
+No. Observations:                3357   AIC:                        -1.928e+04
+Df Residuals:                    3355   BIC:                        -1.927e+04
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const         -0.0004      0.000     -1.069      0.285      -0.001       0.000
+f             -0.0028      0.001     -3.931      0.000      -0.004      -0.001
+==============================================================================
+Omnibus:                      577.246   Durbin-Watson:                   2.140
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):            12100.193
+Skew:                          -0.109   Prob(JB):                         0.00
+Kurtosis:                      12.298   Cond. No.                         3.48
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
