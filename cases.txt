@@ -3,4 +3,4 @@ Cases:
 2: WTI with bounds on trade size
 3: WTI with NonLinear - SETAR
 4: stock with logreturns, GP and M with pnl, Linear - AR
-4b: stock with logreturns, Linear - AR 
+4b: stock with logreturns, NonLinear - ARTARCH

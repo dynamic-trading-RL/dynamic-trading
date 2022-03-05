@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.NonLinear
-    factorDynamicsType = FactorDynamicsType.AR
+    factorDynamicsType = FactorDynamicsType.AR_TARCH
     dump(returnDynamicsType, 'data/returnDynamicsType.joblib')
     dump(factorDynamicsType, 'data/factorDynamicsType.joblib')
 
