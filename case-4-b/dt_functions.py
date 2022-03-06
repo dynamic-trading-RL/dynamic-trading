@@ -11,6 +11,9 @@ from enum import Enum
 from scipy.optimize import (dual_annealing, shgo, differential_evolution,
                             brute, minimize)
 from scipy.stats import multivariate_normal
+from statsmodels.stats.weightstats import ttest_ind
+from statsmodels.regression.linear_model import OLS
+from statsmodels.tools import add_constant
 
 
 # -----------------------------------------------------------------------------
@@ -1310,3 +1313,140 @@ def get_rescSigmaLambda(return_is_pnl, Sigma, Lambda, price):
         rescLambda = price**2*Lambda
 
     return rescSigma, rescLambda
+
+
+# -----------------------------------------------------------------------------
+# perform_ttest
+# -----------------------------------------------------------------------------
+
+def perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
+                  final_value_GP, final_value_M, final_value_RL,
+                  final_cost_GP, final_cost_M, final_cost_RL):
+
+    # General statistics
+    df = pd.DataFrame(columns=['Quantity', 'Model', 'Mean', 'Standard deviation'],
+                      data=[['Final wealth', 'GP', np.mean(final_wealth_GP), np.std(final_wealth_GP)],
+                            ['Final wealth', 'M', np.mean(final_wealth_M), np.std(final_wealth_M)],
+                            ['Final wealth', 'RL', np.mean(final_wealth_RL), np.std(final_wealth_RL)],
+                            ['Final value', 'GP', np.mean(final_value_GP), np.std(final_value_GP)],
+                            ['Final value', 'M', np.mean(final_value_M), np.std(final_value_M)],
+                            ['Final value', 'RL', np.mean(final_value_RL), np.std(final_value_RL)],
+                            ['Final cost', 'GP', np.mean(final_cost_GP), np.std(final_cost_GP)],
+                            ['Final cost', 'M', np.mean(final_cost_M), np.std(final_cost_M)],
+                            ['Final cost', 'RL', np.mean(final_cost_RL), np.std(final_cost_RL)]])
+
+    df.to_csv('reports/general_statistics.csv', index=False)
+
+    # Execute tests
+    t_wealth_GP_M = ttest_ind(final_wealth_GP,
+                              final_wealth_M,
+                              usevar='unequal',
+                              alternative='larger')
+
+    t_wealth_RL_M = ttest_ind(final_wealth_RL,
+                              final_wealth_M,
+                              usevar='unequal',
+                              alternative='larger')
+
+    t_wealth_RL_GP = ttest_ind(final_wealth_RL,
+                               final_wealth_GP,
+                               usevar='unequal',
+                               alternative='larger')
+
+    t_value_GP_M = ttest_ind(final_value_GP,
+                             final_value_M,
+                             usevar='unequal',
+                             alternative='larger')
+
+    t_value_RL_M = ttest_ind(final_value_RL,
+                             final_value_M,
+                             usevar='unequal',
+                             alternative='larger')
+
+    t_value_RL_GP = ttest_ind(final_value_RL,
+                              final_value_GP,
+                              usevar='unequal',
+                              alternative='larger')
+
+    t_cost_GP_M = ttest_ind(final_cost_GP,
+                            final_cost_M,
+                            usevar='unequal',
+                            alternative='smaller')
+
+    t_cost_RL_M = ttest_ind(final_cost_RL,
+                            final_cost_M,
+                            usevar='unequal',
+                            alternative='smaller')
+
+    t_cost_RL_GP = ttest_ind(final_cost_RL,
+                             final_cost_GP,
+                             usevar='unequal',
+                             alternative='smaller')
+
+    # Prepare output dataframe
+    df = pd.DataFrame(columns=['H0', 'H1', 't-statistic', 'p-value'],
+                      data=[['GPw=Mw', 'GPw>Mw', t_wealth_GP_M[0],
+                             t_wealth_GP_M[1]],
+                             ['RLw=Mw', 'RLw>Mw', t_wealth_RL_M[0],
+                              t_wealth_RL_M[1]],
+                             ['RLw=GPw', 'RLw>GPw', t_wealth_RL_GP[0],
+                              t_wealth_RL_GP[1]],
+                             ['GPv=Mv', 'GPv>Mv', t_value_GP_M[0],
+                              t_value_GP_M[1]],
+                             ['RLv=Mv', 'RLv>Mv', t_value_RL_M[0],
+                              t_value_RL_M[1]],
+                             ['RLv=GPv', 'RLv>GPv', t_value_RL_GP[0],
+                              t_value_RL_GP[1]],
+                             ['GPc=Mc', 'GPc<Mc', t_cost_GP_M[0],
+                              t_cost_GP_M[1]],
+                             ['RLc=Mc', 'RLc<Mc', t_cost_RL_M[0],
+                              t_cost_RL_M[1]],
+                             ['RLc=GPc', 'RLc<GPc', t_cost_RL_GP[0],
+                              t_cost_RL_GP[1]]])
+
+    # Output
+    df.to_csv('reports/t_tests.csv', index=False)
+
+    # Print results
+    print('\n\n\nWelch\'s tests (absolute):\n')
+    print('    H0: GPw=Mw, H1: GPw>Mw. t: %.4f, p-value: %.4f' %
+          (t_wealth_GP_M[0], t_wealth_GP_M[1]))
+    print('    H0: RLw=Mw, H1: RLw>Mw. t: %.4f, p-value: %.4f' %
+          (t_wealth_RL_M[0], t_wealth_RL_M[1]))
+    print('    H0: RLw=GPw, H1: RLw>GPw. t: %.4f, p-value: %.4f' %
+          (t_wealth_RL_GP[0], t_wealth_RL_GP[1]))
+
+    print('\n    H0: GPv=Mv, H1: GPv>Mv. t: %.4f, p-value: %.4f' %
+          (t_value_GP_M[0], t_value_GP_M[1]))
+    print('    H0: RLv=Mv, H1: RLv>Mv. t: %.4f, p-value: %.4f' %
+          (t_value_RL_M[0], t_value_RL_M[1]))
+    print('    H0: RLv=GPv, H1: RLv>GPv. t: %.4f, p-value: %.4f' %
+          (t_value_RL_GP[0], t_value_RL_GP[1]))
+
+    print('\n    H0: GPc=Mc, H1: GPc<Mc. t: %.4f, p-value: %.4f' %
+          (t_cost_GP_M[0], t_cost_GP_M[1]))
+    print('    H0: RLc=Mc, H1: RLc<Mc. t: %.4f, p-value: %.4f' %
+          (t_cost_RL_M[0], t_cost_RL_M[1]))
+    print('    H0: RLc=GPc, H1: RLc<GPc. t: %.4f, p-value: %.4f' %
+          (t_cost_RL_GP[0], t_cost_RL_GP[1]))
+
+
+# -----------------------------------------------------------------------------
+# perform_linear_regression
+# -----------------------------------------------------------------------------
+
+def perform_linear_regression(final_wealth_RL, final_wealth_GP):
+
+    linreg_GP_RL = OLS(final_wealth_RL, add_constant(final_wealth_GP)).fit()
+
+    print('\n\n\n Linear regression of X=GP vs Y=RL:\n')
+    print(linreg_GP_RL.summary())
+    print('\n\n H0: beta=1; H1: beta!=1')
+    print(linreg_GP_RL.t_test(([0., 1.], 1.)).summary())
+
+    with open('reports/final_linear_regression_results.txt', 'w+') as fh:
+        fh.write(linreg_GP_RL.summary().as_text())
+    with open('reports/final_linear_regression_ttest.txt', 'w+') as fh:
+        fh.write(linreg_GP_RL.t_test(([0., 1.], 1.)).summary().as_text())
+
+    return linreg_GP_RL

@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parallel_computing = True
     n_cores_max = 20
     alpha = 1.
-    eps = 0.1
+    eps = 0.01
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
     optimizer = 'shgo'
@@ -56,9 +56,9 @@ if __name__ == '__main__':
     return_is_pnl = load('data/return_is_pnl.joblib')
     fit_stock = load('data/fit_stock.joblib')
 
-    bound = 10.
+    bound = 5.
 
-    standardize_Y = False
+    standardize_Y = True
     rescale_n_a = True
 
     dyn_update_q_value = False

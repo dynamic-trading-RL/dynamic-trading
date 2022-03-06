@@ -19,7 +19,7 @@ from statsmodels.tsa.ar_model import AutoReg
 
 
 ticker = '^GSPC'  # '^GSPC'
-end_date = '2022-01-03'
+end_date = '2018-10-01'
 c = 0.
 scale = 1
 scale_f = 1  # or "= scale"

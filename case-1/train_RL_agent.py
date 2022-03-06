@@ -38,13 +38,13 @@ if __name__ == '__main__':
 
     # RL parameters
     j_episodes = 15000
-    n_batches = 6
+    n_batches = 1
     t_ = 50
 
     parallel_computing = True
     n_cores_max = 20
     alpha = 1.
-    eps = 0.1
+    eps = 0.01
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
     # 'brute', 'local'
     optimizer = 'shgo'
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     bound = None
 
-    standardize_Y = False
+    standardize_Y = True
     rescale_n_a = True
 
     dyn_update_q_value = False

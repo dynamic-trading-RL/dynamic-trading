@@ -9,9 +9,6 @@ import numpy as np
 import pandas as pd
 from joblib import load
 from functools import partial
-from statsmodels.stats.weightstats import ttest_ind
-from statsmodels.tools import add_constant
-from statsmodels.regression.linear_model import OLS
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 from dt_functions import (instantiate_market,
@@ -21,7 +18,9 @@ from dt_functions import (instantiate_market,
                           compute_GP,
                           compute_rl,
                           compute_wealth,
-                          get_dynamics_params)
+                          get_dynamics_params,
+                          perform_ttest,
+                          perform_linear_regression)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -132,8 +131,6 @@ if __name__ == '__main__':
 
     # ------------------------------------- Tests -----------------------------
 
-    # ---------------------------------------------------------- Welch's t-test
-
     final_wealth_GP = wealth_GP[:, -1]
     final_wealth_M = wealth_M[:, -1]
     final_wealth_RL = wealth_RL[:, -1]
@@ -146,81 +143,17 @@ if __name__ == '__main__':
     final_cost_M = cost_M[:, -1]
     final_cost_RL = cost_RL[:, -1]
 
-    t_wealth_GP_M = ttest_ind(final_wealth_GP,
-                              final_wealth_M,
-                              usevar='unequal',
-                              alternative='larger')
 
-    t_wealth_RL_M = ttest_ind(final_wealth_RL,
-                              final_wealth_M,
-                              usevar='unequal',
-                              alternative='larger')
+    # ---------------------------------------------------------- Welch's t-test
 
-    t_wealth_RL_GP = ttest_ind(final_wealth_RL,
-                               final_wealth_GP,
-                               usevar='unequal',
-                               alternative='larger')
-
-    print('\n\n\nWelch\'s tests (absolute):\n')
-    print('    H0: GPw=Mw, H1: GPw>Mw. t: %.4f, p-value: %.4f' %
-          (t_wealth_GP_M[0], t_wealth_GP_M[1]))
-    print('    H0: RLw=Mw, H1: RLw>Mw. t: %.4f, p-value: %.4f' %
-          (t_wealth_RL_M[0], t_wealth_RL_M[1]))
-    print('    H0: RLw=GPw, H1: RLw>GPw. t: %.4f, p-value: %.4f' %
-          (t_wealth_RL_GP[0], t_wealth_RL_GP[1]))
-
-    t_value_GP_M = ttest_ind(final_value_GP,
-                             final_value_M,
-                             usevar='unequal',
-                             alternative='larger')
-
-    t_value_RL_M = ttest_ind(final_value_RL,
-                             final_value_M,
-                             usevar='unequal',
-                             alternative='larger')
-
-    t_value_RL_GP = ttest_ind(final_value_RL,
-                              final_value_GP,
-                              usevar='unequal',
-                              alternative='larger')
-
-    print('\n    H0: GPv=Mv, H1: GPv>Mv. t: %.4f, p-value: %.4f' %
-          (t_value_GP_M[0], t_value_GP_M[1]))
-    print('    H0: RLv=Mv, H1: RLv>Mv. t: %.4f, p-value: %.4f' %
-          (t_value_RL_M[0], t_value_RL_M[1]))
-    print('    H0: RLv=GPv, H1: RLv>GPv. t: %.4f, p-value: %.4f' %
-          (t_value_RL_GP[0], t_value_RL_GP[1]))
-
-    t_cost_GP_M = ttest_ind(final_cost_GP,
-                            final_cost_M,
-                            usevar='unequal',
-                            alternative='smaller')
-
-    t_cost_RL_M = ttest_ind(final_cost_RL,
-                            final_cost_M,
-                            usevar='unequal',
-                            alternative='smaller')
-
-    t_cost_RL_GP = ttest_ind(final_cost_RL,
-                             final_cost_GP,
-                             usevar='unequal',
-                             alternative='smaller')
-
-    print('\n    H0: GPc=Mc, H1: GPc<Mc. t: %.4f, p-value: %.4f' %
-          (t_cost_GP_M[0], t_cost_GP_M[1]))
-    print('    H0: RLc=Mc, H1: RLc<Mc. t: %.4f, p-value: %.4f' %
-          (t_cost_RL_M[0], t_cost_RL_M[1]))
-    print('    H0: RLc=GPc, H1: RLc<GPc. t: %.4f, p-value: %.4f' %
-          (t_cost_RL_GP[0], t_cost_RL_GP[1]))
+    perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
+                  final_value_GP, final_value_M, final_value_RL,
+                  final_cost_GP, final_cost_M, final_cost_RL)
 
     # ------------------------------------------------------- linear regression
 
-    linreg_GP_RL = OLS(final_wealth_RL, add_constant(final_wealth_GP)).fit()
+    linreg_GP_RL = perform_linear_regression(final_wealth_RL, final_wealth_GP)
 
-    print('\n\n\n Linear regression of X=GP vs Y=RL:\n')
-    print(linreg_GP_RL.summary())
-    print('\n\n H0: beta=1; H1: beta!=1')
-    print(linreg_GP_RL.t_test(([0., 1.], 1.)))
 
     # ------------------------------------- Plots -----------------------------
 

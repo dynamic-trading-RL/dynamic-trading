@@ -22,9 +22,10 @@ return_is_pnl = True
 dump(fit_stock, 'data/fit_stock.joblib')
 dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
+end_date = '2018-10-01'
+
 if fit_stock:
     ticker = '^GSPC'  # '^GSPC'
-    end_date = '2022-01-03'
     c = 0.
     scale = 1
     scale_f = 1  # or "= scale"
@@ -51,11 +52,12 @@ else:
 
     # ------------------------------------- Import data -----------------------
 
-    data_wti = pd.read_csv('data/DCOILWTICO.csv', index_col=0,
+    data_wti = pd.read_csv('source_data/DCOILWTICO.csv', index_col=0,
                            na_values='.').fillna(method='pad')
     data_wti.columns = ['WTI']
     data_wti.index = pd.to_datetime(data_wti.index)
-    df = data_wti.copy().iloc[-t_past:]
+    end_date = pd.to_datetime(end_date)
+    df = data_wti.copy().loc[:end_date].iloc[-t_past:]
     end_date = str(df.index[-1])[:10]
     startPrice = data_wti.iloc[-1]['WTI']
 
@@ -67,10 +69,11 @@ else:
 # NB: returns and log returns are almost equal
 
 # Factors
-if fit_stock:
-    df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
-else:
-    df['f'] = df['r'].rolling(window).mean()
+# if fit_stock:
+#     df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
+# else:
+#     df['f'] = df['r'].rolling(window).mean()
+df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
 
 df.dropna(inplace=True)
 
