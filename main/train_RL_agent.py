@@ -37,11 +37,11 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 50000
+    j_episodes = 25000
     n_batches = 1
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 50
     alpha = 1.
     eps = 0.01
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # 'brute', 'local'
     optimizer = 'shgo'
     # random_forest, gradient_boosting, ann_deep, ann_fast, ann_small
-    sup_model = 'ann_deep'
+    sup_model = 'ann_fast'
 
     flag_qaverage = True
     predict_r = True

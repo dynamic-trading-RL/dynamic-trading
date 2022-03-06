@@ -51,7 +51,7 @@ else:
 
     # ------------------------------------- Import data -----------------------
 
-    data_wti = pd.read_csv('data/DCOILWTICO.csv', index_col=0,
+    data_wti = pd.read_csv('source_data/DCOILWTICO.csv', index_col=0,
                            na_values='.').fillna(method='pad')
     data_wti.columns = ['WTI']
     data_wti.index = pd.to_datetime(data_wti.index)
@@ -67,10 +67,11 @@ else:
 # NB: returns and log returns are almost equal
 
 # Factors
-if fit_stock:
-    df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
-else:
-    df['f'] = df['r'].rolling(window).mean()
+# if fit_stock:
+#     df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
+# else:
+#     df['f'] = df['r'].rolling(window).mean()
+df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
 
 df.dropna(inplace=True)
 
