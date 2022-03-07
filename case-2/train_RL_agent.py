@@ -56,9 +56,9 @@ if __name__ == '__main__':
     return_is_pnl = load('data/return_is_pnl.joblib')
     fit_stock = load('data/fit_stock.joblib')
 
-    bound = 5.
+    bound = 3.
 
-    standardize_Y = True
+    standardize_Y = False
     rescale_n_a = True
 
     dyn_update_q_value = False

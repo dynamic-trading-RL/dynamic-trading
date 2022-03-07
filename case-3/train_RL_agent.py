@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     bound = None
 
-    standardize_Y = True
+    standardize_Y = False
     rescale_n_a = True
 
     dyn_update_q_value = False

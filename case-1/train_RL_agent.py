@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     # RL parameters
     j_episodes = 15000
-    n_batches = 1
+    n_batches = 6
     t_ = 50
 
     parallel_computing = True
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     bound = None
 
-    standardize_Y = True
+    standardize_Y = False
     rescale_n_a = True
 
     dyn_update_q_value = False
