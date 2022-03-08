@@ -1,0 +1,70 @@
+Number of cores available: 144
+Number of cores used: 20
+Creating batch 1 of 1; eps=0.010000
+Fitting model 1 of 1
+    Score: 0.017
+    Average reward: -8.348
+    Average cost: 8.343
+Used optimizers:
+  shgo: 0
+  dual_annealing: 0
+  differential_evolution: 0
+  brute: 0
+  local: 0
+
+
+
+Welch's tests (absolute):
+
+    H0: GPw=Mw, H1: GPw>Mw. t: 64.7870, p-value: 0.0000
+    H0: RLw=Mw, H1: RLw>Mw. t: 66.5819, p-value: 0.0000
+    H0: RLw=GPw, H1: RLw>GPw. t: -5.8930, p-value: 1.0000
+
+    H0: GPv=Mv, H1: GPv>Mv. t: -16.2602, p-value: 1.0000
+    H0: RLv=Mv, H1: RLv>Mv. t: -23.0598, p-value: 1.0000
+    H0: RLv=GPv, H1: RLv>GPv. t: -13.6062, p-value: 1.0000
+
+    H0: GPc=Mc, H1: GPc<Mc. t: -474.3824, p-value: 0.0000
+    H0: RLc=Mc, H1: RLc<Mc. t: -493.6490, p-value: 0.0000
+    H0: RLc=GPc, H1: RLc<GPc. t: -221.2068, p-value: 0.0000
+
+
+
+ Linear regression of X=GP vs Y=RL:
+
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      y   R-squared:                       0.724
+Model:                            OLS   Adj. R-squared:                  0.724
+Method:                 Least Squares   F-statistic:                 2.626e+04
+Date:                Tue, 08 Mar 2022   Prob (F-statistic):               0.00
+Time:                        10:13:18   Log-Likelihood:                -42681.
+No. Observations:               10000   AIC:                         8.537e+04
+Df Residuals:                    9998   BIC:                         8.538e+04
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          1.1972      0.174      6.891      0.000       0.857       1.538
+x1             0.2953      0.002    162.042      0.000       0.292       0.299
+==============================================================================
+Omnibus:                       74.452   Durbin-Watson:                   2.013
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              105.204
+Skew:                          -0.085   Prob(JB):                     1.43e-23
+Kurtosis:                       3.473   Cond. No.                         95.9
+==============================================================================
+
+Warnings:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+
+ H0: beta=1; H1: beta!=1
+                             Test for Constraints                             
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+c0             0.2953      0.002   -386.715      0.000       0.292       0.299
+==============================================================================
+#### END
+#### END

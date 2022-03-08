@@ -21,3 +21,8 @@ Fitting model 4 of 6
     Average reward: 368.668
     Average cost: 373.155
 Creating batch 5 of 6; eps=0.000123
+Fitting model 5 of 6
+    Score: 0.991
+    Average reward: 363.930
+    Average cost: 416.582
+Creating batch 6 of 6; eps=0.000041

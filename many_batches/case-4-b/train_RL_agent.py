@@ -42,7 +42,7 @@ if __name__ == '__main__':
     t_ = 50
 
     parallel_computing = True
-    n_cores_max = 20
+    n_cores_max = 50
     alpha = 1.
     eps = 0.01
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
