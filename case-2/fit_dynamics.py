@@ -22,7 +22,6 @@ return_is_pnl = True
 dump(fit_stock, 'data/fit_stock.joblib')
 dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
-
 if fit_stock:
     ticker = '^GSPC'  # '^GSPC'
     end_date = '2021-12-31'
