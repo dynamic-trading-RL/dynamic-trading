@@ -67,8 +67,8 @@ if __name__ == '__main__':
     df = pd.read_csv('data/df.csv', index_col=0, parse_dates=True)
     ticker = load('data/ticker.joblib')
 
-    price = df[ticker][-t_:]
-    pnl = df[ticker].diff()[-t_:]
+    price = df[ticker][-2*t_:-t_]
+    pnl = df[ticker].diff()[-2*t_:-t_]
     f = df['f'][-t_:]
 
     # ------------------------------------- Markowitz -------------------------

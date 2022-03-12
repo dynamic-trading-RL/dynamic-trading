@@ -188,6 +188,19 @@ if __name__ == '__main__':
     plt.title('out-of-sample-trades')
     plt.savefig('figures/out-of-sample-trades.png')
 
+    plt.figure()
+    plt.scatter(np.diff(GP, axis=1).flatten(),
+                np.diff(RL, axis=1).flatten(),
+                s = 1)
+    xx = np.array([min(np.diff(GP, axis=1).flatten().min(), np.diff(RL, axis=1).flatten().min()),
+                   max(np.diff(GP, axis=1).flatten().max(), np.diff(RL, axis=1).flatten().max())])
+    plt.plot(xx, xx, color='r', label='45° line')
+    plt.legend()
+    plt.xlabel('GP trades')
+    plt.ylabel('RL trades')
+    plt.title('out-of-sample trades')
+    plt.savefig('figures/out-of-sample-trades-scatter.png')
+
     for j in range(min(7, j_oos)):
         plt.figure()
         plt.plot(np.diff(GP[j, :]), color='g', label='GP')
@@ -240,6 +253,9 @@ if __name__ == '__main__':
                  xycoords='axes fraction', textcoords='offset points')
     plt.legend(loc='upper right')
     plt.savefig('figures/final-wealth.png')
+    xlim = [np.quantile(wealth_M[:, -1], 0.005),
+            np.quantile(wealth_M[:, -1], 0.995)]
+    plt.xlim(xlim)
 
     plt.figure()
     plt.plot(cost_M[0], color='m', label='Markowitz', alpha=0.5)

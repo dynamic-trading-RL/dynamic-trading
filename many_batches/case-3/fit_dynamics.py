@@ -140,6 +140,38 @@ with open('reports/' + ticker + '-return_nonlinear_1.txt', 'w+') as fh:
     fh.write(reg_1.summary().as_text())
 
 
+import matplotlib.pyplot as plt
+
+f_min = df_reg['f'].quantile(0.0005)
+f_max = df_reg['f'].quantile(0.9995)
+x_min = df_reg['r'].quantile(0.0005)
+x_max = df_reg['r'].quantile(0.9995)
+
+def next_step(f, mu_u_0, mu_u_1, B_0, B_1, c):
+
+    if f < c:
+        return mu_u_0 + B_0 * f
+    else:
+        return mu_u_1 + B_1 * f
+
+next_step = np.vectorize(next_step)
+
+plt.figure()
+plt.plot(np.linspace(f_min, f_max),
+         next_step(np.linspace(f_min, f_max), mu_u_0, mu_u_1, B_0, B_1, c),
+         'k', label='non linear prediction')
+plt.plot(np.linspace(f_min, f_max),
+         mu_u + B * np.linspace(f_min, f_max),
+         'r', label='linear prediction')
+plt.scatter(df_reg['f'], df_reg['r'], s=1, label='sample')
+plt.title('Linear vs non linear prediction')
+plt.xlabel('$f_t$')
+plt.ylabel('$x_{t+1}$')
+plt.legend()
+plt.xlim([f_min, f_max])
+plt.ylim([x_min, x_max])
+
+
 # ------------------ FACTORS
 
 # AR(1) on factors
@@ -253,6 +285,11 @@ res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma',
                                   omega_ar_tarch, alpha_ar_tarch,
                                   gamma_ar_tarch, beta_ar_tarch, 0],
                             columns=['param'])
+
+plt.plot(df['f'])
+plt.xlabel('date')
+plt.ylabel('$f_t$')
+plt.title('Factor time series')
 
 
 # ------------------------------------- Output --------------------------------
