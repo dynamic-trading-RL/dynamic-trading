@@ -6,6 +6,7 @@ Created on Tue Nov 23 15:27:18 2021
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 from joblib import dump
 import yfinance as yf
@@ -74,6 +75,8 @@ else:
 
 df.dropna(inplace=True)
 
+
+
 df.to_csv('data/df.csv')
 
 dump(ticker, 'data/ticker.joblib')
@@ -140,6 +143,33 @@ with open('reports/' + ticker + '-return_nonlinear_1.txt', 'w+') as fh:
     fh.write(reg_1.summary().as_text())
 
 
+def next_step(f, mu_u_0, mu_u_1, B_0, B_1):
+
+    if f<0:
+        return mu_u_0 + B_0*f
+    else:
+        return mu_u_1 + B_1*f
+
+next_step = np.vectorize(next_step)
+xx = np.linspace(df_reg['f'].min(), df_reg['f'].max())
+yy = next_step(xx, mu_u_0, mu_u_1, B_0, B_1)
+
+
+fig, ax = plt.subplots()
+plt.plot(xx, yy, color='k', label='non linear prediction')
+plt.plot(xx, mu_u + B*xx, color='r', label='linear prediction')
+plt.scatter(df_reg['f'], df_reg['r'], s=1, label='sample')
+vals = ax.get_yticks()
+ax.set_yticklabels(['{:,.2%}'.format(x) for x in vals])
+plt.xlabel('$f_t$')
+plt.ylabel('$x_{t+1}$')
+plt.title('Factor vs Return')
+plt.legend()
+
+
+
+
+
 # ------------------ FACTORS
 
 # AR(1) on factors
@@ -156,6 +186,12 @@ with open('reports/' + ticker + '-factor_AR.txt', 'w+') as fh:
 res_ar = pd.DataFrame(index=['mu', 'B', 'sig2'],
                       data=[mu_ar, 1 - Phi_ar, Omega_ar],
                       columns=['param'])
+
+plt.plot(epsi_ar, '.', color='c', markersize=2.0)
+plt.xlabel('date')
+plt.ylabel('$\epsilon_t$')
+plt.title('Residuals')
+
 
 # SETAR on factors
 ind_0 = df['f'] < c
@@ -253,6 +289,16 @@ res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma',
                                   omega_ar_tarch, alpha_ar_tarch,
                                   gamma_ar_tarch, beta_ar_tarch, 0],
                             columns=['param'])
+
+plt.plot(df['f'])
+plt.xlabel('date')
+plt.ylabel('$f_t$')
+plt.title('Factor time series')
+
+plt.plot(epsi_ar_tarch, '.', color='c', markersize=2.0)
+plt.xlabel('date')
+plt.ylabel('$e_t$')
+plt.title('Residuals')
 
 
 # ------------------------------------- Output --------------------------------

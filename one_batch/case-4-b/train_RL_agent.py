@@ -37,11 +37,11 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 35000
+    j_episodes = 15000
     n_batches = 1
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 20
     alpha = 1.
     eps = 0.01
@@ -72,8 +72,8 @@ if __name__ == '__main__':
     dump_XY = False
 
     # Market parameters
-    returnDynamicsType = ReturnDynamicsType.NonLinear
-    factorDynamicsType = FactorDynamicsType.AR_TARCH
+    returnDynamicsType = ReturnDynamicsType.Linear
+    factorDynamicsType = FactorDynamicsType.AR
     dump(returnDynamicsType, 'data/returnDynamicsType.joblib')
     dump(factorDynamicsType, 'data/factorDynamicsType.joblib')
 

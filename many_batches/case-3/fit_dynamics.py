@@ -14,6 +14,7 @@ from statsmodels.tools import add_constant
 from arch import arch_model
 from arch.univariate import ARX, GARCH
 from statsmodels.tsa.ar_model import AutoReg
+import statsmodels.api as sm
 
 # ------------------------------------- Parameters ----------------------------
 
@@ -189,6 +190,15 @@ res_ar = pd.DataFrame(index=['mu', 'B', 'sig2'],
                       data=[mu_ar, 1 - Phi_ar, Omega_ar],
                       columns=['param'])
 
+plt.plot(epsi_ar, '.', color='c', markersize=2.0)
+plt.xlabel('date')
+plt.ylabel('$\epsilon_t$')
+plt.title('Residuals')
+
+fig = sm.qqplot(epsi_ar[1:-1], fit=True, line="45")
+plt.show()
+
+
 # SETAR on factors
 ind_0 = df['f'] < c
 ind_1 = df['f'] >= c
@@ -290,6 +300,12 @@ plt.plot(df['f'])
 plt.xlabel('date')
 plt.ylabel('$f_t$')
 plt.title('Factor time series')
+
+plt.plot(epsi_ar_tarch, '.', color='c', markersize=2.0)
+plt.xlabel('date')
+plt.ylabel('$e_t$')
+plt.title('Residuals')
+
 
 
 # ------------------------------------- Output --------------------------------
