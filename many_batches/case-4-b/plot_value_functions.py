@@ -28,7 +28,7 @@ flag_qaverage = load('data/flag_qaverage.joblib')
 return_is_pnl = load('data/return_is_pnl.joblib')
 
 
-N = 50
+N = 10
 
 # shares space
 nn = np.linspace(-20, 20, N)

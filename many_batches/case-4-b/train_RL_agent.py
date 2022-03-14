@@ -42,7 +42,7 @@ if __name__ == '__main__':
     t_ = 50
 
     parallel_computing = True
-    n_cores_max = 50
+    n_cores_max = 20
     alpha = 1.
     eps = 0.01
     # None, 'differential_evolution', 'shgo', 'dual_annealing', 'best',
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     # Market parameters
     returnDynamicsType = ReturnDynamicsType.NonLinear
-    factorDynamicsType = FactorDynamicsType.AR_TARCH
+    factorDynamicsType = FactorDynamicsType.AR
     dump(returnDynamicsType, 'data/returnDynamicsType.joblib')
     dump(factorDynamicsType, 'data/factorDynamicsType.joblib')
 
