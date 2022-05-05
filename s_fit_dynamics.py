@@ -13,7 +13,7 @@ from statsmodels.tools import add_constant
 from arch import arch_model
 from arch.univariate import ARX, GARCH
 from statsmodels.tsa.ar_model import AutoReg
-from utils_fit_dynamics import get_asset_time_series, get_pnl_and_return_time_series
+from financial_time_series import get_asset_time_series, get_pnl_and_return_time_series
 
 fit_stock = False
 use_pnl = True
