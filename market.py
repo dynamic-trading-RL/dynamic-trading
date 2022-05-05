@@ -72,18 +72,15 @@ class Market:
 
         if assetDynamicsType == AssetDynamicsType.Linear:
 
-            Sigma = self._marketDynamics._assetDynamics._parameters['sig2']
+            return self._marketDynamics._assetDynamics._parameters['sig2']
 
         elif assetDynamicsType == AssetDynamicsType.NonLinear:
 
             # ??? should become weighted average
             # ??? in the episode generation, it should get either sig2_0/1 and not
             # the weighted average
-            Sigma = \
-                0.5 * (self._marketDynamics._assetDynamics._parameters['sig2_0'] +
-                       self._marketDynamics._assetDynamics._parameters['sig2_0'])
-
-        return Sigma
+            return 0.5 * (self._marketDynamics._assetDynamics._parameters['sig2_0']
+                          + self._marketDynamics._assetDynamics._parameters['sig2_0'])
 
     def _simulate_factor(self, j_, t_):
 
@@ -279,6 +276,19 @@ class Market:
                 raise NameError('Return must be equal to PnL')
 
 
+class AllMarkets:
+
+    def __init__(self):
+
+        self._allMarkets_dict = {}
+
+    def fill_allMarkets_dict(self, d):
+
+        for key, item in d.items():
+
+            self._allMarkets_dict[key] = item
+
+
 def instantiate_market(assetDynamicsType, factorDynamicsType, start_price,
                        return_is_pnl):
 
@@ -298,8 +308,3 @@ def instantiate_market(assetDynamicsType, factorDynamicsType, start_price,
     market = Market(marketDynamics, start_price, return_is_pnl=return_is_pnl)
 
     return market
-
-
-
-
-

@@ -23,6 +23,8 @@ class FinancialTimeSeries:
         self._set_asset_time_series(t_past)
         self._set_pnl_and_return_time_series()
         self._set_factor()
+        self.time_series.dropna(inplace=True)
+        self._set_info()
 
     def _set_asset_time_series(self, t_past):
 
@@ -65,6 +67,19 @@ class FinancialTimeSeries:
         elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
             self.time_series['f'] = x.rolling(self.window).mean() / x.rolling(self.window).std()
 
+    def _set_info(self):
+
+        self.info = pd.DataFrame(index=['ticker',
+                                        'end_date',
+                                        'start_price',
+                                        't_past',
+                                        'window'],
+                                 data=[self.ticker,
+                                       self.time_series.index[-1],
+                                       self.time_series[self.ticker].iloc[-1],
+                                       len(self.time_series),
+                                       self.window],
+                                 columns=['info'])
 
 if __name__ == '__main__':
 

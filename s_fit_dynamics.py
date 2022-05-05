@@ -8,21 +8,24 @@ Created on Tue Nov 23 15:27:18 2021
 import numpy as np
 import pandas as pd
 from joblib import dump
-from statsmodels.regression.linear_model import OLS
-from statsmodels.tools import add_constant
 from arch import arch_model
 from arch.univariate import ARX, GARCH
 from statsmodels.tsa.ar_model import AutoReg
-from financial_time_series import get_asset_time_series, get_pnl_and_return_time_series
+from financial_time_series import FinancialTimeSeries
 
+
+# ------------------------------------- Input parameters -----------------
 fit_stock = False
 use_pnl = True
 ticker = 'WTI'
 
 # ------------------------------------- Get time series ------------------
+financialTimeSeries = FinancialTimeSeries('WTI')
+financialTimeSeries.set_time_series()
 
-time_series = get_asset_time_series(ticker)
-get_pnl_and_return_time_series(time_series, scale)
+# ------------------------------------- Fit dynamics ---------------------
+
+
 
 
 
@@ -33,10 +36,6 @@ if fit_stock:
     t_past = 8000
     window = 5
 
-    # ------------------------------------- Download data_tmp ---------------------
-
-
-
 else:
 
     c = 0.
@@ -45,84 +44,22 @@ else:
     t_past = 8000
     window = 5
 
-    # ------------------------------------- Import data_tmp -----------------------
-
-
-
-
-
-
 if use_pnl:
     df['r'] = scale * df[ticker].diff()
 else:
     df['r'] = scale * df[ticker].pct_change()
     # NB: returns and log returns are almost equal
-# Factors
 
 df.dropna(inplace=True)
 df.to_csv('data_tmp/df.csv')
 dump(ticker, 'data_tmp/ticker.joblib')
-calibration_parameters = pd.DataFrame(index=['ticker', 'end_date',
-                                             'start_price', 't_past',
-                                             'window'],
-                                      data=[ticker, end_date, start_price,
-                                            t_past, window],
-                                      columns=['calibration-parameters'])
+
+
+
+
 
 
 # ------------------------------------- Fit of dynamics -----------------------
-
-# ------------------ RETURNS
-
-# Linear prediction
-df_reg = df[['f', 'r']].copy()
-df_reg['r'] = df_reg['r'].shift(-1)
-df_reg.dropna(inplace=True)
-
-reg = OLS(df_reg['r'], add_constant(df_reg['f'])).fit()
-
-B = reg.params['f']
-mu_u = reg.params['const'] / scale
-Sigma2_u = reg.mse_resid / scale**2
-
-res_linear = pd.DataFrame(index=['mu', 'B', 'sig2'],
-                          data=[mu_u, B, Sigma2_u],
-                          columns=['param'])
-
-with open('reports/' + ticker + '-return_linear.txt', 'w+') as fh:
-    fh.write(reg.summary().as_text())
-
-
-# Non-linear prediction
-ind_0 = df_reg['f'] < c
-ind_1 = df_reg['f'] >= c
-
-reg_0 = OLS(df_reg['r'].loc[ind_0], add_constant(df_reg['f'].loc[ind_0])).fit()
-
-B_0 = reg_0.params['f']
-mu_u_0 = reg_0.params['const'] / scale
-Sigma2_u_0 = reg_0.mse_resid / scale**2
-
-reg_1 = OLS(df_reg['r'].loc[ind_1], add_constant(df_reg['f'].loc[ind_1])).fit()
-
-B_1 = reg_1.params['f']
-mu_u_1 = reg_1.params['const'] / scale
-Sigma2_u_1 = reg_1.mse_resid / scale**2
-
-res_non_linear = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
-                                     'mu_1', 'B_1', 'sig2_1',
-                                     'c'],
-                              data=[mu_u_0, B_0, Sigma2_u_0,
-                                    mu_u_1, B_1, Sigma2_u_1,
-                                    c],
-                              columns=['param'])
-
-with open('reports/' + ticker + '-return_nonlinear_0.txt', 'w+') as fh:
-    fh.write(reg_0.summary().as_text())
-
-with open('reports/' + ticker + '-return_nonlinear_1.txt', 'w+') as fh:
-    fh.write(reg_1.summary().as_text())
-
 
 # ------------------ FACTORS
 
@@ -249,22 +186,6 @@ workbook = writer.book
 worksheet = workbook.add_worksheet('calibration-parameters')
 writer.sheets['calibration-parameters'] = worksheet
 calibration_parameters.to_excel(writer, sheet_name='calibration-parameters')
-
-writer.close()
-
-
-# ---------- Return dynamics
-writer = pd.ExcelWriter('data_tmp/return_calibrations.xlsx')
-workbook = writer.book
-
-# write sheets
-worksheet = workbook.add_worksheet('linear')
-writer.sheets['linear'] = worksheet
-res_linear.to_excel(writer, sheet_name='linear')
-
-worksheet = workbook.add_worksheet('non-linear')
-writer.sheets['non-linear'] = worksheet
-res_non_linear.to_excel(writer, sheet_name='non-linear')
 
 writer.close()
 
