@@ -8,80 +8,64 @@ Created on Tue Nov 23 15:27:18 2021
 import numpy as np
 import pandas as pd
 from joblib import dump
-import yfinance as yf
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from arch import arch_model
 from arch.univariate import ARX, GARCH
 from statsmodels.tsa.ar_model import AutoReg
-
-# ------------------------------------- Parameters ----------------------------
+from utils_fit_dynamics import get_asset_time_series, get_pnl_and_return_time_series
 
 fit_stock = False
-return_is_pnl = True
-dump(fit_stock, 'data/fit_stock.joblib')
-dump(return_is_pnl, 'data/return_is_pnl.joblib')
+use_pnl = True
+ticker = 'WTI'
+
+# ------------------------------------- Get time series ------------------
+
+time_series = get_asset_time_series(ticker)
+get_pnl_and_return_time_series(time_series, scale)
+
+
 
 if fit_stock:
-    ticker = '^GSPC'  # '^GSPC'
-    end_date = '2021-12-31'
+    c = 0.
+
+    scale_f = 1  # or "= scale"
+    t_past = 8000
+    window = 5
+
+    # ------------------------------------- Download data_tmp ---------------------
+
+
+
+else:
+
     c = 0.
     scale = 1
     scale_f = 1  # or "= scale"
     t_past = 8000
     window = 5
 
-    # ------------------------------------- Download data ---------------------
+    # ------------------------------------- Import data_tmp -----------------------
 
-    stock = yf.download(ticker, end=end_date)['Adj Close']
-    first_valid_loc = stock.first_valid_index()
-    stock = stock.loc[first_valid_loc:]
-    startPrice = stock.iloc[-1]
-    stock.name = ticker
-    stock = stock.to_frame()
-    df = stock.copy().iloc[-t_past:]
 
+
+
+
+
+if use_pnl:
+    df['r'] = scale * df[ticker].diff()
 else:
-    ticker = 'WTI'
-    c = 0.
-    scale = 1
-    scale_f = 1  # or "= scale"
-    t_past = 8000
-    window = 5
-
-    # ------------------------------------- Import data -----------------------
-
-    data_wti = pd.read_csv('source_data/DCOILWTICO.csv', index_col=0,
-                           na_values='.').fillna(method='pad')
-    data_wti.columns = ['WTI']
-    data_wti.index = pd.to_datetime(data_wti.index)
-    df = data_wti.copy().iloc[-t_past:]
-    end_date = str(df.index[-1])[:10]
-    startPrice = data_wti.iloc[-1]['WTI']
-
-if return_is_pnl:
-    df['r'] = scale*df[ticker].diff()
-else:
-    df['r'] = scale*df[ticker].pct_change()
-
-# NB: returns and log returns are almost equal
-
+    df['r'] = scale * df[ticker].pct_change()
+    # NB: returns and log returns are almost equal
 # Factors
-if fit_stock:
-    df['f'] = df['r'].rolling(window).mean() / df['r'].rolling(window).std()
-else:
-    df['f'] = df['r'].rolling(window).mean()
 
 df.dropna(inplace=True)
-
-df.to_csv('data/df.csv')
-
-dump(ticker, 'data/ticker.joblib')
-
+df.to_csv('data_tmp/df.csv')
+dump(ticker, 'data_tmp/ticker.joblib')
 calibration_parameters = pd.DataFrame(index=['ticker', 'end_date',
-                                             'startPrice', 't_past',
+                                             'start_price', 't_past',
                                              'window'],
-                                      data=[ticker, end_date, startPrice,
+                                      data=[ticker, end_date, start_price,
                                             t_past, window],
                                       columns=['calibration-parameters'])
 
@@ -258,7 +242,7 @@ res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma',
 # ------------------------------------- Output --------------------------------
 
 # ---------- Calibration parameters
-writer = pd.ExcelWriter('data/calibration_parameters.xlsx')
+writer = pd.ExcelWriter('data_tmp/calibration_parameters.xlsx')
 workbook = writer.book
 
 # write sheets
@@ -270,7 +254,7 @@ writer.close()
 
 
 # ---------- Return dynamics
-writer = pd.ExcelWriter('data/return_calibrations.xlsx')
+writer = pd.ExcelWriter('data_tmp/return_calibrations.xlsx')
 workbook = writer.book
 
 # write sheets
@@ -286,7 +270,7 @@ writer.close()
 
 
 # ---------- Factor dynamics
-writer = pd.ExcelWriter('data/factor_calibrations.xlsx')
+writer = pd.ExcelWriter('data_tmp/factor_calibrations.xlsx')
 workbook = writer.book
 
 # write sheets

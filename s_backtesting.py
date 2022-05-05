@@ -11,13 +11,12 @@ from joblib import load
 from functools import partial
 import multiprocessing as mp
 import matplotlib.pyplot as plt
-from dt_functions import (instantiate_market,
-                          get_Sigma,
-                          compute_markovitz,
+from dt_functions import (compute_markovitz,
                           compute_GP,
                           compute_rl,
                           compute_wealth,
                           get_dynamics_params)
+from market import instantiate_market, get_Sigma
 import sys
 import warnings
 if not sys.warnoptions:
@@ -30,42 +29,42 @@ if __name__ == '__main__':
 
     t_ = 50
 
-    returnDynamicsType = load('data/returnDynamicsType.joblib')
-    factorDynamicsType = load('data/factorDynamicsType.joblib')
+    assetDynamicsType = load('data_tmp/assetDynamicsType.joblib')
+    factorDynamicsType = load('data_tmp/factorDynamicsType.joblib')
 
     # ------- Implied parameters
 
-    calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
+    calibration_parameters = pd.read_excel('data_tmp/calibration_parameters.xlsx',
                                            index_col=0)
-    startPrice = calibration_parameters.loc['startPrice',
+    start_price = calibration_parameters.loc['start_price',
                                             'calibration-parameters']
 
-    n_batches = load('data/n_batches.joblib')
-    optimizers = load('data/optimizers.joblib')
-    optimizer = load('data/optimizer.joblib')
-    lam = load('data/lam.joblib')
-    gamma = load('data/gamma.joblib')
-    rho = load('data/rho.joblib')
-    factorType = load('data/factorType.joblib')
-    flag_qaverage = load('data/flag_qaverage.joblib')
-    bound = load('data/bound.joblib')
-    rescale_n_a = load('data/rescale_n_a.joblib')
-    return_is_pnl = load('data/return_is_pnl.joblib')
+    n_batches = load('data_tmp/n_batches.joblib')
+    optimizers = load('data_tmp/optimizers.joblib')
+    optimizer = load('data_tmp/optimizer.joblib')
+    lam = load('data_tmp/lam.joblib')
+    gamma = load('data_tmp/gamma.joblib')
+    rho = load('data_tmp/rho.joblib')
+    factorType = load('data_tmp/factorType.joblib')
+    flag_qaverage = load('data_tmp/flag_qaverage.joblib')
+    bound = load('data_tmp/bound.joblib')
+    rescale_n_a = load('data_tmp/rescale_n_a.joblib')
+    return_is_pnl = load('data_tmp/return_is_pnl.joblib')
 
     # ------------------------------------- Simulations -----------------------
 
     # Instantiate market
-    market = instantiate_market(returnDynamicsType, factorDynamicsType,
-                                startPrice, return_is_pnl)
+    market = instantiate_market(assetDynamicsType, factorDynamicsType,
+                                start_price, return_is_pnl)
 
-    Sigma = get_Sigma(market)
+    Sigma = market.get_Sigma()
     Lambda = lam*Sigma
 
     B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
     # Time series
-    df = pd.read_csv('data/df.csv', index_col=0, parse_dates=True)
-    ticker = load('data/ticker.joblib')
+    df = pd.read_csv('data_tmp/df.csv', index_col=0, parse_dates=True)
+    ticker = load('data_tmp/ticker.joblib')
 
     price = df[ticker][-2*t_:-t_]
     pnl = df[ticker].diff()[-2*t_:-t_]
@@ -93,7 +92,7 @@ if __name__ == '__main__':
 
     qb_list = []
     for b in range(n_batches):
-        qb_list.append(load('models/q%d.joblib' % b))
+        qb_list.append(load('supervised_regressors/q%d.joblib' % b))
 
     RL = compute_rl(0, f=f, qb_list=qb_list,
                     factorType=factorType, optimizers=optimizers,

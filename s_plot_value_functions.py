@@ -8,24 +8,24 @@ Created on Sat Mar 12 15:43:45 2022
 import numpy as np
 from joblib import load
 import matplotlib.pyplot as plt
-from dt_functions import (get_q_value, maxAction, instantiate_market,
-                          get_Sigma, get_dynamics_params)
+from dt_functions import (get_q_value, maxAction, get_dynamics_params)
+from market import instantiate_market, get_Sigma
 
 ############ PARAMETERS
 
-n_batches = load('data/n_batches.joblib')
-bound = load('data/bound.joblib')
-rescale_n_a = load('data/rescale_n_a.joblib')
-optimizers = load('data/optimizers.joblib')
-optimizer = load('data/optimizer.joblib')
-returnDynamicsType = load('data/returnDynamicsType.joblib')
-factorDynamicsType = load('data/factorDynamicsType.joblib')
-lam = load('data/lam.joblib')
-gamma = load('data/gamma.joblib')
-rho = load('data/rho.joblib')
-factorType = load('data/factorType.joblib')
-flag_qaverage = load('data/flag_qaverage.joblib')
-return_is_pnl = load('data/return_is_pnl.joblib')
+n_batches = load('data_tmp/n_batches.joblib')
+bound = load('data_tmp/bound.joblib')
+rescale_n_a = load('data_tmp/rescale_n_a.joblib')
+optimizers = load('data_tmp/optimizers.joblib')
+optimizer = load('data_tmp/optimizer.joblib')
+assetDynamicsType = load('data_tmp/assetDynamicsType.joblib')
+factorDynamicsType = load('data_tmp/factorDynamicsType.joblib')
+lam = load('data_tmp/lam.joblib')
+gamma = load('data_tmp/gamma.joblib')
+rho = load('data_tmp/rho.joblib')
+factorType = load('data_tmp/factorType.joblib')
+flag_qaverage = load('data_tmp/flag_qaverage.joblib')
+return_is_pnl = load('data_tmp/return_is_pnl.joblib')
 
 
 N = 50
@@ -46,7 +46,7 @@ else:
 
 qb_list = []
 for b in range(n_batches):
-    qb_list.append(load('models/q%d.joblib' % b))
+    qb_list.append(load('supervised_regressors/q%d.joblib' % b))
 
 q_value = get_q_value(1, qb_list, flag_qaverage=True)
 
@@ -67,10 +67,10 @@ for i in range(len(nn)):
 ############ GP
 
 # Instantiate market
-market = instantiate_market(returnDynamicsType, factorDynamicsType,
+market = instantiate_market(assetDynamicsType, factorDynamicsType,
                             100., return_is_pnl)
 
-Sigma = get_Sigma(market)
+Sigma = market.get_Sigma()
 
 B, mu_r, Phi, mu_f = get_dynamics_params(market)
 

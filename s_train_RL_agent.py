@@ -14,18 +14,15 @@ from sklearn.neural_network import MLPRegressor
 from joblib import dump, load
 from functools import partial
 import multiprocessing as mp
-from dt_functions import (ReturnDynamicsType, FactorDynamicsType,
-                          FactorType,
-                          instantiate_market,
-                          get_Sigma,
-                          simulate_market,
-                          generate_episode,
-                          Optimizers,
+from dt_functions import (generate_episode,
                           set_regressor_parameters_ann,
                           set_regressor_parameters_tree,
                           set_regressor_parameters_gb,
                           get_dynamics_params,
                           get_bound)
+from market import instantiate_market
+from optimizers import Optimizers
+from enums import AssetDynamicsType, FactorDynamicsType, FactorType
 import sys
 import warnings
 if not sys.warnoptions:
@@ -37,11 +34,11 @@ if __name__ == '__main__':
     # ------------------------------------- Parameters ------------------------
 
     # RL parameters
-    j_episodes = 15000
-    n_batches = 6
+    j_episodes = 15
+    n_batches = 2
     t_ = 50
 
-    parallel_computing = True
+    parallel_computing = False
     n_cores_max = 20
     alpha = 1.
     eps = 0.01
@@ -53,8 +50,8 @@ if __name__ == '__main__':
 
     flag_qaverage = True
     predict_r = True
-    return_is_pnl = load('data/return_is_pnl.joblib')
-    fit_stock = load('data/fit_stock.joblib')
+    return_is_pnl = load('data_tmp/return_is_pnl.joblib')
+    fit_stock = load('data_tmp/fit_stock.joblib')
 
     bound = None
 
@@ -72,10 +69,10 @@ if __name__ == '__main__':
     dump_XY = False
 
     # Market parameters
-    returnDynamicsType = ReturnDynamicsType.Linear
+    assetDynamicsType = AssetDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
-    dump(returnDynamicsType, 'data/returnDynamicsType.joblib')
-    dump(factorDynamicsType, 'data/factorDynamicsType.joblib')
+    dump(assetDynamicsType, 'data_tmp/assetDynamicsType.joblib')
+    dump(factorDynamicsType, 'data_tmp/factorDynamicsType.joblib')
 
     if fit_stock:
         gamma = 10**-4  # risk aversion
@@ -94,11 +91,11 @@ if __name__ == '__main__':
     # ??? latent case to be discussed: issue with constant solutions
 
     # ------------------------------------- Reinforcement learning ------------
-    calibration_parameters = pd.read_excel('data/calibration_parameters.xlsx',
+    calibration_parameters = pd.read_excel('data_tmp/calibration_parameters.xlsx',
                                            index_col=0)
-    startPrice = calibration_parameters.loc['startPrice',
+    start_price = calibration_parameters.loc['start_price',
                                             'calibration-parameters']
-    qb_list = []  # list to store models
+    qb_list = []  # list to store supervised_regressors
     optimizers = Optimizers()
 
     if sup_model in ('ann_fast', 'ann_deep', 'ann_small'):
@@ -118,15 +115,15 @@ if __name__ == '__main__':
         print('Number of cores available: %d' % mp.cpu_count())
         n_cores = min(mp.cpu_count(), n_cores_max)
         print('Number of cores used: %d' % n_cores)
-        dump(n_cores, 'data/n_cores.joblib')
+        dump(n_cores, 'data_tmp/n_cores.joblib')
 
     # Instantiate market
-    market = instantiate_market(returnDynamicsType, factorDynamicsType,
-                                startPrice, return_is_pnl)
+    market = instantiate_market(assetDynamicsType, factorDynamicsType,
+                                start_price, return_is_pnl)
 
     # Simulations
-    price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
-    Sigma = get_Sigma(market)
+    price, pnl, f = market.simulate_market_and_extract_simulations(j_episodes, n_batches, t_)
+    Sigma = market.get_Sigma()
     lam = lam_perc * 2 / Sigma
     Lambda = lam*Sigma
 
@@ -261,10 +258,10 @@ if __name__ == '__main__':
             raise NameError('Invalid sup_model: ' + str(sup_model))
 
         qb_list.append(model)
-        dump(model, 'models/q%d.joblib' % b)  # export regressor
+        dump(model, 'supervised_regressors/q%d.joblib' % b)  # export regressor
         if dump_XY:
-            dump(X, 'data/X%d.joblib' % b)
-            dump(Y, 'data/Y%d.joblib' % b)
+            dump(X, 'data_tmp/X%d.joblib' % b)
+            dump(Y, 'data_tmp/Y%d.joblib' % b)
         if make_plots:
             X_plot[b] = X
             Y_plot[b] = Y
@@ -274,19 +271,19 @@ if __name__ == '__main__':
 
         eps = max(eps/3, 0.00001)  # update epsilon
 
-    # ------------------------------------- Dump data -------------------------
+    # ------------------------------------- Dump data_tmp -------------------------
     print(optimizers)
-    dump(n_batches, 'data/n_batches.joblib')
-    dump(optimizers, 'data/optimizers.joblib')
-    dump(optimizer, 'data/optimizer.joblib')
-    dump(lam, 'data/lam.joblib')
-    dump(gamma, 'data/gamma.joblib')
-    dump(rho, 'data/rho.joblib')
-    dump(factorType, 'data/factorType.joblib')
-    dump(flag_qaverage, 'data/flag_qaverage.joblib')
-    dump(bound, 'data/bound.joblib')
-    dump(rescale_n_a, 'data/rescale_n_a.joblib')
-    dump(parallel_computing, 'data/parallel_computing.joblib')
+    dump(n_batches, 'data_tmp/n_batches.joblib')
+    dump(optimizers, 'data_tmp/optimizers.joblib')
+    dump(optimizer, 'data_tmp/optimizer.joblib')
+    dump(lam, 'data_tmp/lam.joblib')
+    dump(gamma, 'data_tmp/gamma.joblib')
+    dump(rho, 'data_tmp/rho.joblib')
+    dump(factorType, 'data_tmp/factorType.joblib')
+    dump(flag_qaverage, 'data_tmp/flag_qaverage.joblib')
+    dump(bound, 'data_tmp/bound.joblib')
+    dump(rescale_n_a, 'data_tmp/rescale_n_a.joblib')
+    dump(parallel_computing, 'data_tmp/parallel_computing.joblib')
 
     # ------------------------------------- Plots -----------------------------
 
