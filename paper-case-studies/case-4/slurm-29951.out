@@ -1,0 +1,96 @@
+Number of cores available: 144
+Number of cores used: 20
+Creating batch 1 of 6; eps=0.100000
+Fitting model 1 of 6
+    Score: 0.776
+    Average reward: -29734.008
+    Average cost: 29729.688
+Creating batch 2 of 6; eps=0.033333
+Fitting model 2 of 6
+    Score: 0.795
+    Average reward: -675.328
+    Average cost: 1100.843
+Creating batch 3 of 6; eps=0.011111
+Fitting model 3 of 6
+    Score: 0.651
+    Average reward: -4.800
+    Average cost: 523.314
+Creating batch 4 of 6; eps=0.003704
+Fitting model 4 of 6
+    Score: 0.616
+    Average reward: 225.417
+    Average cost: 327.882
+Creating batch 5 of 6; eps=0.001235
+Fitting model 5 of 6
+    Score: 0.653
+    Average reward: 286.338
+    Average cost: 284.671
+Creating batch 6 of 6; eps=0.000412
+Fitting model 6 of 6
+    Score: 0.716
+    Average reward: 320.936
+    Average cost: 259.784
+Used optimizers:
+  shgo: 0
+  dual_annealing: 0
+  differential_evolution: 0
+  brute: 0
+  local: 0
+
+
+
+Welch's tests (absolute):
+
+    H0: GPw=Mw, H1: GPw>Mw. t: 20.3383, p-value: 0.0000
+    H0: RLw=Mw, H1: RLw>Mw. t: 19.7377, p-value: 0.0000
+    H0: RLw=GPw, H1: RLw>GPw. t: -0.1356, p-value: 0.5539
+
+    H0: GPv=Mv, H1: GPv>Mv. t: -14.6145, p-value: 1.0000
+    H0: RLv=Mv, H1: RLv>Mv. t: -13.6881, p-value: 1.0000
+    H0: RLv=GPv, H1: RLv>GPv. t: 0.7112, p-value: 0.2385
+
+    H0: GPc=Mc, H1: GPc<Mc. t: -384.5464, p-value: 0.0000
+    H0: RLc=Mc, H1: RLc<Mc. t: -350.0312, p-value: 0.0000
+    H0: RLc=GPc, H1: RLc<GPc. t: 12.2971, p-value: 1.0000
+
+
+
+ Linear regression of X=GP vs Y=RL:
+
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      y   R-squared:                       0.806
+Model:                            OLS   Adj. R-squared:                  0.806
+Method:                 Least Squares   F-statistic:                 4.166e+04
+Date:                Tue, 01 Mar 2022   Prob (F-statistic):               0.00
+Time:                        23:20:04   Log-Likelihood:                -82133.
+No. Observations:               10000   AIC:                         1.643e+05
+Df Residuals:                    9998   BIC:                         1.643e+05
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const         -0.6593      9.069     -0.073      0.942     -18.436      17.118
+x1             0.9907      0.005    204.110      0.000       0.981       1.000
+==============================================================================
+Omnibus:                      411.474   Durbin-Watson:                   1.962
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             1340.615
+Skew:                          -0.018   Prob(JB):                    7.75e-292
+Kurtosis:                       4.793   Cond. No.                     1.90e+03
+==============================================================================
+
+Warnings:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 1.9e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.
+
+
+ H0: beta=1; H1: beta!=1
+                             Test for Constraints                             
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+c0             0.9907      0.005     -1.924      0.054       0.981       1.000
+==============================================================================
+#### END

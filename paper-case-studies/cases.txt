@@ -1,0 +1,6 @@
+Cases:
+1: WTI
+2: WTI with bounds on trade size
+3: WTI with NonLinear - ARTARCH
+4: stock with logreturns, GP and M with pnl, Linear - AR (issue with costs not comparable!!)
+4b: stock with logreturns, NonLinear - ARTARCH
