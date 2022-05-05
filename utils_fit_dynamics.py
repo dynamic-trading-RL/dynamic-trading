@@ -29,7 +29,7 @@ class FinancialTimeSeries:
         if self.ticker == 'WTI':
 
             time_series = pd.read_csv('data_source/DCOILWTICO.csv', index_col=0,
-                                            na_values='.').fillna(method='pad')
+                                      na_values='.').fillna(method='pad')
 
         else:
 
@@ -54,7 +54,7 @@ class FinancialTimeSeries:
 
     def _set_factor(self):
 
-        if self.use_pnl == True:
+        if self.use_pnl:
             x = self.time_series['pnl']
         else:
             x = self.time_series['return']
@@ -70,5 +70,4 @@ if __name__ == '__main__':
 
     WTI_timeSeries = FinancialTimeSeries('WTI')
     WTI_timeSeries.set_time_series()
-
     print(WTI_timeSeries.time_series.tail())
