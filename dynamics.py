@@ -5,6 +5,163 @@ from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 
 
+class DynamicsParametersCalibrator:
+
+    def __init__(self):
+
+        self.all_dynamics_param_dict = {}
+        self._all_dynamics_model_dict = {}
+
+    def fit_all_dynamics_param(self, financialTimeSeries: FinancialTimeSeries, scale=1, c=0):
+
+        self._financialTimeSeries = financialTimeSeries
+        self._fit_all_asset_dynamics_param(scale, c)
+        self._fit_all_factor_dynamics_param()
+
+    def _fit_all_asset_dynamics_param(self, scale, c):
+
+        self.all_dynamics_param_dict['asset'] = {}
+        self._all_dynamics_model_dict['asset'] = {}
+
+        if self._financialTimeSeries.use_pnl:
+            self._tgt = 'pnl'
+        else:
+            self._tgt = 'return'
+
+        for assetDynamicsType in AssetDynamicsType:
+
+            self._fit_asset_dynamics_param(assetDynamicsType, scale, c)
+
+    def _fit_asset_dynamics_param(self, assetDynamicsType, scale, c):
+
+        tgt = self._tgt
+
+        if assetDynamicsType == AssetDynamicsType.Linear:
+
+            self.all_dynamics_param_dict['asset'][assetDynamicsType] = {}
+
+            # regression
+            df_reg = self._prepare_df_reg(tgt)
+            reg = OLS(df_reg[tgt], add_constant(df_reg['f'])).fit()
+
+            # parameters
+            B, mu, sig2 = self._extract_B_mu_sig2_from_reg(reg, scale)
+
+            self.all_dynamics_param_dict['asset'][assetDynamicsType]['mu'] = mu
+            self.all_dynamics_param_dict['asset'][assetDynamicsType]['B'] = B
+            self.all_dynamics_param_dict['asset'][assetDynamicsType]['sig2'] = sig2
+
+            self._all_dynamics_model_dict['asset'][assetDynamicsType] = [reg]
+
+        elif assetDynamicsType == AssetDynamicsType.NonLinear:
+
+            self.all_dynamics_param_dict['asset'][assetDynamicsType] = {}
+
+            # regression
+            df_reg = self._prepare_df_reg(tgt)
+
+            ind_0 = df_reg['f'] < c
+            ind_1 = df_reg['f'] >= c
+            ind_lst = [ind_0, ind_1]
+
+            reg_lst = []
+
+            for i in range(len(ind_lst)):
+
+                ind = ind_lst[i]
+                reg = OLS(df_reg[tgt].loc[ind], add_constant(df_reg['f'].loc[ind])).fit()
+                B, mu, sig2 = self._extract_B_mu_sig2_from_reg(reg, scale)
+
+                self.all_dynamics_param_dict['asset'][assetDynamicsType]['mu_%d' % i] = mu
+                self.all_dynamics_param_dict['asset'][assetDynamicsType]['B_%d' % i] = B
+                self.all_dynamics_param_dict['asset'][assetDynamicsType]['sig2_%d' % i] = sig2
+                self.all_dynamics_param_dict['asset'][assetDynamicsType]['c'] = c
+
+                reg_lst.append(reg)
+
+            self._all_dynamics_model_dict['asset'][assetDynamicsType] = reg_lst
+
+        else:
+            raise NameError('Invalid assetDynamicsType: ' + assetDynamicsType.value)
+
+    def _extract_B_mu_sig2_from_reg(self, reg, scale):
+
+        B = reg.params['f']
+        mu = reg.params['const'] / scale
+        sig2 = reg.mse_resid / scale ** 2
+
+        return B, mu, sig2
+
+    def _prepare_df_reg(self, tgt):
+
+        df_reg = self._financialTimeSeries.time_series[['f', tgt]].copy()
+        df_reg[tgt] = df_reg[tgt].shift(-1)
+        df_reg.dropna(inplace=True)
+
+        return df_reg
+
+    def _fit_all_factor_dynamics_param(self):
+
+        for factorDynamicsType in FactorDynamicsType:
+
+            self._fit_factor_dynamics_param(factorDynamicsType)
+
+    def _fit_factor_dynamics_param(self, factorDynamicsType):
+
+        if factorDynamicsType == FactorDynamicsType.AR:
+            pass
+        elif factorDynamicsType == FactorDynamicsType.SETAR:
+            pass
+        elif factorDynamicsType == FactorDynamicsType.GARCH:
+            pass
+        elif factorDynamicsType == FactorDynamicsType.TARCH:
+            pass
+        elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
+            pass
+        else:
+            raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
+
+    def print_results(self):
+
+        self._print_results_asset()
+        self._print_results_factor()
+
+    def _print_results_asset(self):
+
+        a = 1
+
+        writer = pd.ExcelWriter('data_tmp/asset_calibrations.xlsx')
+        workbook = writer.book
+
+        for assetDynamicsType, param_dict in self.all_dynamics_param_dict['asset'].items():
+
+            # parameters
+            worksheet = workbook.add_worksheet(assetDynamicsType.value)
+            writer.sheets[assetDynamicsType.value] = worksheet
+            df_params_out = pd.DataFrame.from_dict(data=param_dict,
+                                                   orient='index',
+                                                   columns=['param'])
+            df_params_out.to_excel(writer, sheet_name=assetDynamicsType.value)
+
+            # reports
+            for i in range(len(self._all_dynamics_model_dict['asset'][assetDynamicsType])):
+                model = self._all_dynamics_model_dict['asset'][assetDynamicsType][i]
+
+                with open('reports/'
+                          + self._financialTimeSeries.ticker
+                          + '-asset_'
+                          + assetDynamicsType.value
+                          + str(i)
+                          + '.txt', 'w+') as fh:
+                    fh.write(model.summary().as_text())
+
+        writer.close()
+
+    def _print_results_factor(self):
+
+        pass
+
+
 class Dynamics:
 
     def __init__(self):
@@ -35,7 +192,9 @@ class AssetDynamics(Dynamics):
         super().__init__()
         self._assetDynamicsType = assetDynamicsType
 
-    def set_parameters(self, param_dict):
+    def set_parameters(self, dynamicsParametersCalibrator: DynamicsParametersCalibrator):
+
+        param_dict = dynamicsParametersCalibrator.all_dynamics_param_dict['asset'][self._assetDynamicsType]
 
         if self._assetDynamicsType == AssetDynamicsType.Linear:
 
@@ -166,154 +325,19 @@ class MarketDynamics:
         self._factorDynamics = factorDynamics
 
 
-class DynamicsParametersFitter:
+# ------------------------------ TESTS ---------------------------------------------------------------------------------
 
-    def __init__(self):
+if __name__ == '__main__':
 
-        self.all_dynamics_param_dict = {}
-        self._all_dynamics_model_dict = {}
+    financialTimeSeries = FinancialTimeSeries('WTI')
+    financialTimeSeries.set_time_series()
 
-    def fit_all_dynamics_param(self, financialTimeSeries: FinancialTimeSeries, scale=1, c=0):
+    dynamicsParametersCalibrator = DynamicsParametersCalibrator()
+    dynamicsParametersCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, c=0)
+    dynamicsParametersCalibrator.print_results()
 
-        self._financialTimeSeries = financialTimeSeries
-        self._fit_all_asset_dynamics_param(scale, c)
-        self._fit_all_factor_dynamics_param()
+    assetDynamics_linear = AssetDynamics(AssetDynamicsType.Linear)
+    assetDynamics_linear.set_parameters(dynamicsParametersCalibrator)
 
-    def _fit_all_asset_dynamics_param(self, scale, c):
-
-        if self._financialTimeSeries.use_pnl:
-            self._tgt = 'pnl'
-        else:
-            self._tgt = 'return'
-
-        for assetDynamicsType in AssetDynamicsType:
-
-            self._fit_asset_dynamics_param(assetDynamicsType, scale, c)
-
-    def _fit_asset_dynamics_param(self, assetDynamicsType, scale, c):
-
-        tgt = self._tgt
-        self.all_dynamics_param_dict['asset'] = {}
-        self._all_dynamics_model_dict['asset'] = {}
-
-        if assetDynamicsType == AssetDynamicsType.Linear:
-
-            self.all_dynamics_param_dict['asset'][assetDynamicsType] = {}
-
-            # regression
-            df_reg = self._prepare_df_reg(tgt)
-            reg = OLS(df_reg[tgt], add_constant(df_reg['f'])).fit()
-
-            # parameters
-            B, mu, sig2 = self._extract_B_mu_sig2_from_reg(reg, scale)
-
-            self.all_dynamics_param_dict['asset'][assetDynamicsType]['mu'] = mu
-            self.all_dynamics_param_dict['asset'][assetDynamicsType]['B'] = B
-            self.all_dynamics_param_dict['asset'][assetDynamicsType]['sig2'] = sig2
-
-            self._all_dynamics_model_dict['asset'][assetDynamicsType] = [reg]
-
-        elif assetDynamicsType == AssetDynamicsType.NonLinear:
-
-            self.all_dynamics_param_dict['asset'][assetDynamicsType] = {}
-
-            # regression
-            df_reg = self._prepare_df_reg(tgt)
-
-            ind_0 = df_reg['f'] < c
-            ind_1 = df_reg['f'] >= c
-            ind_lst = [ind_0, ind_1]
-
-            reg_lst = []
-
-            for i in range(len(ind_lst)):
-
-                ind = ind_lst[i]
-                reg = OLS(df_reg[tgt].loc[ind], add_constant(df_reg['f'].loc[ind])).fit()
-                B, mu, sig2 = self._extract_B_mu_sig2_from_reg(reg, scale)
-
-                self.all_dynamics_param_dict['asset'][assetDynamicsType]['mu_%d' % i] = mu
-                self.all_dynamics_param_dict['asset'][assetDynamicsType]['B_%d' % i] = B
-                self.all_dynamics_param_dict['asset'][assetDynamicsType]['sig2_%d' % i] = sig2
-
-                reg_lst.append(reg)
-
-            self._all_dynamics_model_dict['asset'][assetDynamicsType] = reg_lst
-
-        else:
-            raise NameError('Invalid assetDynamicsType: ' + assetDynamicsType.value)
-
-    def _extract_B_mu_sig2_from_reg(self, reg, scale):
-
-        B = reg.params['f']
-        mu = reg.params['const'] / scale
-        sig2 = reg.mse_resid / scale ** 2
-
-        return B, mu, sig2
-
-    def _prepare_df_reg(self, tgt):
-
-        df_reg = self._financialTimeSeries.time_series[['f', tgt]].copy()
-        df_reg[tgt] = df_reg[tgt].shift(-1)
-        df_reg.dropna(inplace=True)
-
-        return df_reg
-
-    def _fit_all_factor_dynamics_param(self):
-
-        for factorDynamicsType in FactorDynamicsType:
-
-            self._fit_factor_dynamics_param(factorDynamicsType)
-
-    def _fit_factor_dynamics_param(self, factorDynamicsType):
-
-        if factorDynamicsType == FactorDynamicsType.AR:
-            pass
-        elif factorDynamicsType == FactorDynamicsType.SETAR:
-            pass
-        elif factorDynamicsType == FactorDynamicsType.GARCH:
-            pass
-        elif factorDynamicsType == FactorDynamicsType.TARCH:
-            pass
-        elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
-            pass
-        else:
-            raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
-
-    def print_results(self):
-
-        self._print_results_asset()
-        self._print_results_factor()
-
-    def _print_results_asset(self):
-
-        writer = pd.ExcelWriter('data_tmp/asset_calibrations.xlsx')
-        workbook = writer.book
-
-        for assetDynamicsType, param_dict in self.all_dynamics_param_dict['asset'].items():
-
-            # parameters
-            worksheet = workbook.add_worksheet(assetDynamicsType.value)
-            writer.sheets[assetDynamicsType.value] = worksheet
-            df_params_out = pd.DataFrame.from_dict(data=param_dict,
-                                                   orient='index',
-                                                   columns=['param'])
-            df_params_out.to_excel(writer, sheet_name=assetDynamicsType.value)
-
-            # reports
-            for i in range(len(self._all_dynamics_model_dict['asset'][assetDynamicsType])):
-                model = self._all_dynamics_model_dict['asset'][assetDynamicsType][i]
-
-                with open('reports/'
-                          + self._financialTimeSeries.ticker
-                          + '-asset_'
-                          + assetDynamicsType.value
-                          + str(i)
-                          + '.txt', 'w+') as fh:
-                    fh.write(model.summary().as_text())
-
-        writer.close()
-
-    def _print_results_factor(self):
-
-        pass
+    assetDynamics_nonlinear = AssetDynamics(AssetDynamicsType.NonLinear)
+    assetDynamics_nonlinear.set_parameters(dynamicsParametersCalibrator)

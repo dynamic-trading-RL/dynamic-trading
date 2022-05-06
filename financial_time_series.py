@@ -81,6 +81,9 @@ class FinancialTimeSeries:
                                        self.window],
                                  columns=['info'])
 
+
+# ------------------------------ TESTS ---------------------------------------------------------------------------------
+
 if __name__ == '__main__':
 
     WTI_timeSeries = FinancialTimeSeries('WTI')

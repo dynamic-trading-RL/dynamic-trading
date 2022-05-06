@@ -1,10 +1,10 @@
                             OLS Regression Results                            
 ==============================================================================
-Dep. Variable:                      r   R-squared:                       0.000
+Dep. Variable:                    pnl   R-squared:                       0.000
 Model:                            OLS   Adj. R-squared:                 -0.000
 Method:                 Least Squares   F-statistic:                    0.1038
-Date:                Thu, 05 May 2022   Prob (F-statistic):              0.747
-Time:                        12:05:23   Log-Likelihood:                -5959.8
+Date:                Fri, 06 May 2022   Prob (F-statistic):              0.747
+Time:                        16:55:20   Log-Likelihood:                -5959.8
 No. Observations:                3773   AIC:                         1.192e+04
 Df Residuals:                    3771   BIC:                         1.194e+04
 Df Model:                           1                                         
