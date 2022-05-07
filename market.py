@@ -1,7 +1,8 @@
 import numpy as np
 
-from dynamics import MarketDynamics, AssetDynamics, FactorDynamics
+from dynamics import MarketDynamics, AssetDynamics, FactorDynamics, DynamicsParametersCalibrator
 from enums import AssetDynamicsType, FactorDynamicsType
+from financial_time_series import FinancialTimeSeries
 
 
 class Market:
@@ -9,6 +10,8 @@ class Market:
     def __init__(self, marketDynamics: MarketDynamics,
                  start_price: float,
                  return_is_pnl: bool = False):
+
+        # ??? input should be more clean
 
         self._marketDynamics = marketDynamics
         self._start_price = start_price
@@ -308,3 +311,25 @@ def instantiate_market(assetDynamicsType, factorDynamicsType, start_price,
     market = Market(marketDynamics, start_price, return_is_pnl=return_is_pnl)
 
     return market
+
+
+# ------------------------------ TESTS ---------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    financialTimeSeries = FinancialTimeSeries('WTI')
+    financialTimeSeries.set_time_series()
+
+    dynamicsParametersCalibrator = DynamicsParametersCalibrator()
+    dynamicsParametersCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, scale_f=1, c=0)
+
+    assetDynamics_nonlinear = AssetDynamics(AssetDynamicsType.NonLinear)
+    assetDynamics_nonlinear.set_parameters(dynamicsParametersCalibrator)
+
+    factorDynamics_ar_tarch = FactorDynamics(FactorDynamicsType.AR_TARCH)
+    factorDynamics_ar_tarch.set_parameters(dynamicsParametersCalibrator)
+
+    market = instantiate_market(assetDynamicsType=assetDynamics_nonlinear,
+                                factorDynamicsType=factorDynamics_ar_tarch)
+
+    a = 1

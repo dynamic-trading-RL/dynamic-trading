@@ -1,10 +1,12 @@
+import numpy as np
 import pandas as pd
 from enums import AssetDynamicsType, FactorDynamicsType
 from financial_time_series import FinancialTimeSeries
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
-
+from arch import arch_model
+from arch.univariate import ARX, GARCH
 
 
 class DynamicsParametersCalibrator:
@@ -34,6 +36,15 @@ class DynamicsParametersCalibrator:
 
             self._fit_asset_dynamics_param(assetDynamicsType, scale, c)
 
+    def _fit_all_factor_dynamics_param(self, scale_f, c):
+
+        self.all_dynamics_param_dict['factor'] = {}
+        self._all_dynamics_model_dict['factor'] = {}
+
+        for factorDynamicsType in FactorDynamicsType:
+
+            self._fit_factor_dynamics_param(factorDynamicsType, scale_f, c)
+
     def _fit_asset_dynamics_param(self, assetDynamicsType, scale, c):
 
         tgt = self._tgt
@@ -50,23 +61,6 @@ class DynamicsParametersCalibrator:
         else:
             raise NameError('Invalid assetDynamicsType: ' + assetDynamicsType.value)
 
-    def _extract_B_mu_sig2_from_reg(self, reg, scale):
-
-        B = reg.params['f']
-        mu = reg.params['const'] / scale
-        sig2 = reg.mse_resid / scale ** 2
-
-        return B, mu, sig2
-
-    def _fit_all_factor_dynamics_param(self, scale_f, c):
-
-        self.all_dynamics_param_dict['factor'] = {}
-        self._all_dynamics_model_dict['factor'] = {}
-
-        for factorDynamicsType in FactorDynamicsType:
-
-            self._fit_factor_dynamics_param(factorDynamicsType, scale_f, c)
-
     def _fit_factor_dynamics_param(self, factorDynamicsType, scale_f, c):
 
         if factorDynamicsType == FactorDynamicsType.AR:
@@ -78,13 +72,12 @@ class DynamicsParametersCalibrator:
             self._execute_general_threshold_regression(tgt_key=factorDynamicsType, var_type='factor', scale=scale_f,
                                                        c=c)
 
-        elif factorDynamicsType == FactorDynamicsType.GARCH:
-            pass
-        elif factorDynamicsType == FactorDynamicsType.TARCH:
-            pass
-        elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
-            pass
+        elif factorDynamicsType in (FactorDynamicsType.GARCH, FactorDynamicsType.TARCH, FactorDynamicsType.AR_TARCH):
+
+            self._execute_garch_tarch_ar_tarch(factorDynamicsType, scale_f)
+
         else:
+
             raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
 
     def _execute_general_linear_regression(self, tgt_key, var_type, scale, tgt=None):
@@ -99,13 +92,13 @@ class DynamicsParametersCalibrator:
         ind = df_reg.index
 
         # regression
-        B, mu, reg, sig2 = self._execute_general_linear_regression_impl(df_reg, ind, scale, tgt, var_type)
+        B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, tgt, var_type)
 
         self.all_dynamics_param_dict[var_type][tgt_key]['mu'] = mu
         self.all_dynamics_param_dict[var_type][tgt_key]['B'] = B
         self.all_dynamics_param_dict[var_type][tgt_key]['sig2'] = sig2
 
-        self._all_dynamics_model_dict[var_type][tgt_key] = [reg]
+        self._all_dynamics_model_dict[var_type][tgt_key] = [model_fit]
 
     def _execute_general_threshold_regression(self, tgt_key, var_type, scale, c, tgt=None):
 
@@ -120,59 +113,114 @@ class DynamicsParametersCalibrator:
         ind_1 = df_reg['f'] >= c
         ind_lst = [ind_0, ind_1]
 
-        reg_lst = []
+        model_lst = []
 
         for i in range(len(ind_lst)):
 
             ind = ind_lst[i]
 
             # regression
-            B, mu, reg, sig2 = self._execute_general_linear_regression_impl(df_reg, ind, scale, tgt, var_type)
+            B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, tgt, var_type)
 
             self.all_dynamics_param_dict[var_type][tgt_key]['mu_%d' % i] = mu
             self.all_dynamics_param_dict[var_type][tgt_key]['B_%d' % i] = B
             self.all_dynamics_param_dict[var_type][tgt_key]['sig2_%d' % i] = sig2
             self.all_dynamics_param_dict[var_type][tgt_key]['c'] = c
 
-            reg_lst.append(reg)
+            model_lst.append(model_fit)
 
-        self._all_dynamics_model_dict[var_type][tgt_key] = reg_lst
+        self._all_dynamics_model_dict[var_type][tgt_key] = model_lst
 
-    def _execute_general_linear_regression_impl(self, df_reg, ind, scale, tgt, var_type):
+    def _execute_ols(self, df_reg, ind, scale, tgt, var_type):
+
         if var_type == 'asset':
-            reg = OLS(df_reg[tgt].loc[ind], add_constant(df_reg['f'].loc[ind])).fit()
-            B, mu, sig2 = self._extract_B_mu_sig2_from_reg(reg, scale)
+            model_fit = OLS(df_reg[tgt].loc[ind], add_constant(df_reg['f'].loc[ind])).fit()
+            B, mu, sig2 = self._extract_B_mu_sig2_from_reg(model_fit, scale)
+
         else:
-            reg = AutoReg(df_reg['f'].loc[ind], lags=1, old_names=False).fit()
-            B, mu, sig2 = self._extract_B_mu_sig2_from_auto_reg(reg, scale)
-        return B, mu, reg, sig2
+            model_fit = AutoReg(df_reg['f'].loc[ind], lags=1, old_names=False).fit()
+            B, mu, sig2 = self._extract_B_mu_sig2_from_auto_reg(model_fit, scale)
+
+        return B, mu, model_fit, sig2
+
+    def _execute_garch_tarch_ar_tarch(self, factorDynamicsType, scale_f):
+
+        self.all_dynamics_param_dict['factor'][factorDynamicsType] = {}
+        self._all_dynamics_model_dict['factor'][factorDynamicsType] = {}
+
+        if factorDynamicsType in (FactorDynamicsType.GARCH, FactorDynamicsType.TARCH):
+
+            df_model = self._prepare_df_model_factor_diff()
+
+            if factorDynamicsType == FactorDynamicsType.GARCH:
+                model = arch_model(df_model, p=1, q=1, rescale=False)
+            else:
+                model = arch_model(df_model, p=1, o=1, q=1, rescale=False)
+
+            model_fit = model.fit()
+            params = model_fit.params.copy()
+
+            if factorDynamicsType == FactorDynamicsType.GARCH:
+                alpha, beta, mu, omega = self._extract_garch_params_from_model_fit(params, scale_f)
+                self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega)
+            else:
+                alpha, beta, gamma, mu, omega = self._extract_tarch_params_from_model_fit(params, scale_f)
+                self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega)
+
+        elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
+
+            df_model = self._prepare_df_model_factor()
+
+            model = ARX(df_model, lags=1, rescale=False)
+            model.volatility = GARCH(p=1, o=1, q=1)
+
+            model_fit = model.fit()
+            params = model_fit.params.copy()
+            params.rename(index={'Const': 'mu'}, inplace=True)
+
+            B, alpha, beta, gamma, mu, omega = self._extract_ar_tarch_params_from_model_fit(params, scale_f)
+
+            self._set_ar_tarch_params(B, alpha, beta, factorDynamicsType, gamma, mu, omega)
+
+        self._all_dynamics_model_dict['factor'][factorDynamicsType] = [model_fit]
 
     def _prepare_df_reg(self, var_type, tgt):
+
         if var_type == 'asset':
-            df_reg = self._prepare_df_reg_asset(tgt)
+            df_reg = self._prepare_df_model_asset(tgt)
         else:
-            df_reg = self._prepare_df_reg_factor()
+            df_reg = self._prepare_df_model_factor()
         return df_reg
 
-    def _check_var_type(self, var_type):
-        if var_type not in ('asset', 'factor'):
-            raise NameError('var_type must be equal to asset or factor')
+    def _prepare_df_model_asset(self, tgt):
 
-    def _prepare_df_reg_asset(self, tgt):
+        df_model = self._financialTimeSeries.time_series[['f', tgt]].copy()
+        df_model[tgt] = df_model[tgt].shift(-1)
+        df_model.dropna(inplace=True)
 
-        df_reg = self._financialTimeSeries.time_series[['f', tgt]].copy()
-        df_reg[tgt] = df_reg[tgt].shift(-1)
-        df_reg.dropna(inplace=True)
+        return df_model
 
-        return df_reg
+    def _prepare_df_model_factor(self):
 
-    def _prepare_df_reg_factor(self):
+        df_model = self._financialTimeSeries.time_series['f'].copy()
+        df_model = df_model.to_frame()
+        df_model.dropna(inplace=True)
 
-        df_reg = self._financialTimeSeries.time_series['f'].copy()
-        df_reg = df_reg.to_frame()
-        df_reg.dropna(inplace=True)
+        return df_model
 
-        return df_reg
+    def _prepare_df_model_factor_diff(self):
+
+        df_model = self._financialTimeSeries.time_series['f'].diff().dropna().copy()
+
+        return df_model
+
+    def _extract_B_mu_sig2_from_reg(self, model_fit, scale):
+
+        B = model_fit.params['f']
+        mu = model_fit.params['const'] / scale
+        sig2 = model_fit.mse_resid / scale ** 2
+
+        return B, mu, sig2
 
     def _extract_B_mu_sig2_from_auto_reg(self, auto_reg, scale_f):
 
@@ -182,43 +230,95 @@ class DynamicsParametersCalibrator:
 
         return B, mu, sig2
 
+    def _extract_tarch_params_from_model_fit(self, params, scale_f):
+
+        alpha, beta, mu, omega = self._extract_garch_params_from_model_fit(params, scale_f)
+        gamma = params['gamma[1]'] / scale_f ** 2
+
+        return alpha, beta, gamma, mu, omega
+
+    def _extract_garch_params_from_model_fit(self, params, scale_f):
+
+        mu = params['mu'] / scale_f
+        omega = params['omega'] / scale_f ** 2
+        alpha = params['alpha[1]'] / scale_f ** 2
+        beta = params['beta[1]'] / scale_f ** 2
+
+        return alpha, beta, mu, omega
+
+    def _extract_ar_tarch_params_from_model_fit(self, params, scale_f):
+
+        alpha, beta, gamma, mu, omega = self._extract_tarch_params_from_model_fit(params, scale_f)
+        B = params['f[1]']
+
+        return B, alpha, beta, gamma, mu, omega
+
+    def _set_garch_params(self, alpha, beta, factorDynamicsType, mu, omega):
+
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['mu'] = mu
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['omega'] = omega
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['alpha'] = alpha
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['beta'] = beta
+
+    def _set_tarch_params(self, alpha, beta, factorDynamicsType, gamma, mu, omega):
+
+        self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega)
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['gamma'] = gamma
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['c'] = 0
+
+    def _set_ar_tarch_params(self, B, alpha, beta, factorDynamicsType, gamma, mu, omega):
+
+        self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega)
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['B'] = B
+
     def print_results(self):
 
-        self._print_results_asset()
-        self._print_results_factor()
+        self._print_results_impl('asset')
+        self._print_results_impl('factor')
 
-    def _print_results_asset(self):
+    def _print_results_impl(self, var_type):
 
-        writer = pd.ExcelWriter('data_tmp/asset_calibrations.xlsx')
+        self._check_var_type(var_type)
+
+        writer = pd.ExcelWriter('data_tmp/' + var_type + '_calibrations.xlsx')
         workbook = writer.book
 
-        for assetDynamicsType, param_dict in self.all_dynamics_param_dict['asset'].items():
+        for dynamicsType, param_dict in self.all_dynamics_param_dict[var_type].items():
 
             # parameters
-            worksheet = workbook.add_worksheet(assetDynamicsType.value)
-            writer.sheets[assetDynamicsType.value] = worksheet
+            worksheet = workbook.add_worksheet(dynamicsType.value)
+            writer.sheets[dynamicsType.value] = worksheet
             df_params_out = pd.DataFrame.from_dict(data=param_dict,
                                                    orient='index',
                                                    columns=['param'])
-            df_params_out.to_excel(writer, sheet_name=assetDynamicsType.value)
+            df_params_out.to_excel(writer, sheet_name=dynamicsType.value)
 
             # reports
-            for i in range(len(self._all_dynamics_model_dict['asset'][assetDynamicsType])):
-                model = self._all_dynamics_model_dict['asset'][assetDynamicsType][i]
+            for i in range(len(self._all_dynamics_model_dict[var_type][dynamicsType])):
 
-                with open('reports/'
-                          + self._financialTimeSeries.ticker
-                          + '-asset_'
-                          + assetDynamicsType.value
-                          + str(i)
-                          + '.txt', 'w+') as fh:
+                model = self._all_dynamics_model_dict[var_type][dynamicsType][i]
+                filename = self._set_report_filename(dynamicsType, i, var_type)
+
+                with open(filename, 'w+') as fh:
                     fh.write(model.summary().as_text())
 
         writer.close()
 
-    def _print_results_factor(self):
+    def _set_report_filename(self, dynamicsType, i, var_type):
 
-        pass
+        if len(self._all_dynamics_model_dict[var_type][dynamicsType]) > 0:
+            filename = 'reports/' + self._financialTimeSeries.ticker + '-' + var_type + '_' + \
+                       dynamicsType.value + str(i) + '.txt'
+        else:
+            filename = 'reports/' + self._financialTimeSeries.ticker + '-' + var_type + '_' + \
+                       dynamicsType.value + '.txt'
+
+        return filename
+
+    def _check_var_type(self, var_type):
+
+        if var_type not in ('asset', 'factor'):
+            raise NameError('var_type must be equal to asset or factor')
 
 
 class Dynamics:
@@ -293,7 +393,9 @@ class FactorDynamics(Dynamics):
         super().__init__()
         self._factorDynamicsType = factorDynamicsType
 
-    def set_parameters(self, param_dict):
+    def set_parameters(self, dynamicsParametersCalibrator: DynamicsParametersCalibrator):
+
+        param_dict = dynamicsParametersCalibrator.all_dynamics_param_dict['factor'][self._factorDynamicsType]
 
         if self._factorDynamicsType == FactorDynamicsType.AR:
 
@@ -402,3 +504,21 @@ if __name__ == '__main__':
     assetDynamics_nonlinear.set_parameters(dynamicsParametersCalibrator)
 
     factorDynamics_ar = FactorDynamics(FactorDynamicsType.AR)
+    factorDynamics_ar.set_parameters(dynamicsParametersCalibrator)
+
+    factorDynamics_setar = FactorDynamics(FactorDynamicsType.SETAR)
+    factorDynamics_setar.set_parameters(dynamicsParametersCalibrator)
+
+    factorDynamics_garch = FactorDynamics(FactorDynamicsType.GARCH)
+    factorDynamics_garch.set_parameters(dynamicsParametersCalibrator)
+
+    factorDynamics_tarch = FactorDynamics(FactorDynamicsType.TARCH)
+    factorDynamics_tarch.set_parameters(dynamicsParametersCalibrator)
+
+    factorDynamics_ar_tarch = FactorDynamics(FactorDynamicsType.AR_TARCH)
+    factorDynamics_ar_tarch.set_parameters(dynamicsParametersCalibrator)
+
+    marketDynamics = MarketDynamics(assetDynamics=assetDynamics_nonlinear,
+                                    factorDynamics=factorDynamics_ar_tarch)
+
+    a = 1
