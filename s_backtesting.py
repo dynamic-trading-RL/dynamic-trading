@@ -57,7 +57,7 @@ if __name__ == '__main__':
     market = instantiate_market(assetDynamicsType, factorDynamicsType,
                                 start_price, return_is_pnl)
 
-    Sigma = market.get_Sigma()
+    Sigma = market.get_sig()
     Lambda = lam*Sigma
 
     B, mu_r, Phi, mu_f = get_dynamics_params(market)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     price = df[ticker][-2*t_:-t_]
     pnl = df[ticker].diff()[-2*t_:-t_]
-    f = df['f'][-t_:]
+    f = df['factor'][-t_:]
 
     # ------------------------------------- Markowitz -------------------------
 

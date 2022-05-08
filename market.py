@@ -6,24 +6,14 @@ from enums import AssetDynamicsType, FactorDynamicsType
 
 class Market:
 
-    def __init__(self, marketDynamics: MarketDynamics, start_price: float):
+    def __init__(self, marketDynamics: MarketDynamics):
 
         self.marketDynamics = marketDynamics
-        self.use_pnl = self.marketDynamics.use_pnl
-        self._setMarketId()
-        self.start_price = start_price
-        self.simulations = {}
-
-    def _setMarketId(self):
-
-        assetDynamicsType = self.marketDynamics.assetDynamics.assetDynamicsType
-        factorDynamicsType = self.marketDynamics.factorDynamics.factorDynamicsType
-        self.marketId = assetDynamicsType.value + '-' + factorDynamicsType.value
+        self._set_market_attributes()
 
     def next_step(self, f: float):
 
-        assetDynamicsType = self.marketDynamics.assetDynamics.assetDynamicsType
-        parameters = self.marketDynamics.assetDynamics.parameters
+        assetDynamicsType, parameters = self.marketDynamics.get_assetDynamicsType_and_parameters()
 
         if assetDynamicsType == AssetDynamicsType.Linear:
 
@@ -52,9 +42,35 @@ class Market:
         price = self.simulations['price'].reshape((j_episodes, n_batches, t_))
         pnl = self.simulations['pnl'].reshape((j_episodes, n_batches, t_))
         ret = self.simulations['return'].reshape((j_episodes, n_batches, t_))
-        f = self.simulations['f'].reshape((j_episodes, n_batches, t_))
+        f = self.simulations['factor'].reshape((j_episodes, n_batches, t_))
 
         return price, pnl, ret, f
+
+    def get_sig(self, f=None):
+
+        assetDynamicsType, parameters = self.marketDynamics.get_assetDynamicsType_and_parameters()
+
+        if assetDynamicsType == AssetDynamicsType.Linear:
+
+            return parameters['sig2']
+
+        elif assetDynamicsType == AssetDynamicsType.NonLinear:
+
+            if f is None:
+
+                p = parameters['p']
+
+                return p * parameters['sig2_0'] + (1 - p) * parameters['sig2_0']
+
+            else:
+
+                if f < parameters['c']:
+                    return parameters['sig2_0']
+                else:
+                    return parameters['sig2_1']
+
+        else:
+            raise NameError('Invalid assetDynamicsType: ' + assetDynamicsType.value)
 
     def _simulate_factor(self, j_, t_, delta_stationary):
 
@@ -86,10 +102,10 @@ class Market:
         else:
             raise NameError('Invalid factorDynamicsType')
 
-        self.simulations['f'] = f[:, -t_:]
+        self.simulations['factor'] = f[:, -t_:]
 
     def _simulate_return_and_pnl_and_price(self):
-        if self.use_pnl:
+        if self.factor_predicts_pnl:
             self._simulate_pnl_then_return_then_price()
         else:
             self._simulate_return_then_pnl_then_price()
@@ -118,9 +134,10 @@ class Market:
         self._get_price_from_pnl()
 
     def _simulate_asset_impl(self):
+        
         assetDynamicsType, parameters = self.marketDynamics.get_assetDynamicsType_and_parameters()
-        pnl = self._simulate_asset(assetDynamicsType, parameters)
-        return pnl
+        asset = self._simulate_asset(assetDynamicsType, parameters)
+        return asset
 
     def _simulate_asset(self, assetDynamicsType, parameters):
         f, norm, asset, t_ = self._initialize_asset_simulations()
@@ -148,23 +165,6 @@ class Market:
             ind_0, ind_1 = self._get_threshold_indexes(c, f, t)
             self._get_next_step_asset(asset, f, ind_0, norm, sig2_0, t)
             self._get_next_step_asset(asset, f, ind_1, norm, sig2_1, t)
-
-    def get_Sigma(self):
-
-        assetDynamicsType = \
-            self.marketDynamics.assetDynamics.assetDynamicsType
-
-        if assetDynamicsType == AssetDynamicsType.Linear:
-
-            return self.marketDynamics.assetDynamics.parameters['sig2']
-
-        elif assetDynamicsType == AssetDynamicsType.NonLinear:
-
-            # ??? should become weighted average
-            # ??? in the episode generation, it should get either sig2_0/1 and not
-            # the weighted average
-            return 0.5 * (self.marketDynamics.assetDynamics.parameters['sig2_0']
-                          + self.marketDynamics.assetDynamics.parameters['sig2_0'])
 
     def _simulate_factor_ar(self, f, norm, parameters, t_stationary):
         B, mu, sig2 = self._get_linear_params(parameters)
@@ -208,7 +208,7 @@ class Market:
         self.simulations['sig'] = sig
 
     def _initialize_asset_simulations(self):
-        f = self.simulations['f']
+        f = self.simulations['factor']
         j_, t_ = f.shape
         asset = np.zeros((j_, t_))
         norm = np.random.randn(j_, t_)
@@ -293,54 +293,61 @@ class Market:
     def _next_step_factor_linear(self, B, f, ind, mu, norm, sig2, t):
         f[ind, t] = mu + B * f[ind, t - 1] + np.sqrt(sig2) * norm[ind, t]
 
+    def _set_market_attributes(self):
 
-class AllMarkets:
+        self._set_market_id()
+        self._set_factor_predicts_pnl()
+        self._set_start_price()
+        self.simulations = {}
 
-    def __init__(self):
+    def _set_factor_predicts_pnl(self):
 
-        self._allMarkets_dict = {}
+        self.factor_predicts_pnl = self.marketDynamics.factor_predicts_pnl
 
-    def fill_allMarkets_dict(self, d):
+    def _set_market_id(self):
 
-        for key, item in d.items():
+        assetDynamicsType = self.marketDynamics.assetDynamics.assetDynamicsType
+        factorDynamicsType = self.marketDynamics.factorDynamics.factorDynamicsType
+        self.market_id = assetDynamicsType.value + '-' + factorDynamicsType.value
 
-            self._allMarkets_dict[key] = item
+    def _set_start_price(self):
+
+        self.start_price = self.marketDynamics.start_price
 
 
 def instantiate_market(assetDynamicsType: AssetDynamicsType,
                        factorDynamicsType: FactorDynamicsType,
-                       ticker: str):
+                       ticker: str,
+                       factor_predicts_pnl: bool):
 
     # Instantiate dynamics
     assetDynamics = AssetDynamics(assetDynamicsType)
     factorDynamics = FactorDynamics(factorDynamicsType)
 
     # Read calibrated parameters
-    assetDynamics.read_asset_parameters(ticker)
-    factorDynamics.read_factor_parameters(ticker)
-
-    start_price = assetDynamics.read_asset_start_price(ticker)
+    assetDynamics.set_parameters_from_file(ticker, factor_predicts_pnl)
+    factorDynamics.set_parameters_from_file(ticker, factor_predicts_pnl)
 
     # Set dynamics
-    marketDynamics = MarketDynamics(assetDynamics=assetDynamics,
-                                    factorDynamics=factorDynamics)
-    market = Market(marketDynamics, start_price)
+    marketDynamics = MarketDynamics(assetDynamics, factorDynamics)
 
-    return market
+    return Market(marketDynamics)
 
 
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
+    assetDynamicsType = AssetDynamicsType.NonLinear
+    factorDynamicsType = FactorDynamicsType.AR_TARCH
+    ticker = 'WTI'
+    factor_predicts_pnl = True
     j_ = 100
-    t_ = 100
+    t_ = 200
 
-    market = instantiate_market(assetDynamicsType=AssetDynamicsType.NonLinear,
-                                factorDynamicsType=FactorDynamicsType.AR_TARCH,
-                                ticker='WTI')
+    market = instantiate_market(assetDynamicsType, factorDynamicsType, ticker, factor_predicts_pnl)
 
-    market.simulate(j_=j_, t_=t_)
+    market.simulate(j_, t_)
 
     fig = plt.figure()
 
@@ -354,10 +361,10 @@ if __name__ == '__main__':
     ax_factor.set_title('Factor')
 
     for j in range(min(j_, 50)):
-        ax_price.plot(market.simulations['price'][j, :])
-        ax_pnl.plot(market.simulations['pnl'][j, :])
-        ax_return.plot(market.simulations['return'][j, :])
-        ax_factor.plot(market.simulations['f'][j, :])
+        ax_price.plot(market.simulations['price'][j, :], color='k', linewidth=0.5, alpha=1)
+        ax_pnl.plot(market.simulations['pnl'][j, :], '.', color='k', markersize=0.1, alpha=1)
+        ax_return.plot(market.simulations['return'][j, :], '.', color='k', markersize=0.1, alpha=1)
+        ax_factor.plot(market.simulations['factor'][j, :], '.', color='k', markersize=0.1, alpha=1)
 
     plt.tight_layout()
     plt.show()

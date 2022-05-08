@@ -9,15 +9,14 @@ class FinancialTimeSeries:
     def __init__(self, ticker, ):
 
         self.ticker = ticker
-        self.timeSeries = None
 
     def set_time_series(self,
                         t_past=8000,
-                        use_pnl=True,
+                        factor_predicts_pnl=True,
                         factorDefinitionType=FactorDefinitionType.MovingAverage,
                         window=5):
 
-        self.use_pnl = use_pnl
+        self.factor_predicts_pnl = factor_predicts_pnl
         self.factorDefinitionType = factorDefinitionType
         self.window = window
         self._set_asset_time_series(t_past)
@@ -56,16 +55,16 @@ class FinancialTimeSeries:
 
     def _set_factor(self):
 
-        if self.use_pnl:
+        if self.factor_predicts_pnl:
             x = self.time_series['pnl']
         else:
             x = self.time_series['return']
 
         if self.factorDefinitionType == FactorDefinitionType.MovingAverage:
-            self.time_series['f'] = x.rolling(self.window).mean()
+            self.time_series['factor'] = x.rolling(self.window).mean()
 
         elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
-            self.time_series['f'] = x.rolling(self.window).mean() / x.rolling(self.window).std()
+            self.time_series['factor'] = x.rolling(self.window).mean() / x.rolling(self.window).std()
 
     def _set_info(self):
 
@@ -74,13 +73,13 @@ class FinancialTimeSeries:
                                         'start_price',
                                         't_past',
                                         'window',
-                                        'use_pnl'],
+                                        'factor_predicts_pnl'],
                                  data=[self.ticker,
                                        self.time_series.index[-1],
                                        self.time_series[self.ticker].iloc[-1],
                                        len(self.time_series),
                                        self.window,
-                                       str(self.use_pnl)],
+                                       str(self.factor_predicts_pnl)],
                                  columns=['info'])
 
 

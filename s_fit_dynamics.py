@@ -16,7 +16,7 @@ from financial_time_series import FinancialTimeSeries
 
 # ------------------------------------- Input parameters -----------------
 fit_stock = False
-use_pnl = True
+factor_predicts_pnl = True
 ticker = 'WTI'
 
 # ------------------------------------- Get time series ------------------
@@ -44,7 +44,7 @@ else:
     t_past = 8000
     window = 5
 
-if use_pnl:
+if factor_predicts_pnl:
     df['r'] = scale * df[ticker].diff()
 else:
     df['r'] = scale * df[ticker].pct_change()
@@ -64,12 +64,12 @@ dump(ticker, 'data_tmp/ticker.joblib')
 # ------------------ FACTORS
 
 # AR(1) on factors
-res_ar = AutoReg(df['f'], lags=1, old_names=False).fit()
+res_ar = AutoReg(df['factor'], lags=1, old_names=False).fit()
 mu_ar = res_ar.params.iloc[0] / scale_f
 Phi_ar = 1 - res_ar.params.iloc[1]
 Omega_ar = res_ar.sigma2 / scale_f**2
 epsi_ar =\
-    df['f'].iloc[1:] / scale_f - Phi_ar*df['f'].iloc[:-1] / scale_f - mu_ar
+    df['factor'].iloc[1:] / scale_f - Phi_ar*df['factor'].iloc[:-1] / scale_f - mu_ar
 
 with open('reports/' + ticker + '-factor_AR.txt', 'w+') as fh:
     fh.write(res_ar.summary().as_text())
@@ -79,22 +79,22 @@ res_ar = pd.DataFrame(index=['mu', 'B', 'sig2'],
                       columns=['param'])
 
 # SETAR on factors
-ind_0 = df['f'] < c
-ind_1 = df['f'] >= c
+ind_0 = df['factor'] < c
+ind_1 = df['factor'] >= c
 
-res_ar_0 = AutoReg(df['f'].loc[ind_0], lags=1, old_names=False).fit()
+res_ar_0 = AutoReg(df['factor'].loc[ind_0], lags=1, old_names=False).fit()
 mu_ar_0 = res_ar_0.params.iloc[0] / scale_f
 Phi_ar_0 = 1 - res_ar_0.params.iloc[1]
 Omega_ar_0 = res_ar_0.sigma2 / scale_f**2
-epsi_ar_0 = df['f'].loc[ind_0].iloc[1:] / scale_f -\
-    Phi_ar_0*df['f'].loc[ind_0].iloc[:-1] / scale_f - mu_ar_0
+epsi_ar_0 = df['factor'].loc[ind_0].iloc[1:] / scale_f -\
+    Phi_ar_0*df['factor'].loc[ind_0].iloc[:-1] / scale_f - mu_ar_0
 
-res_ar_1 = AutoReg(df['f'].loc[ind_1], lags=1, old_names=False).fit()
+res_ar_1 = AutoReg(df['factor'].loc[ind_1], lags=1, old_names=False).fit()
 mu_ar_1 = res_ar_1.params.iloc[0] / scale_f
 Phi_ar_1 = 1 - res_ar_1.params.iloc[1]
 Omega_ar_1 = res_ar_1.sigma2 / scale_f**2
-epsi_ar_1 = df['f'].loc[ind_1].iloc[1:] / scale_f -\
-    Phi_ar_1*df['f'].loc[ind_1].iloc[:-1] / scale_f - mu_ar_1
+epsi_ar_1 = df['factor'].loc[ind_1].iloc[1:] / scale_f -\
+    Phi_ar_1*df['factor'].loc[ind_1].iloc[:-1] / scale_f - mu_ar_1
 
 with open('reports/' + ticker + '-factor_SETAR_0.txt', 'w+') as fh:
     fh.write(res_ar_0.summary().as_text())
@@ -112,7 +112,7 @@ res_setar = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
 
 
 # GARCH(1, 1) on factors
-garch = arch_model(df['f'].diff().dropna(), p=1, q=1, rescale=False)
+garch = arch_model(df['factor'].diff().dropna(), p=1, q=1, rescale=False)
 res_garch = garch.fit()
 resid = res_garch.resid / scale_f
 sigma_garch = res_garch.conditional_volatility / scale_f
@@ -131,7 +131,7 @@ res_garch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'beta'],
 
 
 # TARCH(1, 1, 1) on factors
-tarch = arch_model(df['f'].diff().dropna(), p=1, o=1, q=1, rescale=False)
+tarch = arch_model(df['factor'].diff().dropna(), p=1, o=1, q=1, rescale=False)
 res_tarch = tarch.fit()
 resid = res_tarch.resid / scale_f
 sigma_tarch = res_tarch.conditional_volatility / scale_f
@@ -152,7 +152,7 @@ res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c'],
 
 
 # AR-TARCH(1, 1, 1) on factors
-ar_tarch = ARX(df['f'], lags=1, rescale=False)
+ar_tarch = ARX(df['factor'], lags=1, rescale=False)
 ar_tarch.volatility = GARCH(p=1, o=1, q=1)
 res_ar_tarch = ar_tarch.fit()
 resid = res_ar_tarch.resid / scale_f
