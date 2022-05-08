@@ -73,12 +73,14 @@ class FinancialTimeSeries:
                                         'end_date',
                                         'start_price',
                                         't_past',
-                                        'window'],
+                                        'window',
+                                        'use_pnl'],
                                  data=[self.ticker,
                                        self.time_series.index[-1],
                                        self.time_series[self.ticker].iloc[-1],
                                        len(self.time_series),
-                                       self.window],
+                                       self.window,
+                                       str(self.use_pnl)],
                                  columns=['info'])
 
 

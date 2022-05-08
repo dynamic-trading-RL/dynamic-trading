@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from enums import AssetDynamicsType, FactorDynamicsType
 from financial_time_series import FinancialTimeSeries
@@ -16,18 +15,25 @@ class DynamicsParametersCalibrator:
         self.all_dynamics_param_dict = {}
         self._all_dynamics_model_dict = {}
 
-    def fit_all_dynamics_param(self, financialTimeSeries: FinancialTimeSeries, scale=1, scale_f=1, c=0):
+    def fit_all_dynamics_param(self, financialTimeSeries: FinancialTimeSeries,
+                               scale: float = 1,
+                               scale_f: float = 1,
+                               c : float = 0):
 
-        self._financialTimeSeries = financialTimeSeries
+        self.financialTimeSeries = financialTimeSeries
         self._fit_all_asset_dynamics_param(scale, c)
         self._fit_all_factor_dynamics_param(scale_f, c)
 
-    def _fit_all_asset_dynamics_param(self, scale, c):
+    def use_pnl(self):
+
+        return self.financialTimeSeries.use_pnl
+
+    def _fit_all_asset_dynamics_param(self, scale: float, c: float):
 
         self.all_dynamics_param_dict['asset'] = {}
         self._all_dynamics_model_dict['asset'] = {}
 
-        if self._financialTimeSeries.use_pnl:
+        if self.financialTimeSeries.use_pnl:
             self._tgt = 'pnl'
         else:
             self._tgt = 'return'
@@ -36,7 +42,7 @@ class DynamicsParametersCalibrator:
 
             self._fit_asset_dynamics_param(assetDynamicsType, scale, c)
 
-    def _fit_all_factor_dynamics_param(self, scale_f, c):
+    def _fit_all_factor_dynamics_param(self, scale_f: float, c: float):
 
         self.all_dynamics_param_dict['factor'] = {}
         self._all_dynamics_model_dict['factor'] = {}
@@ -45,7 +51,7 @@ class DynamicsParametersCalibrator:
 
             self._fit_factor_dynamics_param(factorDynamicsType, scale_f, c)
 
-    def _fit_asset_dynamics_param(self, assetDynamicsType, scale, c):
+    def _fit_asset_dynamics_param(self, assetDynamicsType: AssetDynamicsType, scale: float, c: float):
 
         tgt = self._tgt
 
@@ -61,7 +67,7 @@ class DynamicsParametersCalibrator:
         else:
             raise NameError('Invalid assetDynamicsType: ' + assetDynamicsType.value)
 
-    def _fit_factor_dynamics_param(self, factorDynamicsType, scale_f, c):
+    def _fit_factor_dynamics_param(self, factorDynamicsType: FactorDynamicsType, scale_f: float, c: float):
 
         if factorDynamicsType == FactorDynamicsType.AR:
 
@@ -80,7 +86,7 @@ class DynamicsParametersCalibrator:
 
             raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
 
-    def _execute_general_linear_regression(self, tgt_key, var_type, scale, tgt=None):
+    def _execute_general_linear_regression(self, tgt_key, var_type: str, scale: float, tgt: str = None):
 
         self._check_var_type(var_type)
 
@@ -100,7 +106,7 @@ class DynamicsParametersCalibrator:
 
         self._all_dynamics_model_dict[var_type][tgt_key] = [model_fit]
 
-    def _execute_general_threshold_regression(self, tgt_key, var_type, scale, c, tgt=None):
+    def _execute_general_threshold_regression(self, tgt_key, var_type: str, scale: float, c: float, tgt: str = None):
 
         self._check_var_type(var_type)
 
@@ -131,7 +137,7 @@ class DynamicsParametersCalibrator:
 
         self._all_dynamics_model_dict[var_type][tgt_key] = model_lst
 
-    def _execute_ols(self, df_reg, ind, scale, tgt, var_type):
+    def _execute_ols(self, df_reg: pd.DataFrame, ind: pd.Index, scale: float, tgt: str, var_type: str):
 
         if var_type == 'asset':
             model_fit = OLS(df_reg[tgt].loc[ind], add_constant(df_reg['f'].loc[ind])).fit()
@@ -143,7 +149,7 @@ class DynamicsParametersCalibrator:
 
         return B, mu, model_fit, sig2
 
-    def _execute_garch_tarch_ar_tarch(self, factorDynamicsType, scale_f):
+    def _execute_garch_tarch_ar_tarch(self, factorDynamicsType: FactorDynamicsType, scale_f: float):
 
         self.all_dynamics_param_dict['factor'][factorDynamicsType] = {}
         self._all_dynamics_model_dict['factor'][factorDynamicsType] = {}
@@ -182,9 +188,12 @@ class DynamicsParametersCalibrator:
 
             self._set_ar_tarch_params(B, alpha, beta, factorDynamicsType, gamma, mu, omega)
 
+        else:
+            raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
+
         self._all_dynamics_model_dict['factor'][factorDynamicsType] = [model_fit]
 
-    def _prepare_df_reg(self, var_type, tgt):
+    def _prepare_df_reg(self, var_type: str, tgt: str):
 
         if var_type == 'asset':
             df_reg = self._prepare_df_model_asset(tgt)
@@ -192,9 +201,9 @@ class DynamicsParametersCalibrator:
             df_reg = self._prepare_df_model_factor()
         return df_reg
 
-    def _prepare_df_model_asset(self, tgt):
+    def _prepare_df_model_asset(self, tgt: str):
 
-        df_model = self._financialTimeSeries.time_series[['f', tgt]].copy()
+        df_model = self.financialTimeSeries.time_series[['f', tgt]].copy()
         df_model[tgt] = df_model[tgt].shift(-1)
         df_model.dropna(inplace=True)
 
@@ -202,7 +211,7 @@ class DynamicsParametersCalibrator:
 
     def _prepare_df_model_factor(self):
 
-        df_model = self._financialTimeSeries.time_series['f'].copy()
+        df_model = self.financialTimeSeries.time_series['f'].copy()
         df_model = df_model.to_frame()
         df_model.dropna(inplace=True)
 
@@ -210,11 +219,11 @@ class DynamicsParametersCalibrator:
 
     def _prepare_df_model_factor_diff(self):
 
-        df_model = self._financialTimeSeries.time_series['f'].diff().dropna().copy()
+        df_model = self.financialTimeSeries.time_series['f'].diff().dropna().copy()
 
         return df_model
 
-    def _extract_B_mu_sig2_from_reg(self, model_fit, scale):
+    def _extract_B_mu_sig2_from_reg(self, model_fit, scale: str):
 
         B = model_fit.params['f']
         mu = model_fit.params['const'] / scale
@@ -222,7 +231,7 @@ class DynamicsParametersCalibrator:
 
         return B, mu, sig2
 
-    def _extract_B_mu_sig2_from_auto_reg(self, auto_reg, scale_f):
+    def _extract_B_mu_sig2_from_auto_reg(self, auto_reg, scale_f: str):
 
         B = auto_reg.params.iloc[1]
         mu = auto_reg.params.iloc[0] / scale_f
@@ -230,7 +239,7 @@ class DynamicsParametersCalibrator:
 
         return B, mu, sig2
 
-    def _extract_tarch_params_from_model_fit(self, params, scale_f):
+    def _extract_tarch_params_from_model_fit(self, params: dict, scale_f: str):
 
         alpha, beta, mu, omega = self._extract_garch_params_from_model_fit(params, scale_f)
         gamma = params['gamma[1]'] / scale_f ** 2
@@ -246,27 +255,30 @@ class DynamicsParametersCalibrator:
 
         return alpha, beta, mu, omega
 
-    def _extract_ar_tarch_params_from_model_fit(self, params, scale_f):
+    def _extract_ar_tarch_params_from_model_fit(self, params: dict, scale_f: float):
 
         alpha, beta, gamma, mu, omega = self._extract_tarch_params_from_model_fit(params, scale_f)
         B = params['f[1]']
 
         return B, alpha, beta, gamma, mu, omega
 
-    def _set_garch_params(self, alpha, beta, factorDynamicsType, mu, omega):
+    def _set_garch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, mu: float,
+                          omega: float):
 
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['mu'] = mu
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['omega'] = omega
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['alpha'] = alpha
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['beta'] = beta
 
-    def _set_tarch_params(self, alpha, beta, factorDynamicsType, gamma, mu, omega):
+    def _set_tarch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, gamma: float, mu: float,
+                          omega: float):
 
         self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega)
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['gamma'] = gamma
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['c'] = 0
 
-    def _set_ar_tarch_params(self, B, alpha, beta, factorDynamicsType, gamma, mu, omega):
+    def _set_ar_tarch_params(self, B: float, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType,
+                             gamma: float, mu: float, omega: float):
 
         self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega)
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['B'] = B
@@ -276,12 +288,21 @@ class DynamicsParametersCalibrator:
         self._print_results_impl('asset')
         self._print_results_impl('factor')
 
-    def _print_results_impl(self, var_type):
+    def _print_results_impl(self, var_type: str):
 
         self._check_var_type(var_type)
+        ticker = self.financialTimeSeries.ticker
 
-        writer = pd.ExcelWriter('data_tmp/' + var_type + '_calibrations.xlsx')
+        writer = pd.ExcelWriter('data_tmp/' + ticker + '_' + var_type + '_calibrations.xlsx')
         workbook = writer.book
+
+        df_use_pnl = pd.DataFrame(data=[str(self.use_pnl())], columns=['use_pnl'])
+        df_use_pnl.to_excel(writer, sheet_name='use_pnl', index=False)
+
+        if var_type == 'asset':
+            df_start_price = pd.DataFrame(data=[self.financialTimeSeries.info.loc['start_price'][0]],
+                                          columns=['start_price'])
+            df_start_price.to_excel(writer, sheet_name='start_price', index=False)
 
         for dynamicsType, param_dict in self.all_dynamics_param_dict[var_type].items():
 
@@ -304,18 +325,22 @@ class DynamicsParametersCalibrator:
 
         writer.close()
 
-    def _set_report_filename(self, dynamicsType, i, var_type):
+    def _set_report_filename(self, dynamicsType, i: int, var_type: str):
 
         if len(self._all_dynamics_model_dict[var_type][dynamicsType]) > 0:
-            filename = 'reports/' + self._financialTimeSeries.ticker + '-' + var_type + '_' + \
-                       dynamicsType.value + str(i) + '.txt'
+            filename = 'reports/' + self.financialTimeSeries.ticker +\
+                       '-use_pnl-' + str(self.use_pnl()) +\
+                       '-' + var_type +\
+                       '-' + dynamicsType.value + str(i) +'.txt'
         else:
-            filename = 'reports/' + self._financialTimeSeries.ticker + '-' + var_type + '_' + \
-                       dynamicsType.value + '.txt'
+            filename = 'reports/' + self.financialTimeSeries.ticker +\
+                       '-use_pnl-' + str(self.use_pnl()) +\
+                       '-' + var_type +\
+                       '-' + dynamicsType.value + '.txt'
 
         return filename
 
-    def _check_var_type(self, var_type):
+    def _check_var_type(self, var_type: str):
 
         if var_type not in ('asset', 'factor'):
             raise NameError('var_type must be equal to asset or factor')
@@ -325,23 +350,58 @@ class Dynamics:
 
     def __init__(self):
 
-        self._parameters = {}
+        self.parameters = {}
 
-    def _set_linear_parameters(self, param_dict):
+    def _set_linear_parameters(self, param_dict: dict):
 
-        self._parameters['mu'] = param_dict['mu']
-        self._parameters['B'] = param_dict['B']
-        self._parameters['sig2'] = param_dict['sig2']
+        self.parameters['mu'] = param_dict['mu']
+        self.parameters['B'] = param_dict['B']
+        self.parameters['sig2'] = param_dict['sig2']
 
-    def _set_threshold_parameters(self, param_dict):
+    def _set_threshold_parameters(self, param_dict: dict):
 
-        self._parameters['c'] = param_dict['c']
-        self._parameters['mu_0'] = param_dict['mu_0']
-        self._parameters['B_0'] = param_dict['B_0']
-        self._parameters['sig2_0'] = param_dict['sig2_0']
-        self._parameters['mu_1'] = param_dict['mu_1']
-        self._parameters['B_1'] = param_dict['B_1']
-        self._parameters['sig2_1'] = param_dict['sig2_1']
+        self.parameters['c'] = param_dict['c']
+        self.parameters['mu_0'] = param_dict['mu_0']
+        self.parameters['B_0'] = param_dict['B_0']
+        self.parameters['sig2_0'] = param_dict['sig2_0']
+        self.parameters['mu_1'] = param_dict['mu_1']
+        self.parameters['B_1'] = param_dict['B_1']
+        self.parameters['sig2_1'] = param_dict['sig2_1']
+
+    def _read_parameters(self, ticker):
+
+        if type(self) == AssetDynamics:
+            filename = 'data_tmp/' + ticker + '_asset_calibrations.xlsx'
+            sheet_name = self.assetDynamicsType.value
+
+        elif type(self) == FactorDynamics:
+            filename = 'data_tmp/' + ticker + '_factor_calibrations.xlsx'
+            sheet_name = self.factorDynamicsType.value
+
+        else:
+            raise NameError('dynamicsType not properly set')
+
+        params = pd.read_excel(filename,
+                               sheet_name=sheet_name,
+                               index_col=0)
+
+        return params['param'].to_dict()
+
+    def _read_use_pnl(self, ticker):
+
+        sheet_name = 'use_pnl'
+
+        if type(self) == AssetDynamics:
+            filename = 'data_tmp/' + ticker + '_asset_calibrations.xlsx'
+        elif type(self) == FactorDynamics:
+            filename = 'data_tmp/' + ticker + '_factor_calibrations.xlsx'
+        else:
+            raise NameError('dynamicsType not properly set')
+
+        use_pnl_df = pd.read_excel(filename, sheet_name=sheet_name)
+        use_pnl_str = str(use_pnl_df['use_pnl'].iloc[0])
+
+        return use_pnl_str == 'True'
 
 
 class AssetDynamics(Dynamics):
@@ -349,141 +409,123 @@ class AssetDynamics(Dynamics):
     def __init__(self, assetDynamicsType: AssetDynamicsType):
 
         super().__init__()
-        self._assetDynamicsType = assetDynamicsType
+        self.assetDynamicsType = assetDynamicsType
 
-    def set_parameters(self, dynamicsParametersCalibrator: DynamicsParametersCalibrator):
+    def set_parameters_from_calibrator(self, dynamicsParametersCalibrator: DynamicsParametersCalibrator):
 
-        param_dict = dynamicsParametersCalibrator.all_dynamics_param_dict['asset'][self._assetDynamicsType]
+        self.use_pnl = dynamicsParametersCalibrator.use_pnl()
+        param_dict = dynamicsParametersCalibrator.all_dynamics_param_dict['asset'][self.assetDynamicsType]
+        self._set_parameters_from_dict(param_dict)
 
-        if self._assetDynamicsType == AssetDynamicsType.Linear:
+    def read_asset_parameters(self, ticker):
+
+        self.use_pnl = super()._read_use_pnl(ticker)
+        param_dict = super()._read_parameters(ticker)
+        self._set_parameters_from_dict(param_dict)
+
+    def _set_parameters_from_dict(self, param_dict):
+        if self.assetDynamicsType == AssetDynamicsType.Linear:
 
             self._set_linear_parameters(param_dict)
 
-        elif self._assetDynamicsType == AssetDynamicsType.NonLinear:
+        elif self.assetDynamicsType == AssetDynamicsType.NonLinear:
 
             self._set_threshold_parameters(param_dict)
 
         else:
-            raise NameError('Invalid return dynamics')
+            raise NameError('Invalid asset dynamics')
 
-    def read_asset_parameters(self):
+    def read_asset_start_price(self, ticker):
 
-        if self._assetDynamicsType == AssetDynamicsType.Linear:
+        filename = 'data_tmp/' + ticker + '_asset_calibrations.xlsx'
+        sheet_name = 'start_price'
 
-            params = pd.read_excel('data_tmp/asset_calibrations.xlsx',
-                                   sheet_name='linear',
-                                   index_col=0)
+        start_price_df = pd.read_excel(filename, sheet_name=sheet_name)
 
-        elif self._assetDynamicsType == AssetDynamicsType.NonLinear:
-
-            params = pd.read_excel('data_tmp/asset_calibrations.xlsx',
-                                   sheet_name='non-linear',
-                                   index_col=0)
-
-        else:
-            raise NameError('Invalid assetDynamicsType')
-
-        return params['param'].to_dict()
-
+        return start_price_df['start_price'].iloc[0]
 
 class FactorDynamics(Dynamics):
 
     def __init__(self, factorDynamicsType: FactorDynamicsType):
 
         super().__init__()
-        self._factorDynamicsType = factorDynamicsType
+        self.factorDynamicsType = factorDynamicsType
 
-    def set_parameters(self, dynamicsParametersCalibrator: DynamicsParametersCalibrator):
+    def set_parameters_from_calibrator(self, dynamicsParametersCalibrator: DynamicsParametersCalibrator):
 
-        param_dict = dynamicsParametersCalibrator.all_dynamics_param_dict['factor'][self._factorDynamicsType]
+        self.use_pnl = dynamicsParametersCalibrator.use_pnl()
+        param_dict = dynamicsParametersCalibrator.all_dynamics_param_dict['factor'][self.factorDynamicsType]
+        self._set_parameters_from_dict(param_dict)
 
-        if self._factorDynamicsType == FactorDynamicsType.AR:
+    def read_factor_parameters(self, ticker):
+
+        self.use_pnl = super()._read_use_pnl(ticker)
+        param_dict = super()._read_parameters(ticker)
+        self._set_parameters_from_dict(param_dict)
+
+    def _set_parameters_from_dict(self, param_dict):
+        if self.factorDynamicsType == FactorDynamicsType.AR:
 
             self._set_linear_parameters(param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.SETAR:
+        elif self.factorDynamicsType == FactorDynamicsType.SETAR:
 
             self._set_threshold_parameters(param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.GARCH:
+        elif self.factorDynamicsType == FactorDynamicsType.GARCH:
 
             self._set_garch_parameters(param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.TARCH:
+        elif self.factorDynamicsType == FactorDynamicsType.TARCH:
 
             self._set_tarch_parameters(param_dict)
 
-        elif self._factorDynamicsType == FactorDynamicsType.AR_TARCH:
+        elif self.factorDynamicsType == FactorDynamicsType.AR_TARCH:
 
             self._set_artarch_parameters(param_dict)
 
         else:
             raise NameError('Invalid factor dynamics')
 
-    def read_factor_parameters(self):
-
-        if self._factorDynamicsType == FactorDynamicsType.AR:
-
-            params = pd.read_excel('data_tmp/factor_calibrations.xlsx',
-                                   sheet_name='AR',
-                                   index_col=0)
-
-        elif self._factorDynamicsType == FactorDynamicsType.SETAR:
-
-            params = pd.read_excel('data_tmp/factor_calibrations.xlsx',
-                                   sheet_name='SETAR',
-                                   index_col=0)
-
-        elif self._factorDynamicsType == FactorDynamicsType.GARCH:
-
-            params = pd.read_excel('data_tmp/factor_calibrations.xlsx',
-                                   sheet_name='GARCH',
-                                   index_col=0)
-
-        elif self._factorDynamicsType == FactorDynamicsType.TARCH:
-
-            params = pd.read_excel('data_tmp/factor_calibrations.xlsx',
-                                   sheet_name='TARCH',
-                                   index_col=0)
-
-        elif self._factorDynamicsType == FactorDynamicsType.AR_TARCH:
-
-            params = pd.read_excel('data_tmp/factor_calibrations.xlsx',
-                                   sheet_name='AR-TARCH',
-                                   index_col=0)
-
-        else:
-            raise NameError('Invalid factorDynamicsType')
-
-        return params['param'].to_dict()
-
-    def _set_artarch_parameters(self, param_dict):
+    def _set_artarch_parameters(self, param_dict: dict):
 
         self._set_tarch_parameters(param_dict)
-        self._parameters['B'] = param_dict['B']
+        self.parameters['B'] = param_dict['B']
 
-    def _set_tarch_parameters(self, param_dict):
+    def _set_tarch_parameters(self, param_dict: dict):
 
         self._set_garch_parameters(param_dict)
-        self._parameters['gamma'] = param_dict['gamma']
-        self._parameters['c'] = param_dict['c']
+        self.parameters['gamma'] = param_dict['gamma']
+        self.parameters['c'] = param_dict['c']
 
-    def _set_garch_parameters(self, param_dict):
+    def _set_garch_parameters(self, param_dict: dict):
 
-        self._parameters['mu'] = param_dict['mu']
-        self._parameters['omega'] = param_dict['omega']
-        self._parameters['alpha'] = param_dict['alpha']
-        self._parameters['beta'] = param_dict['beta']
+        self.parameters['mu'] = param_dict['mu']
+        self.parameters['omega'] = param_dict['omega']
+        self.parameters['alpha'] = param_dict['alpha']
+        self.parameters['beta'] = param_dict['beta']
 
 
 class MarketDynamics:
 
-    def __init__(self,
-                 assetDynamics: AssetDynamics,
-                 factorDynamics: FactorDynamics):
+    def __init__(self, assetDynamics: AssetDynamics, factorDynamics: FactorDynamics):
 
-        self._assetDynamics = assetDynamics
-        self._factorDynamics = factorDynamics
+        self.assetDynamics = assetDynamics
+        self.factorDynamics = factorDynamics
+        self._set_use_pnl()
+
+    def get_assetDynamicsType_and_parameters(self):
+
+        return self.assetDynamics.assetDynamicsType, self.assetDynamics.parameters
+
+    def _set_use_pnl(self):
+
+        if self.assetDynamics.use_pnl == self.factorDynamics.use_pnl:
+
+            self.use_pnl = self.assetDynamics.use_pnl
+
+        else:
+            raise NameError('use_pnl different for asset and factor dynamics')
 
 
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
@@ -497,28 +539,11 @@ if __name__ == '__main__':
     dynamicsParametersCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, scale_f=1, c=0)
     dynamicsParametersCalibrator.print_results()
 
-    assetDynamics_linear = AssetDynamics(AssetDynamicsType.Linear)
-    assetDynamics_linear.set_parameters(dynamicsParametersCalibrator)
+    assetDynamics = AssetDynamics(AssetDynamicsType.NonLinear)
+    factorDynamics = FactorDynamics(FactorDynamicsType.AR_TARCH)
 
-    assetDynamics_nonlinear = AssetDynamics(AssetDynamicsType.NonLinear)
-    assetDynamics_nonlinear.set_parameters(dynamicsParametersCalibrator)
+    assetDynamics.set_parameters_from_calibrator(dynamicsParametersCalibrator)
+    factorDynamics.set_parameters_from_calibrator(dynamicsParametersCalibrator)
 
-    factorDynamics_ar = FactorDynamics(FactorDynamicsType.AR)
-    factorDynamics_ar.set_parameters(dynamicsParametersCalibrator)
-
-    factorDynamics_setar = FactorDynamics(FactorDynamicsType.SETAR)
-    factorDynamics_setar.set_parameters(dynamicsParametersCalibrator)
-
-    factorDynamics_garch = FactorDynamics(FactorDynamicsType.GARCH)
-    factorDynamics_garch.set_parameters(dynamicsParametersCalibrator)
-
-    factorDynamics_tarch = FactorDynamics(FactorDynamicsType.TARCH)
-    factorDynamics_tarch.set_parameters(dynamicsParametersCalibrator)
-
-    factorDynamics_ar_tarch = FactorDynamics(FactorDynamicsType.AR_TARCH)
-    factorDynamics_ar_tarch.set_parameters(dynamicsParametersCalibrator)
-
-    marketDynamics = MarketDynamics(assetDynamics=assetDynamics_nonlinear,
-                                    factorDynamics=factorDynamics_ar_tarch)
-
-    a = 1
+    marketDynamics = MarketDynamics(assetDynamics=assetDynamics,
+                                    factorDynamics=factorDynamics)

@@ -122,7 +122,7 @@ if __name__ == '__main__':
                                 start_price, return_is_pnl)
 
     # Simulations
-    price, pnl, f = market.simulate_market_and_extract_simulations(j_episodes, n_batches, t_)
+    price, pnl, f = market.extract_simulations(j_episodes, n_batches, t_)  # ??? works differently now
     Sigma = market.get_Sigma()
     lam = lam_perc * 2 / Sigma
     Lambda = lam*Sigma

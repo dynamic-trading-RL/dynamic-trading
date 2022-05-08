@@ -68,7 +68,7 @@ if __name__ == '__main__':
     B, mu_r, Phi, mu_f = get_dynamics_params(market)
 
     # Simulations
-    price, pnl, f = market.simulate_market_and_extract_simulations(j_episodes=j_oos, n_batches=1, t_=t_)
+    price, pnl, f = market.extract_simulations(j_episodes=j_oos, n_batches=1, t_=t_)  # ??? works differently now
 
     price = price.squeeze()
     pnl = pnl.squeeze()

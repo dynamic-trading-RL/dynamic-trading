@@ -636,38 +636,38 @@ def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t,
 
 def get_dynamics_params(market):
 
-    if (market._marketDynamics._assetDynamics._assetDynamicsType
+    if (market.marketDynamics.assetDynamics.assetDynamicsType
             == AssetDynamicsType.Linear):
-        B = market._marketDynamics._assetDynamics._parameters['B']
-        mu_r = market._marketDynamics._assetDynamics._parameters['mu']
+        B = market.marketDynamics.assetDynamics.parameters['B']
+        mu_r = market.marketDynamics.assetDynamics.parameters['mu']
     else:
-        B_0 = market._marketDynamics._assetDynamics._parameters['B_0']
-        B_1 = market._marketDynamics._assetDynamics._parameters['B_1']
+        B_0 = market.marketDynamics.assetDynamics.parameters['B_0']
+        B_1 = market.marketDynamics.assetDynamics.parameters['B_1']
         B = 0.5*(B_0 + B_1)
-        mu_0 = market._marketDynamics._assetDynamics._parameters['mu_0']
-        mu_1 = market._marketDynamics._assetDynamics._parameters['mu_1']
+        mu_0 = market.marketDynamics.assetDynamics.parameters['mu_0']
+        mu_1 = market.marketDynamics.assetDynamics.parameters['mu_1']
         mu_r = 0.5*(mu_0 + mu_1)
 
-    if (market._marketDynamics._factorDynamics._factorDynamicsType
+    if (market.marketDynamics.factorDynamics.factorDynamicsType
             in (FactorDynamicsType.AR, FactorDynamicsType.AR_TARCH)):
 
-        Phi = 1 - market._marketDynamics._factorDynamics._parameters['B']
-        mu_f = 1 - market._marketDynamics._factorDynamics._parameters['mu']
+        Phi = 1 - market.marketDynamics.factorDynamics.parameters['B']
+        mu_f = 1 - market.marketDynamics.factorDynamics.parameters['mu']
 
-    elif (market._marketDynamics._factorDynamics._factorDynamicsType
+    elif (market.marketDynamics.factorDynamics.factorDynamicsType
           == FactorDynamicsType.SETAR):
 
-        Phi_0 = 1 - market._marketDynamics._factorDynamics._parameters['B_0']
-        Phi_1 = 1 - market._marketDynamics._factorDynamics._parameters['B_1']
-        mu_f_0 = 1 - market._marketDynamics._factorDynamics._parameters['mu_0']
-        mu_f_1 = 1 - market._marketDynamics._factorDynamics._parameters['mu_1']
+        Phi_0 = 1 - market.marketDynamics.factorDynamics.parameters['B_0']
+        Phi_1 = 1 - market.marketDynamics.factorDynamics.parameters['B_1']
+        mu_f_0 = 1 - market.marketDynamics.factorDynamics.parameters['mu_0']
+        mu_f_1 = 1 - market.marketDynamics.factorDynamics.parameters['mu_1']
         Phi = 0.5*(Phi_0 + Phi_1)
         mu_f = .5*(mu_f_0 + mu_f_1)
 
     else:
 
         Phi = 0.
-        mu_f = market._marketDynamics._factorDynamics._parameters['mu']
+        mu_f = market.marketDynamics.factorDynamics.parameters['mu']
 
     return B, mu_r, Phi, mu_f
 
