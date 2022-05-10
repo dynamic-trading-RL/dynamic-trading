@@ -1,7 +1,7 @@
 import pandas as pd
 import yfinance as yf
 
-from enums import FactorDefinitionType
+from enums import FactorDefinitionType, RiskDriverType
 
 
 class FinancialTimeSeries:
@@ -12,15 +12,15 @@ class FinancialTimeSeries:
 
     def set_time_series(self,
                         t_past=8000,
-                        factor_predicts_pnl=True,
+                        riskDriverType=RiskDriverType.PnL,
                         factorDefinitionType=FactorDefinitionType.MovingAverage,
                         window=5):
 
-        self.factor_predicts_pnl = factor_predicts_pnl
+        self.riskDriverType = riskDriverType
         self.factorDefinitionType = factorDefinitionType
         self.window = window
         self._set_asset_time_series(t_past)
-        self._set_pnl_and_return_time_series()
+        self._set_risk_driver_time_series()
         self._set_factor()
         self.time_series.dropna(inplace=True)
         self._set_info()
@@ -48,17 +48,18 @@ class FinancialTimeSeries:
 
         self.time_series = time_series.iloc[-t_past:]
 
-    def _set_pnl_and_return_time_series(self):
+    def _set_risk_driver_time_series(self):
 
-        self.time_series['pnl'] = self.time_series[self.ticker].diff()
-        self.time_series['return'] = self.time_series[self.ticker].pct_change()
+        if self.riskDriverType == RiskDriverType.PnL:
+            self.time_series['risk-driver'] = self.time_series[self.ticker].diff()
+        elif self.riskDriverType == RiskDriverType.Return:
+            self.time_series['risk-driver'] = self.time_series[self.ticker].pct_change()
+        else:
+            raise NameError('Invalid riskDriverType: ' + self.riskDriverType.value)
 
     def _set_factor(self):
 
-        if self.factor_predicts_pnl:
-            x = self.time_series['pnl']
-        else:
-            x = self.time_series['return']
+        x = self.time_series['risk-driver']
 
         if self.factorDefinitionType == FactorDefinitionType.MovingAverage:
             self.time_series['factor'] = x.rolling(self.window).mean()
@@ -73,13 +74,13 @@ class FinancialTimeSeries:
                                         'start_price',
                                         't_past',
                                         'window',
-                                        'factor_predicts_pnl'],
+                                        'riskDriverType'],
                                  data=[self.ticker,
                                        self.time_series.index[-1],
                                        self.time_series[self.ticker].iloc[-1],
                                        len(self.time_series),
                                        self.window,
-                                       str(self.factor_predicts_pnl)],
+                                       str(self.riskDriverType)],
                                  columns=['info'])
 
 

@@ -1,7 +1,7 @@
 import pandas as pd
 
 from calibrator import DynamicsCalibrator, build_filename_calibrations
-from enums import AssetDynamicsType, FactorDynamicsType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 
 
 class Dynamics:
@@ -9,14 +9,14 @@ class Dynamics:
     def __init__(self):
 
         self.parameters = {}
-        self.factor_predicts_pnl = None
+        self.riskDriverType = None
 
     def _read_parameters_from_file(self, ticker):
 
         filename = self._get_filename(ticker)
 
-        if type(self) == AssetDynamics:
-            sheet_name = self.assetDynamicsType.value
+        if type(self) == RiskDriverDynamics:
+            sheet_name = self.riskDriverDynamicsType.value
 
         elif type(self) == FactorDynamics:
             sheet_name = self.factorDynamicsType.value
@@ -30,22 +30,21 @@ class Dynamics:
 
         return params['param'].to_dict()
 
-    def _check_factor_predicts_pnl_in_file(self, ticker):
+    def _check_riskDriverType_in_file(self, ticker):
 
         filename = self._get_filename(ticker)
 
-        sheet_name = 'factor_predicts_pnl'
+        sheet_name = 'riskDriverType'
 
-        factor_predicts_pnl_df = pd.read_excel(filename, sheet_name=sheet_name)
-        factor_predicts_pnl_str = str(factor_predicts_pnl_df['factor_predicts_pnl'].iloc[0])
-        factor_predicts_pnl_in_file = factor_predicts_pnl_str == 'True'
+        riskDriverType_df = pd.read_excel(filename, sheet_name=sheet_name)
+        riskDriverType_in_file = RiskDriverType(riskDriverType_df['riskDriverType'].iloc[0])
 
-        if self.factor_predicts_pnl != factor_predicts_pnl_in_file:
-            raise NameError('factor_predicts_pnl in ' + filename + ' is not as it should be')
+        if self.riskDriverType != riskDriverType_in_file:
+            raise NameError('riskDriverType in ' + filename + ' is not as it should be')
 
-    def _set_asset_start_price_from_file(self, ticker):
+    def _set_risk_driver_start_price_from_file(self, ticker):
 
-        if type(self) == AssetDynamics:
+        if type(self) == RiskDriverDynamics:
 
             filename = self._get_filename(ticker)
 
@@ -58,20 +57,20 @@ class Dynamics:
 
     def _get_filename(self, ticker):
 
-        if type(self) == AssetDynamics:
-            var_type = 'asset'
+        if type(self) == RiskDriverDynamics:
+            var_type = 'risk-driver'
         elif type(self) == FactorDynamics:
             var_type = 'factor'
         else:
             raise NameError('dynamicsType not properly set')
 
-        factor_predicts_pnl = self.factor_predicts_pnl
+        riskDriverType = self.riskDriverType
 
-        filename = build_filename_calibrations(factor_predicts_pnl, ticker, var_type)
+        filename = build_filename_calibrations(riskDriverType, ticker, var_type)
 
         return filename
 
-    def _read_asset_start_price_from_calibrator(self, dynamicsCalibrator):
+    def _read_risk_driver_start_price_from_calibrator(self, dynamicsCalibrator):
 
         start_price = dynamicsCalibrator.financialTimeSeries.info['start_price']
 
@@ -79,33 +78,33 @@ class Dynamics:
 
     def _set_parameters_from_calibrator(self, dynamicsCalibrator):
 
-        if type(self) == AssetDynamics:
-            var_type = 'asset'
-            dynamicsType = self.assetDynamicsType
-            self.start_price = self._read_asset_start_price_from_calibrator(dynamicsCalibrator)
+        if type(self) == RiskDriverDynamics:
+            var_type = 'risk-driver'
+            dynamicsType = self.riskDriverDynamicsType
+            self.start_price = self._read_risk_driver_start_price_from_calibrator(dynamicsCalibrator)
         elif type(self) == FactorDynamics:
             var_type = 'factor'
             dynamicsType = self.factorDynamicsType
         else:
             raise NameError('Invalid dynamics')
 
-        self.factor_predicts_pnl = dynamicsCalibrator.factor_predicts_pnl
+        self.riskDriverType = dynamicsCalibrator.riskDriverType
         param_dict = dynamicsCalibrator.get_param_dict(var_type, dynamicsType)
         self._set_parameters_from_dict_impl(param_dict)
 
-    def _set_parameters_from_file(self, ticker, factor_predicts_pnl):
+    def _set_parameters_from_file(self, ticker, riskDriverType):
 
-        self.factor_predicts_pnl = factor_predicts_pnl
-        self._check_factor_predicts_pnl_in_file(ticker)
-        self._set_asset_start_price_from_file(ticker)
+        self.riskDriverType = riskDriverType
+        self._check_riskDriverType_in_file(ticker)
+        self._set_risk_driver_start_price_from_file(ticker)
         param_dict = self._read_parameters_from_file(ticker)
         self._set_parameters_from_dict_impl(param_dict)
 
     def _set_parameters_from_dict_impl(self, param_dict):
 
-        if type(self) == AssetDynamics:
+        if type(self) == RiskDriverDynamics:
 
-            self._set_asset_parameters_from_dict(param_dict)
+            self._set_risk_driver_parameters_from_dict(param_dict)
 
         elif type(self) == FactorDynamics:
 
@@ -114,18 +113,18 @@ class Dynamics:
         else:
             raise NameError('Invalid dynamics')
 
-    def _set_asset_parameters_from_dict(self, param_dict):
+    def _set_risk_driver_parameters_from_dict(self, param_dict):
 
-        if self.assetDynamicsType == AssetDynamicsType.Linear:
+        if self.riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
 
             self._set_linear_parameters(param_dict)
 
-        elif self.assetDynamicsType == AssetDynamicsType.NonLinear:
+        elif self.riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
             self._set_threshold_parameters(param_dict)
 
         else:
-            raise NameError('Invalid asset dynamics')
+            raise NameError('Invalid riskDriverDynamicsType: ' + self.riskDriverDynamicsType.value)
 
     def _set_factor_parameters_from_dict(self, param_dict):
 
@@ -188,20 +187,20 @@ class Dynamics:
         self.parameters['B'] = param_dict['B']
 
 
-class AssetDynamics(Dynamics):
+class RiskDriverDynamics(Dynamics):
 
-    def __init__(self, assetDynamicsType: AssetDynamicsType):
+    def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType):
 
         super().__init__()
-        self.assetDynamicsType = assetDynamicsType
-    
+        self.riskDriverDynamicsType = riskDriverDynamicsType
+
     def set_parameters_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
 
-    def set_parameters_from_file(self, ticker, factor_predicts_pnl):
+    def set_parameters_from_file(self, ticker, riskDriverType):
 
-        super()._set_parameters_from_file(ticker, factor_predicts_pnl)
+        super()._set_parameters_from_file(ticker, riskDriverType)
 
 class FactorDynamics(Dynamics):
 
@@ -214,47 +213,47 @@ class FactorDynamics(Dynamics):
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
 
-    def set_parameters_from_file(self, ticker, factor_predicts_pnl):
+    def set_parameters_from_file(self, ticker, riskDriverType):
 
-        super()._set_parameters_from_file(ticker, factor_predicts_pnl)
+        super()._set_parameters_from_file(ticker, riskDriverType)
 
 
 class MarketDynamics:
 
-    def __init__(self, assetDynamics: AssetDynamics, factorDynamics: FactorDynamics):
+    def __init__(self, riskDriverDynamics: RiskDriverDynamics, factorDynamics: FactorDynamics):
 
-        self.assetDynamics = assetDynamics
+        self.riskDriverDynamics = riskDriverDynamics
         self.factorDynamics = factorDynamics
-        self._set_factor_predicts_pnl()
+        self._set_riskDriverType()
         self._set_start_price()
 
-    def get_assetDynamicsType_and_parameters(self):
+    def get_riskDriverDynamicsType_and_parameters(self):
 
-        return self.assetDynamics.assetDynamicsType, self.assetDynamics.parameters
+        return self.riskDriverDynamics.riskDriverDynamicsType, self.riskDriverDynamics.parameters
 
-    def _set_factor_predicts_pnl(self):
+    def _set_riskDriverType(self):
 
-        if self.assetDynamics.factor_predicts_pnl == self.factorDynamics.factor_predicts_pnl:
+        if self.riskDriverDynamics.riskDriverType == self.factorDynamics.riskDriverType:
 
-            self.factor_predicts_pnl = self.assetDynamics.factor_predicts_pnl
+            self.riskDriverType = self.riskDriverDynamics.riskDriverType
 
         else:
-            raise NameError('factor_predicts_pnl different for asset and factor dynamics')
+            raise NameError('riskDriverType different for risk-driver and factor dynamics')
 
     def _set_start_price(self):
 
-        self.start_price = self.assetDynamics.start_price
+        self.start_price = self.riskDriverDynamics.start_price
 
 
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    assetDynamics = AssetDynamics(AssetDynamicsType.NonLinear)
+    riskDriverDynamics = RiskDriverDynamics(RiskDriverDynamicsType.NonLinear)
     factorDynamics = FactorDynamics(FactorDynamicsType.AR_TARCH)
 
-    assetDynamics.set_parameters_from_file(ticker='WTI', factor_predicts_pnl=True)
-    factorDynamics.set_parameters_from_file(ticker='WTI', factor_predicts_pnl=True)
+    riskDriverDynamics.set_parameters_from_file(ticker='WTI', riskDriverType=RiskDriverType.PnL)
+    factorDynamics.set_parameters_from_file(ticker='WTI', riskDriverType=RiskDriverType.PnL)
 
-    marketDynamics = MarketDynamics(assetDynamics=assetDynamics,
+    marketDynamics = MarketDynamics(riskDriverDynamics=riskDriverDynamics,
                                     factorDynamics=factorDynamics)

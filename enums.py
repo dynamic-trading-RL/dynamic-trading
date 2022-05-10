@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class AssetDynamicsType(Enum):
+class RiskDriverDynamicsType(Enum):
 
     Linear = 'Linear'
     NonLinear = 'NonLinear'
@@ -26,3 +26,9 @@ class FactorDefinitionType(Enum):
 
     MovingAverage = 'MovingAverage'
     StdMovingAverage = 'StdMovingAverage'
+
+
+class RiskDriverType(Enum):
+
+    PnL = 'Pnl'
+    Return = 'Return'

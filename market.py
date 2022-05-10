@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from dynamics import MarketDynamics, AssetDynamics, FactorDynamics
-from enums import AssetDynamicsType, FactorDynamicsType
+from dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 
 
 class Market:
@@ -13,13 +13,13 @@ class Market:
 
     def next_step(self, f: float):
 
-        assetDynamicsType, parameters = self.marketDynamics.get_assetDynamicsType_and_parameters()
+        riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
 
-        if assetDynamicsType == AssetDynamicsType.Linear:
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
 
             return parameters['mu'] + parameters['B']*f
 
-        elif assetDynamicsType == AssetDynamicsType.NonLinear:
+        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
             if f < parameters['c']:
 
@@ -33,7 +33,7 @@ class Market:
 
         np.random.seed(789)
         self._simulate_factor(j_, t_, delta_stationary)
-        self._simulate_return_and_pnl_and_price()
+        self._simulate_risk_driver_and_pnl_and_price()
 
     def simulate_batches(self, j_episodes, n_batches, t_):
 
@@ -41,20 +41,20 @@ class Market:
 
         price = self.simulations['price'].reshape((j_episodes, n_batches, t_))
         pnl = self.simulations['pnl'].reshape((j_episodes, n_batches, t_))
-        ret = self.simulations['return'].reshape((j_episodes, n_batches, t_))
+        ret = self.simulations['risk-driver'].reshape((j_episodes, n_batches, t_))
         f = self.simulations['factor'].reshape((j_episodes, n_batches, t_))
 
         return price, pnl, ret, f
 
     def get_sig(self, f=None):
 
-        assetDynamicsType, parameters = self.marketDynamics.get_assetDynamicsType_and_parameters()
+        riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
 
-        if assetDynamicsType == AssetDynamicsType.Linear:
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
 
             return parameters['sig2']
 
-        elif assetDynamicsType == AssetDynamicsType.NonLinear:
+        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
             if f is None:
 
@@ -70,7 +70,7 @@ class Market:
                     return parameters['sig2_1']
 
         else:
-            raise NameError('Invalid assetDynamicsType: ' + assetDynamicsType.value)
+            raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
 
     def _simulate_factor(self, j_, t_, delta_stationary):
 
@@ -103,68 +103,6 @@ class Market:
             raise NameError('Invalid factorDynamicsType')
 
         self.simulations['factor'] = f[:, -t_:]
-
-    def _simulate_return_and_pnl_and_price(self):
-        if self.factor_predicts_pnl:
-            self._simulate_pnl_then_return_then_price()
-        else:
-            self._simulate_return_then_pnl_then_price()
-
-    def _simulate_pnl_then_return_then_price(self):
-
-        pnl = self._simulate_asset_impl()
-
-        self.simulations['pnl'] = pnl
-
-        self.simulations['return'] = \
-            self.simulations['pnl'] / (self.start_price + np.cumsum(self.simulations['pnl'], axis=1))
-
-        self._get_price_from_pnl()
-
-    def _simulate_return_then_pnl_then_price(self):
-
-        ret = self._simulate_asset_impl()
-
-        self.simulations['return'] = ret
-
-        self.simulations['pnl'] = \
-            self.start_price * np.cumprod(1 + self.simulations['return'], axis=1) / \
-            (1 + self.simulations['return']) * self.simulations['return']
-
-        self._get_price_from_pnl()
-
-    def _simulate_asset_impl(self):
-        
-        assetDynamicsType, parameters = self.marketDynamics.get_assetDynamicsType_and_parameters()
-        asset = self._simulate_asset(assetDynamicsType, parameters)
-        return asset
-
-    def _simulate_asset(self, assetDynamicsType, parameters):
-        f, norm, asset, t_ = self._initialize_asset_simulations()
-        if assetDynamicsType == AssetDynamicsType.Linear:
-
-            self._simulate_asset_linear(asset, f, norm, parameters)
-
-        elif assetDynamicsType == AssetDynamicsType.NonLinear:
-
-            self._simulate_asset_non_linear(asset, f, norm, parameters, t_)
-
-        else:
-            raise NameError('Invalid assetDynamicsType')
-        return asset
-
-    def _simulate_asset_linear(self, asset, f, norm, parameters):
-        sig2 = parameters['sig2']
-        asset[:, 1:] = self.next_step(f[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
-
-    def _simulate_asset_non_linear(self, asset, f, norm, parameters, t_):
-        c = parameters['c']
-        sig2_0 = parameters['sig2_0']
-        sig2_1 = parameters['sig2_1']
-        for t in range(1, t_):
-            ind_0, ind_1 = self._get_threshold_indexes(c, f, t)
-            self._get_next_step_asset(asset, f, ind_0, norm, sig2_0, t)
-            self._get_next_step_asset(asset, f, ind_1, norm, sig2_1, t)
 
     def _simulate_factor_ar(self, f, norm, parameters, t_stationary):
         B, mu, sig2 = self._get_linear_params(parameters)
@@ -207,12 +145,72 @@ class Market:
             self._get_next_step_ar_arch(B, epsi, f, mu, norm, sig, sig2, t)
         self.simulations['sig'] = sig
 
-    def _initialize_asset_simulations(self):
+    def _simulate_risk_driver_and_pnl_and_price(self):
+
+        self._simulate_risk_driver()
+        self._simulate_pnl()
+        self._simulate_price()
+
+    def _simulate_risk_driver(self):
+
+        riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
+        self.simulations['risk-driver'] = self._simulate_risk_driver_impl(riskDriverDynamicsType, parameters)
+
+    def _simulate_risk_driver_impl(self, riskDriverDynamicsType, parameters):
+
+        f, norm, risk_driver, t_ = self._initialize_risk_driver_simulations()
+
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
+
+            self._simulate_risk_driver_linear(risk_driver, f, norm, parameters)
+
+        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
+
+            self._simulate_risk_driver_non_linear(risk_driver, f, norm, parameters, t_)
+
+        else:
+            raise NameError('Invalid riskDriverDynamicsType')
+
+        return risk_driver
+
+    def _simulate_risk_driver_linear(self, risk_driver, f, norm, parameters):
+        sig2 = parameters['sig2']
+        risk_driver[:, 1:] = self.next_step(f[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
+
+    def _simulate_risk_driver_non_linear(self, risk_driver, f, norm, parameters, t_):
+        c = parameters['c']
+        sig2_0 = parameters['sig2_0']
+        sig2_1 = parameters['sig2_1']
+        for t in range(1, t_):
+            ind_0, ind_1 = self._get_threshold_indexes(c, f, t)
+            self._get_next_step_risk_driver(risk_driver, f, ind_0, norm, sig2_0, t)
+            self._get_next_step_risk_driver(risk_driver, f, ind_1, norm, sig2_1, t)
+
+    def _simulate_pnl(self):
+
+        if self.riskDriverType == RiskDriverType.PnL:
+
+            self.simulations['pnl'] = self.simulations['risk-driver']
+
+        elif self.riskDriverType == RiskDriverType.Return:
+
+            ret = self.simulations['risk-driver']
+
+            self.simulations['pnl'] = self.start_price * np.cumprod(1 + ret, axis=1) / (1 + ret) * ret
+
+        else:
+            raise NameError('Invalid riskDriverType: ' + self.riskDriverType.value)
+
+    def _simulate_price(self):
+
+        self._get_price_from_pnl()
+
+    def _initialize_risk_driver_simulations(self):
         f = self.simulations['factor']
         j_, t_ = f.shape
-        asset = np.zeros((j_, t_))
+        risk_driver = np.zeros((j_, t_))
         norm = np.random.randn(j_, t_)
-        return f, norm, asset, t_
+        return f, norm, risk_driver, t_
 
     def _initialize_factor_simulations(self, delta_stationary, j_, t_):
         t_stationary = t_ + delta_stationary
@@ -284,10 +282,11 @@ class Market:
         return B, mu, sig2
 
     def _get_price_from_pnl(self):
+
         self.simulations['price'] = self.start_price + np.cumsum(self.simulations['pnl'], axis=1)
 
-    def _get_next_step_asset(self, asset, f, ind_0, norm, sig2_0, t):
-        asset[ind_0, t] = np.vectorize(self.next_step, otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[
+    def _get_next_step_risk_driver(self, risk_driver, f, ind_0, norm, sig2_0, t):
+        risk_driver[ind_0, t] = np.vectorize(self.next_step, otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[
             ind_0, t]
 
     def _next_step_factor_linear(self, B, f, ind, mu, norm, sig2, t):
@@ -296,40 +295,40 @@ class Market:
     def _set_market_attributes(self):
 
         self._set_market_id()
-        self._set_factor_predicts_pnl()
+        self._set_riskDriverType()
         self._set_start_price()
         self.simulations = {}
 
-    def _set_factor_predicts_pnl(self):
+    def _set_riskDriverType(self):
 
-        self.factor_predicts_pnl = self.marketDynamics.factor_predicts_pnl
+        self.riskDriverType = self.marketDynamics.riskDriverType
 
     def _set_market_id(self):
 
-        assetDynamicsType = self.marketDynamics.assetDynamics.assetDynamicsType
+        riskDriverDynamicsType = self.marketDynamics.riskDriverDynamics.riskDriverDynamicsType
         factorDynamicsType = self.marketDynamics.factorDynamics.factorDynamicsType
-        self.market_id = assetDynamicsType.value + '-' + factorDynamicsType.value
+        self.market_id = riskDriverDynamicsType.value + '-' + factorDynamicsType.value
 
     def _set_start_price(self):
 
         self.start_price = self.marketDynamics.start_price
 
 
-def instantiate_market(assetDynamicsType: AssetDynamicsType,
+def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
                        factorDynamicsType: FactorDynamicsType,
                        ticker: str,
-                       factor_predicts_pnl: bool):
+                       riskDriverType: RiskDriverType):
 
     # Instantiate dynamics
-    assetDynamics = AssetDynamics(assetDynamicsType)
+    riskDriverDynamics = RiskDriverDynamics(riskDriverDynamicsType)
     factorDynamics = FactorDynamics(factorDynamicsType)
 
     # Read calibrated parameters
-    assetDynamics.set_parameters_from_file(ticker, factor_predicts_pnl)
-    factorDynamics.set_parameters_from_file(ticker, factor_predicts_pnl)
+    riskDriverDynamics.set_parameters_from_file(ticker, riskDriverType)
+    factorDynamics.set_parameters_from_file(ticker, riskDriverType)
 
     # Set dynamics
-    marketDynamics = MarketDynamics(assetDynamics, factorDynamics)
+    marketDynamics = MarketDynamics(riskDriverDynamics, factorDynamics)
 
     return Market(marketDynamics)
 
@@ -338,14 +337,14 @@ def instantiate_market(assetDynamicsType: AssetDynamicsType,
 
 if __name__ == '__main__':
 
-    assetDynamicsType = AssetDynamicsType.NonLinear
+    riskDriverDynamicsType = RiskDriverDynamicsType.NonLinear
     factorDynamicsType = FactorDynamicsType.AR_TARCH
     ticker = 'WTI'
-    factor_predicts_pnl = True
+    riskDriverType = RiskDriverType.PnL
     j_ = 100
     t_ = 200
 
-    market = instantiate_market(assetDynamicsType, factorDynamicsType, ticker, factor_predicts_pnl)
+    market = instantiate_market(riskDriverDynamicsType, factorDynamicsType, ticker, riskDriverType)
 
     market.simulate(j_, t_)
 
@@ -356,15 +355,15 @@ if __name__ == '__main__':
     ax_pnl = plt.subplot2grid(shape=(4, 1), loc=(1, 0))
     ax_pnl.set_title('PnL')
     ax_return = plt.subplot2grid(shape=(4, 1), loc=(2, 0))
-    ax_return.set_title('Return')
+    ax_return.set_title('Risk Driver')
     ax_factor = plt.subplot2grid(shape=(4, 1), loc=(3, 0))
     ax_factor.set_title('Factor')
 
     for j in range(min(j_, 50)):
-        ax_price.plot(market.simulations['price'][j, :], color='k', linewidth=0.5, alpha=1)
-        ax_pnl.plot(market.simulations['pnl'][j, :], '.', color='k', markersize=0.1, alpha=1)
-        ax_return.plot(market.simulations['return'][j, :], '.', color='k', markersize=0.1, alpha=1)
-        ax_factor.plot(market.simulations['factor'][j, :], '.', color='k', markersize=0.1, alpha=1)
+        ax_price.plot(market.simulations['price'][j, :], linewidth=0.5, alpha=1)
+        ax_pnl.plot(market.simulations['pnl'][j, :], '.', markersize=0.1, alpha=1)
+        ax_return.plot(market.simulations['risk-driver'][j, :], '.', markersize=0.1, alpha=1)
+        ax_factor.plot(market.simulations['factor'][j, :], '.', markersize=0.1, alpha=1)
 
     plt.tight_layout()
     plt.show()

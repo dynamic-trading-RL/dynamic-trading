@@ -18,7 +18,7 @@ bound = load('data_tmp/bound.joblib')
 rescale_n_a = load('data_tmp/rescale_n_a.joblib')
 optimizers = load('data_tmp/optimizers.joblib')
 optimizer = load('data_tmp/optimizer.joblib')
-assetDynamicsType = load('data_tmp/assetDynamicsType.joblib')
+riskDriverDynamicsType = load('data_tmp/riskDriverDynamicsType.joblib')
 factorDynamicsType = load('data_tmp/factorDynamicsType.joblib')
 lam = load('data_tmp/lam.joblib')
 gamma = load('data_tmp/gamma.joblib')
@@ -67,7 +67,7 @@ for i in range(len(nn)):
 ############ GP
 
 # Instantiate market
-market = instantiate_market(assetDynamicsType, factorDynamicsType,
+market = instantiate_market(riskDriverDynamicsType, factorDynamicsType,
                             100., return_is_pnl)
 
 Sigma = market.get_sig()

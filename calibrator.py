@@ -5,7 +5,7 @@ from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
-from enums import AssetDynamicsType, FactorDynamicsType
+from enums import RiskDriverDynamicsType, FactorDynamicsType
 from financial_time_series import FinancialTimeSeries
 
 
@@ -22,33 +22,28 @@ class DynamicsCalibrator:
                                c : float = 0):
 
         self.financialTimeSeries = financialTimeSeries
-        self._fit_all_asset_dynamics_param(scale, c)
+        self._fit_all_risk_driver_dynamics_param(scale, c)
         self._fit_all_factor_dynamics_param(scale_f, c)
-        self._set_factor_predicts_pnl()
+        self._set_riskDriverType()
 
-    def _set_factor_predicts_pnl(self):
+    def _set_riskDriverType(self):
 
-        self.factor_predicts_pnl = self.financialTimeSeries.factor_predicts_pnl
-    
+        self.riskDriverType = self.financialTimeSeries.riskDriverType
+
     def get_params_dict(self, var_type, dynamicsType):
 
         param_dict = self._all_dynamics_param_dict[var_type][dynamicsType]
-        
+
         return param_dict
 
-    def _fit_all_asset_dynamics_param(self, scale: float, c: float):
+    def _fit_all_risk_driver_dynamics_param(self, scale: float, c: float):
 
-        self._all_dynamics_param_dict['asset'] = {}
-        self._all_dynamics_model_dict['asset'] = {}
+        self._all_dynamics_param_dict['risk-driver'] = {}
+        self._all_dynamics_model_dict['risk-driver'] = {}
 
-        if self.financialTimeSeries.factor_predicts_pnl:
-            self._tgt = 'pnl'
-        else:
-            self._tgt = 'return'
+        for riskDriverDynamicsType in RiskDriverDynamicsType:
 
-        for assetDynamicsType in AssetDynamicsType:
-
-            self._fit_asset_dynamics_param(assetDynamicsType, scale, c)
+            self._fit_risk_driver_dynamics_param(riskDriverDynamicsType, scale, c)
 
     def _fit_all_factor_dynamics_param(self, scale_f: float, c: float):
 
@@ -59,21 +54,19 @@ class DynamicsCalibrator:
 
             self._fit_factor_dynamics_param(factorDynamicsType, scale_f, c)
 
-    def _fit_asset_dynamics_param(self, assetDynamicsType: AssetDynamicsType, scale: float, c: float):
+    def _fit_risk_driver_dynamics_param(self, riskDriverDynamicsType: RiskDriverDynamicsType, scale: float, c: float):
 
-        tgt = self._tgt
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
 
-        if assetDynamicsType == AssetDynamicsType.Linear:
+            self._execute_general_linear_regression(tgt_key=riskDriverDynamicsType, var_type='risk-driver', scale=scale)
 
-            self._execute_general_linear_regression(tgt_key=assetDynamicsType, var_type='asset', scale=scale, tgt=tgt)
+        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
-        elif assetDynamicsType == AssetDynamicsType.NonLinear:
-
-            self._execute_general_threshold_regression(tgt_key=assetDynamicsType, var_type='asset', scale=scale,
-                                                       tgt=tgt, c=c)
+            self._execute_general_threshold_regression(tgt_key=riskDriverDynamicsType, var_type='risk-driver', scale=scale,
+                                                       c=c)
 
         else:
-            raise NameError('Invalid assetDynamicsType: ' + assetDynamicsType.value)
+            raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
 
     def _fit_factor_dynamics_param(self, factorDynamicsType: FactorDynamicsType, scale_f: float, c: float):
 
@@ -94,19 +87,19 @@ class DynamicsCalibrator:
 
             raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
 
-    def _execute_general_linear_regression(self, tgt_key, var_type: str, scale: float, tgt: str = None):
+    def _execute_general_linear_regression(self, tgt_key, var_type: str, scale: float):
 
         self._check_var_type(var_type)
 
         self._all_dynamics_param_dict[var_type][tgt_key] = {}
 
         # regression data
-        df_reg = self._prepare_df_reg(var_type, tgt)
+        df_reg = self._prepare_df_reg(var_type)
 
         ind = df_reg.index
 
         # regression
-        B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, tgt, var_type)
+        B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, var_type)
 
         self._all_dynamics_param_dict[var_type][tgt_key]['mu'] = mu
         self._all_dynamics_param_dict[var_type][tgt_key]['B'] = B
@@ -114,14 +107,14 @@ class DynamicsCalibrator:
 
         self._all_dynamics_model_dict[var_type][tgt_key] = [model_fit]
 
-    def _execute_general_threshold_regression(self, tgt_key, var_type: str, scale: float, c: float, tgt: str = None):
+    def _execute_general_threshold_regression(self, tgt_key, var_type: str, scale: float, c: float):
 
         self._check_var_type(var_type)
 
         self._all_dynamics_param_dict[var_type][tgt_key] = {}
 
         # regression data
-        df_reg = self._prepare_df_reg(var_type, tgt)
+        df_reg = self._prepare_df_reg(var_type)
 
         ind_0 = df_reg['factor'] < c
         ind_1 = df_reg['factor'] >= c
@@ -138,7 +131,7 @@ class DynamicsCalibrator:
             ind = ind_lst[i]
 
             # regression
-            B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, tgt, var_type)
+            B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, var_type)
 
             self._all_dynamics_param_dict[var_type][tgt_key]['mu_%d' % i] = mu
             self._all_dynamics_param_dict[var_type][tgt_key]['B_%d' % i] = B
@@ -148,10 +141,10 @@ class DynamicsCalibrator:
 
         self._all_dynamics_model_dict[var_type][tgt_key] = model_lst
 
-    def _execute_ols(self, df_reg: pd.DataFrame, ind: pd.Index, scale: float, tgt: str, var_type: str):
+    def _execute_ols(self, df_reg: pd.DataFrame, ind: pd.Index, scale: float, var_type: str):
 
-        if var_type == 'asset':
-            model_fit = OLS(df_reg[tgt].loc[ind], add_constant(df_reg['factor'].loc[ind])).fit()
+        if var_type == 'risk-driver':
+            model_fit = OLS(df_reg['risk-driver'].loc[ind], add_constant(df_reg['factor'].loc[ind])).fit()
             B, mu, sig2 = self._extract_B_mu_sig2_from_reg(model_fit, scale)
 
         else:
@@ -204,18 +197,18 @@ class DynamicsCalibrator:
 
         self._all_dynamics_model_dict['factor'][factorDynamicsType] = [model_fit]
 
-    def _prepare_df_reg(self, var_type: str, tgt: str):
+    def _prepare_df_reg(self, var_type: str):
 
-        if var_type == 'asset':
-            df_reg = self._prepare_df_model_asset(tgt)
+        if var_type == 'risk-driver':
+            df_reg = self._prepare_df_model_risk_driver()
         else:
             df_reg = self._prepare_df_model_factor()
         return df_reg
 
-    def _prepare_df_model_asset(self, tgt: str):
+    def _prepare_df_model_risk_driver(self):
 
-        df_model = self.financialTimeSeries.time_series[['factor', tgt]].copy()
-        df_model[tgt] = df_model[tgt].shift(-1)
+        df_model = self.financialTimeSeries.time_series[['factor', 'risk-driver']].copy()
+        df_model['risk-driver'] = df_model['risk-driver'].shift(-1)
         df_model.dropna(inplace=True)
 
         return df_model
@@ -296,26 +289,26 @@ class DynamicsCalibrator:
 
     def print_results(self):
 
-        self._print_results_impl('asset')
+        self._print_results_impl('risk-driver')
         self._print_results_impl('factor')
 
     def _print_results_impl(self, var_type: str):
 
         self._check_var_type(var_type)
         ticker = self.financialTimeSeries.ticker
-        factor_predicts_pnl = self.factor_predicts_pnl
+        riskDriverType = self.riskDriverType
 
-        filename = 'data_tmp/' + ticker + '-factor_predicts_pnl-' + str(factor_predicts_pnl) + var_type + \
+        filename = 'data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + var_type + \
                    '-calibrations.xlsx'
 
-        writer = pd.ExcelWriter('data_tmp/' + ticker + '-' + 'factor_predicts_pnl-' + str(self.factor_predicts_pnl) +
+        writer = pd.ExcelWriter('data_tmp/' + ticker + '-' + 'riskDriverType-' + riskDriverType.value +
                                 '-' + var_type + '-calibrations.xlsx')
         workbook = writer.book
 
-        df_factor_predicts_pnl = pd.DataFrame(data=[str(self.factor_predicts_pnl)], columns=['factor_predicts_pnl'])
-        df_factor_predicts_pnl.to_excel(writer, sheet_name='factor_predicts_pnl', index=False)
+        df_riskDriverType = pd.DataFrame(data=[riskDriverType.value], columns=['riskDriverType'])
+        df_riskDriverType.to_excel(writer, sheet_name='riskDriverType', index=False)
 
-        if var_type == 'asset':
+        if var_type == 'risk-driver':
             df_start_price = pd.DataFrame(data=[self.financialTimeSeries.info.loc['start_price'][0]],
                                           columns=['start_price'])
             df_start_price.to_excel(writer, sheet_name='start_price', index=False)
@@ -343,28 +336,31 @@ class DynamicsCalibrator:
 
     def _set_report_filename(self, dynamicsType, i: int, var_type: str):
 
-        if len(self._all_dynamics_model_dict[var_type][dynamicsType]) > 0:
+        riskDriverType = self.riskDriverType
+
+        if dynamicsType in (RiskDriverDynamicsType.Linear, FactorDynamicsType.AR, FactorDynamicsType.GARCH,
+                            FactorDynamicsType.TARCH, FactorDynamicsType.AR_TARCH):
             filename = 'reports/' + self.financialTimeSeries.ticker +\
-                       '-factor_predicts_pnl-' + str(self.factor_predicts_pnl) +\
-                       '-' + var_type +\
-                       '-' + dynamicsType.value + str(i) +'.txt'
-        else:
-            filename = 'reports/' + self.financialTimeSeries.ticker +\
-                       '-factor_predicts_pnl-' + str(self.factor_predicts_pnl) +\
+                       '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
                        '-' + dynamicsType.value + '.txt'
+        elif dynamicsType in (RiskDriverDynamicsType.NonLinear, FactorDynamicsType.SETAR):
+            filename = 'reports/' + self.financialTimeSeries.ticker +\
+                       '-riskDriverType-' + riskDriverType.value +\
+                       '-' + var_type +\
+                       '-' + dynamicsType.value + str(i) +'.txt'
 
         return filename
 
     def _check_var_type(self, var_type: str):
 
-        if var_type not in ('asset', 'factor'):
-            raise NameError('var_type must be equal to asset or factor')
+        if var_type not in ('risk-driver', 'factor'):
+            raise NameError('var_type must be equal to risk-driver or factor')
 
 
-def build_filename_calibrations(factor_predicts_pnl, ticker, var_type):
+def build_filename_calibrations(riskDriverType, ticker, var_type):
 
-    filename = 'data_tmp/' + ticker + '-factor_predicts_pnl-' + str(factor_predicts_pnl) + '-' + var_type + \
+    filename = 'data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
                '-calibrations.xlsx'
 
     return filename
@@ -380,5 +376,3 @@ if __name__ == '__main__':
     dynamicsCalibrator = DynamicsCalibrator()
     dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, scale_f=1, c=0)
     dynamicsCalibrator.print_results()
-
-

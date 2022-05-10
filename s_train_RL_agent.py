@@ -22,7 +22,7 @@ from dt_functions import (generate_episode,
                           get_bound)
 from market import instantiate_market
 from optimizers import Optimizers
-from enums import AssetDynamicsType, FactorDynamicsType, FactorType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, FactorType
 import sys
 import warnings
 if not sys.warnoptions:
@@ -69,9 +69,9 @@ if __name__ == '__main__':
     dump_XY = False
 
     # Market parameters
-    assetDynamicsType = AssetDynamicsType.Linear
+    riskDriverDynamicsType = RiskDriverDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
-    dump(assetDynamicsType, 'data_tmp/assetDynamicsType.joblib')
+    dump(riskDriverDynamicsType, 'data_tmp/riskDriverDynamicsType.joblib')
     dump(factorDynamicsType, 'data_tmp/factorDynamicsType.joblib')
 
     if fit_stock:
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         dump(n_cores, 'data_tmp/n_cores.joblib')
 
     # Instantiate market
-    market = instantiate_market(assetDynamicsType, factorDynamicsType,
+    market = instantiate_market(riskDriverDynamicsType, factorDynamicsType,
                                 start_price, return_is_pnl)
 
     # Simulations

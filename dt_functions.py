@@ -14,7 +14,7 @@ from statsmodels.stats.weightstats import ttest_ind
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 
-from enums import AssetDynamicsType, FactorDynamicsType, FactorType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, FactorType
 
 
 # -----------------------------------------------------------------------------
@@ -636,16 +636,16 @@ def get_q_value_iter(q_value, anchor_points, x_episode, y_episode, t,
 
 def get_dynamics_params(market):
 
-    if (market.marketDynamics.assetDynamics.assetDynamicsType
-            == AssetDynamicsType.Linear):
-        B = market.marketDynamics.assetDynamics.parameters['B']
-        mu_r = market.marketDynamics.assetDynamics.parameters['mu']
+    if (market.marketDynamics.riskDriverDynamics.riskDriverDynamicsType
+            == RiskDriverDynamicsType.Linear):
+        B = market.marketDynamics.riskDriverDynamics.parameters['B']
+        mu_r = market.marketDynamics.riskDriverDynamics.parameters['mu']
     else:
-        B_0 = market.marketDynamics.assetDynamics.parameters['B_0']
-        B_1 = market.marketDynamics.assetDynamics.parameters['B_1']
+        B_0 = market.marketDynamics.riskDriverDynamics.parameters['B_0']
+        B_1 = market.marketDynamics.riskDriverDynamics.parameters['B_1']
         B = 0.5*(B_0 + B_1)
-        mu_0 = market.marketDynamics.assetDynamics.parameters['mu_0']
-        mu_1 = market.marketDynamics.assetDynamics.parameters['mu_1']
+        mu_0 = market.marketDynamics.riskDriverDynamics.parameters['mu_0']
+        mu_1 = market.marketDynamics.riskDriverDynamics.parameters['mu_1']
         mu_r = 0.5*(mu_0 + mu_1)
 
     if (market.marketDynamics.factorDynamics.factorDynamicsType

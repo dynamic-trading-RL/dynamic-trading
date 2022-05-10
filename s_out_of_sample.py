@@ -32,7 +32,7 @@ if __name__ == '__main__':
     j_oos = 10000
     t_ = 50
 
-    assetDynamicsType = load('data_tmp/assetDynamicsType.joblib')
+    riskDriverDynamicsType = load('data_tmp/riskDriverDynamicsType.joblib')
     factorDynamicsType = load('data_tmp/factorDynamicsType.joblib')
 
     # ------- Implied parameters
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # ------------------------------------- Simulations -----------------------
 
     # Instantiate market
-    market = instantiate_market(assetDynamicsType, factorDynamicsType,
+    market = instantiate_market(riskDriverDynamicsType, factorDynamicsType,
                                 start_price, return_is_pnl)
 
     Sigma = market.get_sig()
