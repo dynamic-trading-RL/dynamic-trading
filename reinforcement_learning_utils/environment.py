@@ -1,17 +1,5 @@
-from agent import Action
+from reinforcement_learning_utils.state_action_utils import Action, State
 from market_utils.market import Market
-
-
-class State:
-
-    def __init__(self):
-        pass
-
-
-class StateSpace:
-
-    def __init__(self):
-        pass
 
 
 class Environment:

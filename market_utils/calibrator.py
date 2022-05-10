@@ -6,7 +6,7 @@ from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
 from enums import RiskDriverDynamicsType, FactorDynamicsType
-from financial_time_series import FinancialTimeSeries
+from market_utils.financial_time_series import FinancialTimeSeries
 
 
 class DynamicsCalibrator:

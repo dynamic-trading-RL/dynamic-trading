@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
+from market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 
 

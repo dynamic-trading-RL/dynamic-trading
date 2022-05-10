@@ -1,18 +1,4 @@
-from environment import State
-
-
-class ActionSpace:
-
-    def __init__(self, state: State):
-
-        self.state = state
-
-
-class Action:
-
-    def __init__(self, actionSpace: ActionSpace):
-
-        self.actionSpace = actionSpace
+from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
 
 class Agent:

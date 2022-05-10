@@ -1,6 +1,6 @@
 import pandas as pd
 
-from calibrator import DynamicsCalibrator, build_filename_calibrations
+from market_utils.calibrator import DynamicsCalibrator, build_filename_calibrations
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 
 
