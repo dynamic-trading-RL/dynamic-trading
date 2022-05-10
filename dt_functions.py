@@ -356,7 +356,7 @@ def q_hat(state, action,
     """
     This function evaluates the estimated q-value function in a given state and
     action pair. The other parameters are given to include the cases of
-    model averaging and data_tmp rescaling.
+    model averaging and data/data_tmp rescaling.
     """
     res = 0.
     is_simulation = (np.ndim(state) > 1)

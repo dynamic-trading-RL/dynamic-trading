@@ -51,8 +51,8 @@ else:
     # NB: returns and log returns are almost equal
 
 df.dropna(inplace=True)
-df.to_csv('data_tmp/df.csv')
-dump(ticker, 'data_tmp/ticker.joblib')
+df.to_csv('data/data_tmp/df.csv')
+dump(ticker, 'data/data_tmp/ticker.joblib')
 
 
 
@@ -179,7 +179,7 @@ res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma',
 # ------------------------------------- Output --------------------------------
 
 # ---------- Calibration parameters
-writer = pd.ExcelWriter('data_tmp/calibration_parameters.xlsx')
+writer = pd.ExcelWriter('data/data_tmp/calibration_parameters.xlsx')
 workbook = writer.book
 
 # write sheets
@@ -191,7 +191,7 @@ writer.close()
 
 
 # ---------- Factor dynamics
-writer = pd.ExcelWriter('data_tmp/factor_calibrations.xlsx')
+writer = pd.ExcelWriter('data/data_tmp/factor_calibrations.xlsx')
 workbook = writer.book
 
 # write sheets

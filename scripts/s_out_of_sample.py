@@ -32,29 +32,29 @@ if __name__ == '__main__':
     j_oos = 10000
     t_ = 50
 
-    riskDriverDynamicsType = load('data_tmp/riskDriverDynamicsType.joblib')
-    factorDynamicsType = load('data_tmp/factorDynamicsType.joblib')
+    riskDriverDynamicsType = load('data/data_tmp/riskDriverDynamicsType.joblib')
+    factorDynamicsType = load('data/data_tmp/factorDynamicsType.joblib')
 
     # ------- Implied parameters
 
-    calibration_parameters = pd.read_excel('data_tmp/calibration_parameters.xlsx',
+    calibration_parameters = pd.read_excel('data/data_tmp/calibration_parameters.xlsx',
                                            index_col=0)
     start_price = calibration_parameters.loc['start_price',
                                             'calibration-parameters']
 
-    n_batches = load('data_tmp/n_batches.joblib')
-    optimizers = load('data_tmp/optimizers.joblib')
-    optimizer = load('data_tmp/optimizer.joblib')
-    lam = load('data_tmp/lam.joblib')
-    gamma = load('data_tmp/gamma.joblib')
-    rho = load('data_tmp/rho.joblib')
-    factorType = load('data_tmp/factorType.joblib')
-    flag_qaverage = load('data_tmp/flag_qaverage.joblib')
-    bound = load('data_tmp/bound.joblib')
-    rescale_n_a = load('data_tmp/rescale_n_a.joblib')
-    return_is_pnl = load('data_tmp/return_is_pnl.joblib')
-    parallel_computing = load('data_tmp/parallel_computing.joblib')
-    n_cores = load('data_tmp/n_cores.joblib')
+    n_batches = load('data/data_tmp/n_batches.joblib')
+    optimizers = load('data/data_tmp/optimizers.joblib')
+    optimizer = load('data/data_tmp/optimizer.joblib')
+    lam = load('data/data_tmp/lam.joblib')
+    gamma = load('data/data_tmp/gamma.joblib')
+    rho = load('data/data_tmp/rho.joblib')
+    factorType = load('data/data_tmp/factorType.joblib')
+    flag_qaverage = load('data/data_tmp/flag_qaverage.joblib')
+    bound = load('data/data_tmp/bound.joblib')
+    rescale_n_a = load('data/data_tmp/rescale_n_a.joblib')
+    return_is_pnl = load('data/data_tmp/return_is_pnl.joblib')
+    parallel_computing = load('data/data_tmp/parallel_computing.joblib')
+    n_cores = load('data/data_tmp/n_cores.joblib')
 
     # ------------------------------------- Simulations -----------------------
 

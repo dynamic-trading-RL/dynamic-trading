@@ -13,19 +13,19 @@ from market import instantiate_market, get_Sigma
 
 ############ PARAMETERS
 
-n_batches = load('data_tmp/n_batches.joblib')
-bound = load('data_tmp/bound.joblib')
-rescale_n_a = load('data_tmp/rescale_n_a.joblib')
-optimizers = load('data_tmp/optimizers.joblib')
-optimizer = load('data_tmp/optimizer.joblib')
-riskDriverDynamicsType = load('data_tmp/riskDriverDynamicsType.joblib')
-factorDynamicsType = load('data_tmp/factorDynamicsType.joblib')
-lam = load('data_tmp/lam.joblib')
-gamma = load('data_tmp/gamma.joblib')
-rho = load('data_tmp/rho.joblib')
-factorType = load('data_tmp/factorType.joblib')
-flag_qaverage = load('data_tmp/flag_qaverage.joblib')
-return_is_pnl = load('data_tmp/return_is_pnl.joblib')
+n_batches = load('data/data_tmp/n_batches.joblib')
+bound = load('data/data_tmp/bound.joblib')
+rescale_n_a = load('data/data_tmp/rescale_n_a.joblib')
+optimizers = load('data/data_tmp/optimizers.joblib')
+optimizer = load('data/data_tmp/optimizer.joblib')
+riskDriverDynamicsType = load('data/data_tmp/riskDriverDynamicsType.joblib')
+factorDynamicsType = load('data/data_tmp/factorDynamicsType.joblib')
+lam = load('data/data_tmp/lam.joblib')
+gamma = load('data/data_tmp/gamma.joblib')
+rho = load('data/data_tmp/rho.joblib')
+factorType = load('data/data_tmp/factorType.joblib')
+flag_qaverage = load('data/data_tmp/flag_qaverage.joblib')
+return_is_pnl = load('data/data_tmp/return_is_pnl.joblib')
 
 
 N = 50
