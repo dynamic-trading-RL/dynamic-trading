@@ -5,18 +5,15 @@ Created on Sun Feb  6 10:26:40 2022
 @author: feder
 """
 
-import numpy as np
 import pandas as pd
 from joblib import load
-from functools import partial
-import multiprocessing as mp
 import matplotlib.pyplot as plt
 from dt_functions import (compute_markovitz,
                           compute_GP,
                           compute_rl,
                           compute_wealth,
                           get_dynamics_params)
-from market import instantiate_market, get_Sigma
+from market_utils.market import instantiate_market
 import sys
 import warnings
 if not sys.warnoptions:

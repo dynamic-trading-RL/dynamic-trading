@@ -20,8 +20,8 @@ from dt_functions import (generate_episode,
                           set_regressor_parameters_gb,
                           get_dynamics_params,
                           get_bound)
-from market import instantiate_market
-from optimizers import Optimizers
+from market_utils.market import instantiate_market
+from reinforcement_learning_utils.optimizers import Optimizers
 from enums import RiskDriverDynamicsType, FactorDynamicsType, FactorType
 import sys
 import warnings

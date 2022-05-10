@@ -18,7 +18,6 @@ from dt_functions import (compute_markovitz,
                           get_dynamics_params,
                           perform_ttest,
                           perform_linear_regression)
-from market import get_Sigma
 import sys
 import warnings
 if not sys.warnoptions:

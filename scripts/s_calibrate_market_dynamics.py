@@ -1,6 +1,6 @@
-from calibrator import DynamicsCalibrator
+from market_utils.calibrator import DynamicsCalibrator
 from enums import RiskDriverType, FactorDefinitionType
-from financial_time_series import FinancialTimeSeries
+from market_utils.financial_time_series import FinancialTimeSeries
 
 
 # -------------------- Input parameters

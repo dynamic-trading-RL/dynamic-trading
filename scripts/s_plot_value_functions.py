@@ -9,7 +9,7 @@ import numpy as np
 from joblib import load
 import matplotlib.pyplot as plt
 from dt_functions import (get_q_value, maxAction, get_dynamics_params)
-from market import instantiate_market, get_Sigma
+from market_utils.market import instantiate_market
 
 ############ PARAMETERS
 
