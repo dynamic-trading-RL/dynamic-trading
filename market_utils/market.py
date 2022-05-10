@@ -11,42 +11,39 @@ class Market:
         self.marketDynamics = marketDynamics
         self._set_market_attributes()
 
-    def next_step(self, f: float):
+    def next_step(self, factor: float):
 
         riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
 
         if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
 
-            return parameters['mu'] + parameters['B']*f
+            return parameters['mu'] + parameters['B']*factor
 
         elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
-            if f < parameters['c']:
+            if factor < parameters['c']:
 
-                return parameters['mu_0'] + parameters['B_0']*f
+                return parameters['mu_0'] + parameters['B_0']*factor
 
             else:
 
-                return parameters['mu_1'] + parameters['B_1']*f
+                return parameters['mu_1'] + parameters['B_1']*factor
 
-    def simulate(self, j_, t_, delta_stationary: int = 50):
+    def simulate(self, j_: int, t_: int, delta_stationary: int = 50):
 
-        np.random.seed(789)
         self._simulate_factor(j_, t_, delta_stationary)
         self._simulate_risk_driver_and_pnl_and_price()
 
-    def simulate_batches(self, j_episodes, n_batches, t_):
+    def simulate_market_for_batches(self, j_episodes: int, n_batches: int, t_: int):
 
         self.simulate(j_=j_episodes * n_batches, t_=t_)
 
-        price = self.simulations['price'].reshape((j_episodes, n_batches, t_))
         pnl = self.simulations['pnl'].reshape((j_episodes, n_batches, t_))
-        ret = self.simulations['risk-driver'].reshape((j_episodes, n_batches, t_))
-        f = self.simulations['factor'].reshape((j_episodes, n_batches, t_))
+        factor = self.simulations['factor'].reshape((j_episodes, n_batches, t_))
 
-        return price, pnl, ret, f
+        return pnl, factor
 
-    def get_sig(self, f=None):
+    def get_sig(self, factor: float = None):
 
         riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
 
@@ -56,7 +53,7 @@ class Market:
 
         elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
-            if f is None:
+            if factor is None:
 
                 p = parameters['p']
 
@@ -64,7 +61,7 @@ class Market:
 
             else:
 
-                if f < parameters['c']:
+                if factor < parameters['c']:
                     return parameters['sig2_0']
                 else:
                     return parameters['sig2_1']
@@ -72,77 +69,77 @@ class Market:
         else:
             raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
 
-    def _simulate_factor(self, j_, t_, delta_stationary):
+    def _simulate_factor(self, j_: int, t_: int, delta_stationary: int):
 
         factorDynamicsType = self.marketDynamics.factorDynamics.factorDynamicsType
         parameters = self.marketDynamics.factorDynamics.parameters
 
-        f, norm, t_stationary = self._initialize_factor_simulations(delta_stationary, j_, t_)
+        factor, norm, t_stationary = self._initialize_factor_simulations(delta_stationary, j_, t_)
 
         if factorDynamicsType == FactorDynamicsType.AR:
 
-            self._simulate_factor_ar(f, norm, parameters, t_stationary)
+            self._simulate_factor_ar(factor, norm, parameters, t_stationary)
 
         elif factorDynamicsType == FactorDynamicsType.SETAR:
 
-            self._simulate_factor_setar(f, norm, parameters, t_stationary)
+            self._simulate_factor_setar(factor, norm, parameters, t_stationary)
 
         elif factorDynamicsType == FactorDynamicsType.GARCH:
 
-            self._simulate_factor_garch(f, j_, norm, parameters, t_stationary)
+            self._simulate_factor_garch(factor, j_, norm, parameters, t_stationary)
 
         elif factorDynamicsType == FactorDynamicsType.TARCH:
 
-            self._simulate_factor_tarch(f, j_, norm, parameters, t_stationary)
+            self._simulate_factor_tarch(factor, j_, norm, parameters, t_stationary)
 
         elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
 
-            self._simulate_factor_ar_tarch(f, j_, norm, parameters, t_stationary)
+            self._simulate_factor_ar_tarch(factor, j_, norm, parameters, t_stationary)
 
         else:
             raise NameError('Invalid factorDynamicsType')
 
-        self.simulations['factor'] = f[:, -t_:]
+        self.simulations['factor'] = factor[:, -t_:]
 
-    def _simulate_factor_ar(self, f, norm, parameters, t_stationary):
+    def _simulate_factor_ar(self, factor, norm, parameters, t_stationary):
         B, mu, sig2 = self._get_linear_params(parameters)
-        ind = range(f.shape[0])
+        ind = range(factor.shape[0])
         for t in range(1, t_stationary):
-            self._next_step_factor_linear(B, f, ind, mu, norm, sig2, t)
+            self._next_step_factor_linear(B, factor, ind, mu, norm, sig2, t)
 
-    def _simulate_factor_setar(self, f, norm, parameters, t_stationary):
+    def _simulate_factor_setar(self, factor, norm, parameters, t_stationary):
         B_0, B_1, c, mu_0, mu_1, sig2_0, sig2_1 = self._get_threshold_params(parameters)
         for t in range(1, t_stationary):
-            ind_0, ind_1 = self._get_threshold_indexes(c, f, t)
+            ind_0, ind_1 = self._get_threshold_indexes(c, factor, t)
 
-            self._next_step_factor_linear(B_0, f, ind_0, mu_0, norm, sig2_0, t)
-            self._next_step_factor_linear(B_1, f, ind_1, mu_1, norm, sig2_1, t)
+            self._next_step_factor_linear(B_0, factor, ind_0, mu_0, norm, sig2_0, t)
+            self._next_step_factor_linear(B_1, factor, ind_1, mu_1, norm, sig2_1, t)
 
-    def _simulate_factor_garch(self, f, j_, norm, parameters, t_stationary):
+    def _simulate_factor_garch(self, factor, j_, norm, parameters, t_stationary):
         alpha, beta, mu, omega = self._get_garch_parameters(parameters)
         epsi, sig = self._initialize_arch_simulations(j_, omega, t_stationary)
         for t in range(1, t_stationary):
             sig2 = self._get_next_step_sig2_arch(alpha, beta, epsi, omega, sig, t)
 
-            self._get_next_step_arch(epsi, f, mu, norm, sig, sig2, t)
+            self._get_next_step_arch(epsi, factor, mu, norm, sig, sig2, t)
         self.simulations['sig'] = sig
 
-    def _simulate_factor_tarch(self, f, j_, norm, parameters, t_stationary):
+    def _simulate_factor_tarch(self, factor, j_, norm, parameters, t_stationary):
         alpha, beta, c, gamma, mu, omega = self._get_tarch_parameters(parameters)
         epsi, sig = self._initialize_arch_simulations(j_, omega, t_stationary)
         for t in range(1, t_stationary):
             sig2 = self._get_next_step_sig2_tarch(alpha, beta, c, epsi, gamma, omega, sig, t)
 
-            self._get_next_step_arch(epsi, f, mu, norm, sig, sig2, t)
+            self._get_next_step_arch(epsi, factor, mu, norm, sig, sig2, t)
         self.simulations['sig'] = sig
 
-    def _simulate_factor_ar_tarch(self, f, j_, norm, parameters, t_stationary):
+    def _simulate_factor_ar_tarch(self, factor, j_, norm, parameters, t_stationary):
         B, alpha, beta, c, gamma, mu, omega = self._get_ar_tarch_parameters(parameters)
         epsi, sig = self._initialize_arch_simulations(j_, omega, t_stationary)
         for t in range(1, t_stationary):
             sig2 = self._get_next_step_sig2_tarch(alpha, beta, c, epsi, gamma, omega, sig, t)
 
-            self._get_next_step_ar_arch(B, epsi, f, mu, norm, sig, sig2, t)
+            self._get_next_step_ar_arch(B, epsi, factor, mu, norm, sig, sig2, t)
         self.simulations['sig'] = sig
 
     def _simulate_risk_driver_and_pnl_and_price(self):
@@ -158,33 +155,33 @@ class Market:
 
     def _simulate_risk_driver_impl(self, riskDriverDynamicsType, parameters):
 
-        f, norm, risk_driver, t_ = self._initialize_risk_driver_simulations()
+        factor, norm, risk_driver, t_ = self._initialize_risk_driver_simulations()
 
         if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
 
-            self._simulate_risk_driver_linear(risk_driver, f, norm, parameters)
+            self._simulate_risk_driver_linear(risk_driver, factor, norm, parameters)
 
         elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
-            self._simulate_risk_driver_non_linear(risk_driver, f, norm, parameters, t_)
+            self._simulate_risk_driver_non_linear(risk_driver, factor, norm, parameters, t_)
 
         else:
             raise NameError('Invalid riskDriverDynamicsType')
 
         return risk_driver
 
-    def _simulate_risk_driver_linear(self, risk_driver, f, norm, parameters):
+    def _simulate_risk_driver_linear(self, risk_driver, factor, norm, parameters):
         sig2 = parameters['sig2']
-        risk_driver[:, 1:] = self.next_step(f[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
+        risk_driver[:, 1:] = self.next_step(factor[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
 
-    def _simulate_risk_driver_non_linear(self, risk_driver, f, norm, parameters, t_):
+    def _simulate_risk_driver_non_linear(self, risk_driver, factor, norm, parameters, t_):
         c = parameters['c']
         sig2_0 = parameters['sig2_0']
         sig2_1 = parameters['sig2_1']
         for t in range(1, t_):
-            ind_0, ind_1 = self._get_threshold_indexes(c, f, t)
-            self._get_next_step_risk_driver(risk_driver, f, ind_0, norm, sig2_0, t)
-            self._get_next_step_risk_driver(risk_driver, f, ind_1, norm, sig2_1, t)
+            ind_0, ind_1 = self._get_threshold_indexes(c, factor, t)
+            self._get_next_step_risk_driver(risk_driver, factor, ind_0, norm, sig2_0, t)
+            self._get_next_step_risk_driver(risk_driver, factor, ind_1, norm, sig2_1, t)
 
     def _simulate_pnl(self):
 
@@ -206,17 +203,17 @@ class Market:
         self._get_price_from_pnl()
 
     def _initialize_risk_driver_simulations(self):
-        f = self.simulations['factor']
-        j_, t_ = f.shape
+        factor = self.simulations['factor']
+        j_, t_ = factor.shape
         risk_driver = np.zeros((j_, t_))
         norm = np.random.randn(j_, t_)
-        return f, norm, risk_driver, t_
+        return factor, norm, risk_driver, t_
 
     def _initialize_factor_simulations(self, delta_stationary, j_, t_):
         t_stationary = t_ + delta_stationary
-        f = np.zeros((j_, t_stationary))
+        factor = np.zeros((j_, t_stationary))
         norm = np.random.randn(j_, t_stationary)
-        return f, norm, t_stationary
+        return factor, norm, t_stationary
 
     def _initialize_arch_simulations(self, j_, omega, t_stationary):
         sig = np.zeros((j_, t_stationary))
@@ -233,14 +230,14 @@ class Market:
         sig2[epsi[:, t - 1] < c] += gamma * epsi[epsi[:, t - 1] < c, t - 1]
         return sig2
 
-    def _get_next_step_arch(self, epsi, f, mu, norm, sig, sig2, t):
+    def _get_next_step_arch(self, epsi, factor, mu, norm, sig, sig2, t):
         sig[:, t] = np.sqrt(sig2)
         epsi[:, t] = sig[:, t] * norm[:, t]
-        f[:, t] = mu + f[:, t - 1] + epsi[:, t]
+        factor[:, t] = mu + factor[:, t - 1] + epsi[:, t]
 
-    def _get_next_step_ar_arch(self, B, epsi, f, mu, norm, sig, sig2, t):
-        self._get_next_step_arch(epsi, f, mu, norm, sig, sig2, t)
-        f[:, t] += (B - 1) * f[:, t - 1]
+    def _get_next_step_ar_arch(self, B, epsi, factor, mu, norm, sig, sig2, t):
+        self._get_next_step_arch(epsi, factor, mu, norm, sig, sig2, t)
+        factor[:, t] += (B - 1) * factor[:, t - 1]
 
     def _get_ar_tarch_parameters(self, parameters):
         alpha, beta, c, gamma, mu, omega = self._get_tarch_parameters(parameters)

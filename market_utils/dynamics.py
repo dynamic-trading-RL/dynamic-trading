@@ -11,7 +11,7 @@ class Dynamics:
         self.parameters = {}
         self.riskDriverType = None
 
-    def _read_parameters_from_file(self, ticker):
+    def _read_parameters_from_file(self, ticker: str):
 
         filename = self._get_filename(ticker)
 
@@ -30,7 +30,7 @@ class Dynamics:
 
         return params['param'].to_dict()
 
-    def _check_riskDriverType_in_file(self, ticker):
+    def _check_riskDriverType_in_file(self, ticker: str):
 
         filename = self._get_filename(ticker)
 
@@ -42,7 +42,7 @@ class Dynamics:
         if self.riskDriverType != riskDriverType_in_file:
             raise NameError('riskDriverType in ' + filename + ' is not as it should be')
 
-    def _set_risk_driver_start_price_from_file(self, ticker):
+    def _set_risk_driver_start_price_from_file(self, ticker: str):
 
         if type(self) == RiskDriverDynamics:
 
@@ -55,7 +55,7 @@ class Dynamics:
 
             self.start_price = start_price
 
-    def _get_filename(self, ticker):
+    def _get_filename(self, ticker: str):
 
         if type(self) == RiskDriverDynamics:
             var_type = 'risk-driver'
@@ -70,13 +70,13 @@ class Dynamics:
 
         return filename
 
-    def _read_risk_driver_start_price_from_calibrator(self, dynamicsCalibrator):
+    def _read_risk_driver_start_price_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
 
         start_price = dynamicsCalibrator.financialTimeSeries.info['start_price']
 
         return start_price
 
-    def _set_parameters_from_calibrator(self, dynamicsCalibrator):
+    def _set_parameters_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
 
         if type(self) == RiskDriverDynamics:
             var_type = 'risk-driver'
@@ -92,7 +92,7 @@ class Dynamics:
         param_dict = dynamicsCalibrator.get_param_dict(var_type, dynamicsType)
         self._set_parameters_from_dict_impl(param_dict)
 
-    def _set_parameters_from_file(self, ticker, riskDriverType):
+    def _set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):
 
         self.riskDriverType = riskDriverType
         self._check_riskDriverType_in_file(ticker)
@@ -100,7 +100,7 @@ class Dynamics:
         param_dict = self._read_parameters_from_file(ticker)
         self._set_parameters_from_dict_impl(param_dict)
 
-    def _set_parameters_from_dict_impl(self, param_dict):
+    def _set_parameters_from_dict_impl(self, param_dict: dict):
 
         if type(self) == RiskDriverDynamics:
 
@@ -113,7 +113,7 @@ class Dynamics:
         else:
             raise NameError('Invalid dynamics')
 
-    def _set_risk_driver_parameters_from_dict(self, param_dict):
+    def _set_risk_driver_parameters_from_dict(self, param_dict: dict):
 
         if self.riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
 
@@ -126,7 +126,7 @@ class Dynamics:
         else:
             raise NameError('Invalid riskDriverDynamicsType: ' + self.riskDriverDynamicsType.value)
 
-    def _set_factor_parameters_from_dict(self, param_dict):
+    def _set_factor_parameters_from_dict(self, param_dict: dict):
 
         if self.factorDynamicsType == FactorDynamicsType.AR:
 
@@ -198,7 +198,7 @@ class RiskDriverDynamics(Dynamics):
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
 
-    def set_parameters_from_file(self, ticker, riskDriverType):
+    def set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):
 
         super()._set_parameters_from_file(ticker, riskDriverType)
 
@@ -213,7 +213,7 @@ class FactorDynamics(Dynamics):
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
 
-    def set_parameters_from_file(self, ticker, riskDriverType):
+    def set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):
 
         super()._set_parameters_from_file(ticker, riskDriverType)
 

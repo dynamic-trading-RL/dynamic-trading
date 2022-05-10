@@ -6,15 +6,15 @@ from enums import FactorDefinitionType, RiskDriverType
 
 class FinancialTimeSeries:
 
-    def __init__(self, ticker, ):
+    def __init__(self, ticker: str):
 
         self.ticker = ticker
 
     def set_time_series(self,
-                        t_past=8000,
-                        riskDriverType=RiskDriverType.PnL,
-                        factorDefinitionType=FactorDefinitionType.MovingAverage,
-                        window=5):
+                        t_past: int = 8000,
+                        riskDriverType: RiskDriverType = RiskDriverType.PnL,
+                        factorDefinitionType: FactorDefinitionType = FactorDefinitionType.MovingAverage,
+                        window: int = 5):
 
         self.riskDriverType = riskDriverType
         self.factorDefinitionType = factorDefinitionType
@@ -25,7 +25,7 @@ class FinancialTimeSeries:
         self.time_series.dropna(inplace=True)
         self._set_info()
 
-    def _set_asset_time_series(self, t_past):
+    def _set_asset_time_series(self, t_past: int):
 
         if self.ticker == 'WTI':
 
