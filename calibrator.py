@@ -298,11 +298,10 @@ class DynamicsCalibrator:
         ticker = self.financialTimeSeries.ticker
         riskDriverType = self.riskDriverType
 
-        filename = 'data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + var_type + \
+        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
                    '-calibrations.xlsx'
 
-        writer = pd.ExcelWriter('data/data_tmp/' + ticker + '-' + 'riskDriverType-' + riskDriverType.value +
-                                '-' + var_type + '-calibrations.xlsx')
+        writer = pd.ExcelWriter(filename)
         workbook = writer.book
 
         df_riskDriverType = pd.DataFrame(data=[riskDriverType.value], columns=['riskDriverType'])
@@ -340,12 +339,12 @@ class DynamicsCalibrator:
 
         if dynamicsType in (RiskDriverDynamicsType.Linear, FactorDynamicsType.AR, FactorDynamicsType.GARCH,
                             FactorDynamicsType.TARCH, FactorDynamicsType.AR_TARCH):
-            filename = 'reports/' + self.financialTimeSeries.ticker +\
+            filename = '../reports/' + self.financialTimeSeries.ticker +\
                        '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
                        '-' + dynamicsType.value + '.txt'
         elif dynamicsType in (RiskDriverDynamicsType.NonLinear, FactorDynamicsType.SETAR):
-            filename = 'reports/' + self.financialTimeSeries.ticker +\
+            filename = '../reports/' + self.financialTimeSeries.ticker +\
                        '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
                        '-' + dynamicsType.value + str(i) +'.txt'
@@ -360,7 +359,7 @@ class DynamicsCalibrator:
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
 
-    filename = 'data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
+    filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
                '-calibrations.xlsx'
 
     return filename

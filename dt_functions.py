@@ -728,7 +728,7 @@ def perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
                             ['Final cost', 'M', np.mean(final_cost_M), np.std(final_cost_M)],
                             ['Final cost', 'RL', np.mean(final_cost_RL), np.std(final_cost_RL)]])
 
-    df.to_csv('reports/general_statistics.csv', index=False)
+    df.to_csv('../reports/general_statistics.csv', index=False)
 
     # Execute tests
     t_wealth_GP_M = ttest_ind(final_wealth_GP,
@@ -798,7 +798,7 @@ def perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
                               t_cost_RL_GP[1]]])
 
     # Output
-    df.to_csv('reports/t_tests.csv', index=False)
+    df.to_csv('../reports/t_tests.csv', index=False)
 
     # Print results
     print('\n\n\nWelch\'s tests (absolute):\n')
@@ -837,9 +837,9 @@ def perform_linear_regression(final_wealth_RL, final_wealth_GP):
     print('\n\n H0: beta=1; H1: beta!=1')
     print(linreg_GP_RL.t_test(([0., 1.], 1.)).summary())
 
-    with open('reports/final_linear_regression_results.txt', 'w+') as fh:
+    with open('../reports/final_linear_regression_results.txt', 'w+') as fh:
         fh.write(linreg_GP_RL.summary().as_text())
-    with open('reports/final_linear_regression_ttest.txt', 'w+') as fh:
+    with open('../reports/final_linear_regression_ttest.txt', 'w+') as fh:
         fh.write(linreg_GP_RL.t_test(([0., 1.], 1.)).summary().as_text())
 
     return linreg_GP_RL

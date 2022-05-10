@@ -29,7 +29,7 @@ class FinancialTimeSeries:
 
         if self.ticker == 'WTI':
 
-            time_series = pd.read_csv('data/data_source/DCOILWTICO.csv', index_col=0,
+            time_series = pd.read_csv('../data/data_source/DCOILWTICO.csv', index_col=0,
                                       na_values='.').fillna(method='pad')
 
         else:
