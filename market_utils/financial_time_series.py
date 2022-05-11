@@ -25,11 +25,21 @@ class FinancialTimeSeries:
         self.time_series.dropna(inplace=True)
         self._set_info()
 
+    def print_info(self):
+
+        filename = '../data/data_tmp/' + self.ticker + '-info.csv'
+        self.info.to_csv(filename)
+
+    def set_info_from_file(self):
+
+        filename = '../data/data_tmp/' + self.ticker + '-info.csv'
+        self.info = pd.read_csv(filename, index_col=0)
+
     def _set_asset_time_series(self, t_past: int):
 
         if self.ticker == 'WTI':
 
-            time_series = pd.read_csv('../data/data_source/DCOILWTICO.csv', index_col=0,
+            time_series = pd.read_csv('../data/data_source/market_data/DCOILWTICO.csv', index_col=0,
                                       na_values='.').fillna(method='pad')
 
         else:
@@ -80,7 +90,7 @@ class FinancialTimeSeries:
                                        self.time_series[self.ticker].iloc[-1],
                                        len(self.time_series),
                                        self.window,
-                                       str(self.riskDriverType)],
+                                       self.riskDriverType.value],
                                  columns=['info'])
 
 
@@ -88,6 +98,6 @@ class FinancialTimeSeries:
 
 if __name__ == '__main__':
 
-    WTI_timeSeries = FinancialTimeSeries('WTI')
-    WTI_timeSeries.set_time_series()
-    print(WTI_timeSeries.time_series.tail())
+    financialTimeSeries = FinancialTimeSeries('WTI')
+    financialTimeSeries.set_time_series()
+    financialTimeSeries.print_info()

@@ -13,40 +13,50 @@ class AgentBenchmark:
     def _set_attributes(self):
 
         gamma, kappa, lam = self._read_trading_parameters()
-        sig2, mu_factor, B_factor = self._read_dynamics_parameters()
+        sig2, mu, B = self._read_dynamics_parameters()
 
         self.gamma = gamma
         self.kappa = kappa
         self.lam = lam
         self.sig2 = sig2
-        self.mu_factor = mu_factor
-        self.B_factor = B_factor
+        self.mu = mu
+        self.B = B
 
     def _read_dynamics_parameters(self):
 
-        ticker = self.market.marketDynamics.riskDriverDynamics.tic
+        ticker = self.market.ticker
+        riskDriverType = self.market.riskDriverType
 
-        filename = '../data/data_source/trading-parameters.csv'
+        sig2 = self._get_sig2_from_file(riskDriverType, ticker)
+        B, mu = self._get_mu_B_from_file(riskDriverType, ticker)
 
-        df_trad_params = pd.read_csv(filename, index_col=0)
+        return sig2, mu, B
 
-        gamma = df_trad_params.loc['gamma'].iloc[0]
-        kappa = df_trad_params.loc['kappa'].iloc[0]
-        lam = df_trad_params.loc['lam'].iloc[0]
+    def _get_sig2_from_file(self, riskDriverType, ticker):
+        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + \
+                   riskDriverType.value + '-risk-driver-calibrations.xlsx'
+        df_risk_driver_calibrations = pd.read_excel(filename, sheet_name='Linear', index_col=0)
+        sig2 = df_risk_driver_calibrations.loc['sig2'][0]
+        return sig2
 
-        return gamma, kappa, lam
-
-        return sig2, mu_factor, B_factor
+    def _get_mu_B_from_file(self, riskDriverType, ticker):
+        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + \
+                   riskDriverType.value + '-factor-calibrations.xlsx'
+        df_factor_calibrations = pd.read_excel(filename, sheet_name='AR', index_col=0)
+        mu = df_factor_calibrations.loc['mu'][0]
+        B = df_factor_calibrations.loc['B'][0]
+        return B, mu
 
     def _read_trading_parameters(self):
 
-        filename = '../data/data_source/trading-parameters.csv'
+        ticker = self.market.ticker
 
+        filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
-        gamma = df_trad_params.loc['gamma'].iloc[0]
-        kappa = df_trad_params.loc['kappa'].iloc[0]
-        lam = df_trad_params.loc['lam'].iloc[0]
+        gamma = df_trad_params.loc['gamma'][0]
+        kappa = df_trad_params.loc['kappa'][0]
+        lam = df_trad_params.loc['lam'][0]
 
         return gamma, kappa, lam
 
