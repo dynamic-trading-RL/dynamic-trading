@@ -6,7 +6,7 @@ class Agent:
 
     def __init__(self):
 
-        self.q_value_models = []
+        self._q_value_models = []
 
     def policy(self, state: State, eps: float = None):
 
@@ -71,3 +71,7 @@ class Agent:
             qvl = 0.5 * (qvl + q_value_model(state, action))
 
         return qvl
+
+    def _update_q_value_models(self, q_value_model):
+
+        self._q_value_models.append(q_value_model)

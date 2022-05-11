@@ -94,6 +94,7 @@ class Dynamics:
 
     def _set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):
 
+        self.ticker = ticker
         self.riskDriverType = riskDriverType
         self._check_riskDriverType_in_file(ticker)
         self._set_risk_driver_start_price_from_file(ticker)
@@ -226,6 +227,7 @@ class MarketDynamics:
         self.factorDynamics = factorDynamics
         self._set_riskDriverType()
         self._set_start_price()
+        self._set_ticker()
 
     def get_riskDriverDynamicsType_and_parameters(self):
 
@@ -243,6 +245,16 @@ class MarketDynamics:
     def _set_start_price(self):
 
         self.start_price = self.riskDriverDynamics.start_price
+
+    def _set_ticker(self):
+
+        ticker1 = self.riskDriverDynamics.ticker
+        ticker2 = self.factorDynamics.ticker
+
+        if ticker1 != ticker2:
+            raise NameError('riskDriverDynamics has ticker ' + ticker1 + ' while factorDynamics has ticker ' + ticker2)
+        else:
+            self.ticker = ticker1
 
 
 # ------------------------------ TESTS ---------------------------------------------------------------------------------

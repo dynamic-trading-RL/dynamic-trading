@@ -14,7 +14,6 @@ class State:
         self.current_shares = self.current_rescaled_shares * self.shares_scale
 
 
-
 class ActionSpace:
 
     def __init__(self, state: State):

@@ -43,31 +43,31 @@ class Market:
 
         return pnl, factor
 
-    def get_sig(self, factor: float = None):
-
-        riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
-
-        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
-
-            return parameters['sig2']
-
-        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
-
-            if factor is None:
-
-                p = parameters['p']
-
-                return p * parameters['sig2_0'] + (1 - p) * parameters['sig2_0']
-
-            else:
-
-                if factor < parameters['c']:
-                    return parameters['sig2_0']
-                else:
-                    return parameters['sig2_1']
-
-        else:
-            raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
+    # def get_sig2(self, factor: float = None):
+    #
+    #     riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
+    #
+    #     if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
+    #
+    #         return parameters['sig2']
+    #
+    #     elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
+    #
+    #         if factor is None:
+    #
+    #             p = parameters['p']
+    #
+    #             return p * parameters['sig2_0'] + (1 - p) * parameters['sig2_0']
+    #
+    #         else:
+    #
+    #             if factor < parameters['c']:
+    #                 return parameters['sig2_0']
+    #             else:
+    #                 return parameters['sig2_1']
+    #
+    #     else:
+    #         raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
 
     def _simulate_factor(self, j_: int, t_: int, delta_stationary: int):
 
@@ -295,6 +295,7 @@ class Market:
         self._set_riskDriverType()
         self._set_start_price()
         self.simulations = {}
+        self.ticker = self.market.ticker
 
     def _set_riskDriverType(self):
 
