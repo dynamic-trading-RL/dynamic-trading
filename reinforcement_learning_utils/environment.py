@@ -11,12 +11,12 @@ class Environment:
         self.market = market
         self._set_attributes()
 
-    def compute_reward_and_new_state(self, state: State, action: Action):
+    def compute_reward_and_next_state(self, state: State, action: Action):
 
         reward = self._compute_reward(state=state, action=action)
-        new_state = self._compute_new_state(state=state, action=action)
+        next_state = self._compute_next_state(state=state, action=action)
 
-        return reward, new_state
+        return reward, next_state
 
     def _compute_reward(self, state: State, action: Action):
 
@@ -24,11 +24,11 @@ class Environment:
 
         return reward
 
-    def _compute_new_state(self, state: State, action: Action):
+    def _compute_next_state(self, state: State, action: Action):
 
-        new_state = self._compute_trading_new_state(state, action)
+        next_state = self._compute_trading_next_state(state, action)
 
-        return new_state
+        return next_state
 
     def _compute_trading_reward(self, state, action):
 
@@ -45,7 +45,7 @@ class Environment:
 
         return reward
 
-    def _compute_trading_new_state(self, state, action):
+    def _compute_trading_next_state(self, state, action):
 
         current_rescaled_shares = state.current_rescaled_shares
         shares_scale = state.shares_scale
@@ -55,14 +55,14 @@ class Environment:
         next_other_observables = state.next_other_observable
         next_price = state.next_price
 
-        new_state = State()
-        new_state.set_trading_attributes(current_factor=next_factor,
+        next_state = State()
+        next_state.set_trading_attributes(current_factor=next_factor,
                                          current_rescaled_shares=next_rescaled_shares,
                                          current_other_observable=next_other_observables,
                                          shares_scale=shares_scale,
                                          current_price=next_price)
 
-        return new_state
+        return next_state
 
     def _compute_trading_cost(self, action, sig2):
 
