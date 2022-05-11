@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType
 from market_utils.market import Market, instantiate_market
 
+
 class AgentBenchmark:
 
     def __init__(self, market: Market):
