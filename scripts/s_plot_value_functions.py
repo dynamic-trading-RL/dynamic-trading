@@ -70,7 +70,7 @@ for i in range(len(nn)):
 market = instantiate_market(riskDriverDynamicsType, factorDynamicsType,
                             100., return_is_pnl)
 
-Sigma = market.get_sig2()
+Sigma = market._get_sig2()
 
 B, mu_r, Phi, mu_f = get_dynamics_params(market)
 

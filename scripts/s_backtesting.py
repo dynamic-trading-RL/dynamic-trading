@@ -54,7 +54,7 @@ if __name__ == '__main__':
     market = instantiate_market(riskDriverDynamicsType, factorDynamicsType,
                                 start_price, return_is_pnl)
 
-    Sigma = market.get_sig2()
+    Sigma = market._get_sig2()
     Lambda = lam*Sigma
 
     B, mu_r, Phi, mu_f = get_dynamics_params(market)

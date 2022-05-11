@@ -119,9 +119,9 @@ def generate_episode(
         if predict_r:
 
             if return_is_pnl:
-                r = market.next_step(f[j, t-1])
+                r = market.next_step_risk_driver(f[j, t - 1])
             else:
-                r = price[j, t-1]*market.next_step(f[j, t-1])
+                r = price[j, t-1]*market.next_step_risk_driver(f[j, t - 1])
         else:
             r = pnl[j, t]
 

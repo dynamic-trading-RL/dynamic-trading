@@ -1,4 +1,8 @@
+import warnings
+
+import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType
 from market_utils.market import Market, instantiate_market
@@ -12,53 +16,35 @@ class AgentBenchmark:
 
     def _set_attributes(self):
 
-        gamma, kappa, lam = self._read_trading_parameters()
-        sig2, mu, B = self._read_dynamics_parameters()
+        gamma, kappa = self._read_trading_parameters()
 
         self.gamma = gamma
         self.kappa = kappa
-        self.lam = lam
-        self.sig2 = sig2
-        self.mu = mu
-        self.B = B
-
-    def _read_dynamics_parameters(self):
-
-        ticker = self.market.ticker
-        riskDriverType = self.market.riskDriverType
-
-        sig2 = self._get_sig2_from_file(riskDriverType, ticker)
-        B, mu = self._get_mu_B_from_file(riskDriverType, ticker)
-
-        return sig2, mu, B
-
-    def _get_sig2_from_file(self, riskDriverType, ticker):
-        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + \
-                   riskDriverType.value + '-risk-driver-calibrations.xlsx'
-        df_risk_driver_calibrations = pd.read_excel(filename, sheet_name='Linear', index_col=0)
-        sig2 = df_risk_driver_calibrations.loc['sig2'][0]
-        return sig2
-
-    def _get_mu_B_from_file(self, riskDriverType, ticker):
-        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + \
-                   riskDriverType.value + '-factor-calibrations.xlsx'
-        df_factor_calibrations = pd.read_excel(filename, sheet_name='AR', index_col=0)
-        mu = df_factor_calibrations.loc['mu'][0]
-        B = df_factor_calibrations.loc['B'][0]
-        return B, mu
 
     def _read_trading_parameters(self):
 
-        ticker = self.market.ticker
-
-        filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
-        df_trad_params = pd.read_csv(filename, index_col=0)
+        df_trad_params = self._get_df_trad_params()
 
         gamma = df_trad_params.loc['gamma'][0]
         kappa = df_trad_params.loc['kappa'][0]
-        lam = df_trad_params.loc['lam'][0]
 
-        return gamma, kappa, lam
+        return gamma, kappa
+
+    def _get_df_trad_params(self):
+        ticker = self.market.ticker
+        filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        df_trad_params = pd.read_csv(filename, index_col=0)
+        return df_trad_params
+
+    def _get_next_step_pnl_and_sig2(self, current_factor, price):
+        pnl = market.next_step_pnl(factor=current_factor, price=price)
+        sig2 = market.next_step_pnl_sig2(factor=current_factor, price=price)
+        return pnl, sig2
+
+    def _get_current_shares_pnl_and_sig2(self, current_factor, current_rescaled_shares, price, shares_scale):
+        current_shares = current_rescaled_shares * shares_scale
+        pnl, sig2 = self._get_next_step_pnl_and_sig2(current_factor, price)
+        return current_shares, pnl, sig2
 
 
 class AgentMarkowitz(AgentBenchmark):
@@ -67,22 +53,122 @@ class AgentMarkowitz(AgentBenchmark):
 
         super().__init__(market)
 
-    def policy(self, current_factor: float, current_rescaled_shares: float, shares_scale: float = 1):
+    def policy(self, current_factor: float, current_rescaled_shares: float, shares_scale: float = 1,
+               price: float = None):
 
-        current_shares = current_rescaled_shares * shares_scale
+        current_shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(current_factor, current_rescaled_shares,
+                                                                          price, shares_scale)
 
-        trade = (self.kappa * self.sig2)**(-1) * self.B * current_factor - current_shares
+        trade = self._get_markowitz_trade(current_shares, pnl, sig2)
 
         rescaled_trade = trade / shares_scale
 
         return rescaled_trade
 
+    def _get_markowitz_trade(self, current_shares, pnl, sig2):
+        trade = (self.kappa * sig2) ** (-1) * pnl - current_shares
+        return trade
+
+
+class AgentGP(AgentBenchmark):
+
+    def __init__(self, market: Market):
+
+        super().__init__(market)
+        self._set_lam()
+
+    def policy(self, current_factor: float, current_rescaled_shares: float, shares_scale: float = 1,
+               price: float = None):
+
+        current_shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(current_factor, current_rescaled_shares,
+                                                                          price, shares_scale)
+
+        trade = self._get_gp_trade(current_shares, pnl, sig2)
+
+        rescaled_trade = trade / shares_scale
+
+        return rescaled_trade
+
+    def _get_gp_trade(self, current_shares, pnl, sig2):
+        a = self._get_a()
+        gp_rescaling = self._get_gp_rescaling(a)
+        aim_ptf = (self.kappa * sig2) ** (-1) * gp_rescaling * pnl
+        trade = (1 - a / self.lam) * current_shares + a / self.lam * aim_ptf - current_shares
+        return trade
+
+    def _get_a(self):
+        a = (-(self.kappa * self.gamma + self.lam * (1 - self.gamma)) +
+             np.sqrt((self.kappa * self.gamma + self.lam * (1 - self.gamma)) ** 2 +
+                     4 * self.kappa * self.lam * self.gamma ** 2)) / (2 * self.gamma)
+        return a
+
+    def _set_lam(self):
+
+        lam = self._read_lam()
+        self.lam = lam
+
+    def _get_gp_rescaling(self, a):
+
+        if self.market.riskDriverType != RiskDriverType.PnL:
+            warnings.warn('Trying to use GP with a model not on PnL. The model is actually on '
+                          + self.market.riskDriverType.value)
+
+        B, Phi = self._read_B_Phi()
+
+        gp_rescaling = B / (1 + Phi * a / self.kappa)
+
+        return gp_rescaling
+
+    def _read_B_Phi(self):
+        ticker = self.market.ticker
+        riskDriverType = self.market.riskDriverType
+        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + \
+                   '-risk-driver-calibrations.xlsx'
+        df_risk_driver_params = pd.read_excel(filename, sheet_name='Linear', index_col=0)
+        B = df_risk_driver_params.loc['B'][0]
+        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + \
+                   '-factor-calibrations.xlsx'
+        df_factor_params = pd.read_excel(filename, sheet_name='AR', index_col=0)
+        Phi = 1 - df_factor_params.loc['B'][0]
+        return B, Phi
+
+    def _read_lam(self):
+
+        ticker = self.market.ticker
+        filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        df_trad_params = pd.read_csv(filename, index_col=0)
+
+        lam = df_trad_params.loc['lam'][0]
+
+        return lam
+
 
 if __name__ == '__main__':
 
+    # Instantiate market
     market = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
                                 factorDynamicsType=FactorDynamicsType.AR,
                                 ticker='WTI',
                                 riskDriverType=RiskDriverType.PnL)
 
+    # Instantiate agents
     agentMarkowitz = AgentMarkowitz(market=market)
+    agentGP = AgentGP(market=market)
+
+    # Plot policies
+    current_rescaled_shares = 1.
+    factor_array = np.linspace(-0.2, 0.2, num=5)
+    markowitz_action_list = []
+    gp_action_list = []
+    for current_factor in factor_array:
+        markowitz_action_list.append(agentMarkowitz.policy(current_factor=current_factor,
+                                                           current_rescaled_shares=current_rescaled_shares))
+        gp_action_list.append(agentGP.policy(current_factor=current_factor,
+                                             current_rescaled_shares=current_rescaled_shares))
+
+    fig = plt.figure()
+    plt.plot(factor_array, markowitz_action_list, label='Markowitz')
+    plt.plot(factor_array, gp_action_list, label='GP')
+    plt.legend()
+    plt.grid()
+    plt.show()

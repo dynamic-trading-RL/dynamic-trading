@@ -13,7 +13,7 @@ class Market:
         self.marketDynamics = marketDynamics
         self._set_market_attributes()
 
-    def next_step(self, factor: float):
+    def next_step_risk_driver(self, factor: float):
 
         riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
 
@@ -31,6 +31,38 @@ class Market:
 
                 return parameters['mu_1'] + parameters['B_1']*factor
 
+    def next_step_pnl(self, factor: float, price: float = None):
+
+        if self.riskDriverType == RiskDriverType.PnL:
+
+            pnl = self.next_step_risk_driver(factor)
+
+        elif self.riskDriverType == RiskDriverType.Return:
+
+            ret = self.next_step_risk_driver(factor)
+            pnl = price * ret
+
+        else:
+            raise NameError('Invalid riskDriverType: ' + self.riskDriverType.value)
+
+        return pnl
+
+    def next_step_pnl_sig2(self, factor: float, price: float = None):
+
+        if self.riskDriverType == RiskDriverType.PnL:
+
+            sig2 = self._get_sig2(factor)
+
+        elif self.riskDriverType == RiskDriverType.Return:
+
+            sig2_ret = self._get_sig2(factor)
+            sig2 = price**2 * sig2_ret
+
+        else:
+            raise NameError('Invalid riskDriverType: ' + self.riskDriverType.value)
+
+        return sig2
+
     def simulate(self, j_: int, t_: int, delta_stationary: int = 50):
 
         self._simulate_factor(j_, t_, delta_stationary)
@@ -45,31 +77,31 @@ class Market:
 
         return pnl, factor
 
-    # def get_sig2(self, factor: float = None):
-    #
-    #     riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
-    #
-    #     if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
-    #
-    #         return parameters['sig2']
-    #
-    #     elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
-    #
-    #         if factor is None:
-    #
-    #             p = parameters['p']
-    #
-    #             return p * parameters['sig2_0'] + (1 - p) * parameters['sig2_0']
-    #
-    #         else:
-    #
-    #             if factor < parameters['c']:
-    #                 return parameters['sig2_0']
-    #             else:
-    #                 return parameters['sig2_1']
-    #
-    #     else:
-    #         raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
+    def _get_sig2(self, factor: float = None):
+
+        riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
+
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
+
+            return parameters['sig2']
+
+        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
+
+            if factor is None:
+
+                p = parameters['p']
+
+                return p * parameters['sig2_0'] + (1 - p) * parameters['sig2_0']
+
+            else:
+
+                if factor < parameters['c']:
+                    return parameters['sig2_0']
+                else:
+                    return parameters['sig2_1']
+
+        else:
+            raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
 
     def _simulate_factor(self, j_: int, t_: int, delta_stationary: int):
 
@@ -174,7 +206,7 @@ class Market:
 
     def _simulate_risk_driver_linear(self, risk_driver, factor, norm, parameters):
         sig2 = parameters['sig2']
-        risk_driver[:, 1:] = self.next_step(factor[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
+        risk_driver[:, 1:] = self.next_step_risk_driver(factor[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
 
     def _simulate_risk_driver_non_linear(self, risk_driver, factor, norm, parameters, t_):
         c = parameters['c']
@@ -285,7 +317,7 @@ class Market:
         self.simulations['price'] = self.start_price + np.cumsum(self.simulations['pnl'], axis=1)
 
     def _get_next_step_risk_driver(self, risk_driver, f, ind_0, norm, sig2_0, t):
-        risk_driver[ind_0, t] = np.vectorize(self.next_step, otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[
+        risk_driver[ind_0, t] = np.vectorize(self.next_step_risk_driver, otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[
             ind_0, t]
 
     def _next_step_factor_linear(self, B, f, ind, mu, norm, sig2, t):
