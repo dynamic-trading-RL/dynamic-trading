@@ -1,16 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
 from market_utils.financial_time_series import FinancialTimeSeries
 
 
 class Market:
 
-    def __init__(self, financialTimeSeries: FinancialTimeSeries, marketDynamics: MarketDynamics):
+    def __init__(self, financialTimeSeries: FinancialTimeSeries, marketDynamics: MarketDynamics,
+                 factorType: FactorType = FactorType.Observable):
 
         self.financialTimeSeries = financialTimeSeries
         self.marketDynamics = marketDynamics
+        self.factorType = factorType
         self._set_market_attributes()
 
     def next_step_risk_driver(self, factor: float):
@@ -349,7 +351,8 @@ class Market:
 def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
                        factorDynamicsType: FactorDynamicsType,
                        ticker: str,
-                       riskDriverType: RiskDriverType):
+                       riskDriverType: RiskDriverType,
+                       factorType: FactorType = FactorType.Observable):
 
     # Instantiate financialTimeSeries
     financialTimeSeries = FinancialTimeSeries(ticker)
@@ -366,7 +369,7 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
     # Set dynamics
     marketDynamics = MarketDynamics(riskDriverDynamics, factorDynamics)
 
-    return Market(financialTimeSeries, marketDynamics)
+    return Market(financialTimeSeries, marketDynamics, factorType)
 
 
 # ------------------------------ TESTS ---------------------------------------------------------------------------------

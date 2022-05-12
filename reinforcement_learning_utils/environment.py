@@ -57,10 +57,10 @@ class Environment:
 
         next_state = State()
         next_state.set_trading_attributes(current_factor=next_factor,
-                                         current_rescaled_shares=next_rescaled_shares,
-                                         current_other_observable=next_other_observables,
-                                         shares_scale=shares_scale,
-                                         current_price=next_price)
+                                          current_rescaled_shares=next_rescaled_shares,
+                                          current_other_observable=next_other_observables,
+                                          shares_scale=shares_scale,
+                                          current_price=next_price)
 
         return next_state
 
@@ -86,3 +86,5 @@ class Environment:
         self.gamma = gamma
         self.kappa = kappa
         self.lam = lam
+
+        self.factorType = self.market.factorType
