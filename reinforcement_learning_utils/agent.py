@@ -58,9 +58,14 @@ class Agent:
     def _greedy_policy_trading(self, state):
 
         lower_bound, upper_bound = self._get_action_bounds_trading(state)
-        rescaled_trade = self._optimize_q_value_trading(state, lower_bound, upper_bound)
-        action = Action()
-        action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
+
+        if len(self._q_value_models) == 0:
+            action = self._random_action(state)
+
+        else:
+            rescaled_trade = self._optimize_q_value_trading(state, lower_bound, upper_bound)
+            action = Action()
+            action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
         return action
 
@@ -68,7 +73,8 @@ class Agent:
 
         lower_bound, upper_bound = self._get_action_bounds_trading(state)
         rescaled_trade = lower_bound + (upper_bound - lower_bound) * np.random.rand()
-        action = Action(rescaled_trade)
+        action = Action()
+        action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
         return action
 
@@ -88,7 +94,7 @@ class Agent:
 
         for q_value_model in self._q_value_models:
 
-            qvl = 0.5 * (qvl + q_value_model(q_value_model_input))
+            qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
 
         return qvl
 
@@ -113,6 +119,7 @@ class Agent:
         state_lst = self._extract_state_lst_trading(state)
         rescaled_trade = action.rescaled_trade
         q_value_model_input = state_lst + [rescaled_trade]
+        q_value_model_input = np.array(q_value_model_input, dtype=object).reshape(1, -1)
 
         return q_value_model_input
 

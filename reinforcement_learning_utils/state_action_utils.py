@@ -17,11 +17,11 @@ class State:
         self.current_shares = self.current_rescaled_shares * self.shares_scale
         self.current_price = current_price
 
-    def set_trading_next_attributes(self, next_factor, next_other_observable, next_price):
+    def set_extra_trading_attributes(self, next_factor: float, next_price: float, next_other_observable: float):
 
         self.next_factor = next_factor
-        self.next_other_observable = next_other_observable
         self.next_price = next_price
+        self.next_other_observable = next_other_observable
 
 
 class ActionSpace:

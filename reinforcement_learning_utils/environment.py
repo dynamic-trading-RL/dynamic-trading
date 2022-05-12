@@ -11,12 +11,27 @@ class Environment:
         self.market = market
         self._set_attributes()
 
-    def compute_reward_and_next_state(self, state: State, action: Action):
+    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int):
 
         reward = self._compute_reward(state=state, action=action)
-        next_state = self._compute_next_state(state=state, action=action)
+        next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
 
         return reward, next_state
+
+    def instantiate_initial_state_trading(self, n: int, j: int, shares_scale: int = 1):
+
+        current_rescaled_shares = 0.
+        current_other_observable = 0.
+
+        state = State()
+        pnl, factor, price = self._get_market_simulation_trading(n=n, j=j, t=0)
+        state.set_trading_attributes(current_factor=factor,
+                                     current_rescaled_shares=current_rescaled_shares,
+                                     current_other_observable=current_other_observable,
+                                     shares_scale=shares_scale,
+                                     current_price=price)
+
+        return state
 
     def _compute_reward(self, state: State, action: Action):
 
@@ -24,9 +39,9 @@ class Environment:
 
         return reward
 
-    def _compute_next_state(self, state: State, action: Action):
+    def _compute_next_state(self, state: State, action: Action, n: int, j: int, t: int):
 
-        next_state = self._compute_trading_next_state(state, action)
+        next_state = self._compute_trading_next_state(state, action, n, j, t)
 
         return next_state
 
@@ -45,20 +60,22 @@ class Environment:
 
         return reward
 
-    def _compute_trading_next_state(self, state, action):
+    def _compute_trading_next_state(self, state: State, action: Action, n: int, j: int, t: int):
 
         current_rescaled_shares = state.current_rescaled_shares
         shares_scale = state.shares_scale
 
-        next_factor = state.next_factor
         next_rescaled_shares = current_rescaled_shares + action.rescaled_trade
-        next_other_observables = state.next_other_observable
-        next_price = state.next_price
+
+        _, factor, price = self._get_market_simulation_trading(n=n, j=j, t=t)
+        next_factor = factor
+        next_other_observable = 0.
+        next_price = price
 
         next_state = State()
         next_state.set_trading_attributes(current_factor=next_factor,
                                           current_rescaled_shares=next_rescaled_shares,
-                                          current_other_observable=next_other_observables,
+                                          current_other_observable=next_other_observable,
                                           shares_scale=shares_scale,
                                           current_price=next_price)
 
@@ -69,6 +86,12 @@ class Environment:
         trade = action.trade
 
         return 0.5 * trade * self.lam * sig2 * trade
+
+    def _get_market_simulation_trading(self, n: int, j: int, t: int):
+
+        return (self.market.simulations_trading['pnl'][j, n, t],
+                self.market.simulations_trading['factor'][j, n, t],
+                self.market.simulations_trading['price'][j, n, t])
 
     def _set_attributes(self):
 

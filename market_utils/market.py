@@ -70,14 +70,15 @@ class Market:
         self._simulate_factor(j_, t_, delta_stationary)
         self._simulate_risk_driver_and_pnl_and_price()
 
-    def simulate_market_for_batches(self, j_episodes: int, n_batches: int, t_: int):
+    def simulate_market_trading(self, n_batches: int, j_episodes: int, t_: int):
 
         self.simulate(j_=j_episodes * n_batches, t_=t_)
 
-        pnl = self.simulations['pnl'].reshape((j_episodes, n_batches, t_))
-        factor = self.simulations['factor'].reshape((j_episodes, n_batches, t_))
+        self.simulations_trading = {}
 
-        return pnl, factor
+        self.simulations_trading['pnl'] = self.simulations['pnl'].reshape((j_episodes, n_batches, t_))
+        self.simulations_trading['factor'] = self.simulations['factor'].reshape((j_episodes, n_batches, t_))
+        self.simulations_trading['price'] = self.simulations['price'].reshape((j_episodes, n_batches, t_))
 
     def _get_sig2(self, factor: float = None):
 
