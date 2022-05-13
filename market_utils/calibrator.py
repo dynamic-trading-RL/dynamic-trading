@@ -19,7 +19,7 @@ class DynamicsCalibrator:
     def fit_all_dynamics_param(self, financialTimeSeries: FinancialTimeSeries,
                                scale: float = 1,
                                scale_f: float = 1,
-                               c : float = 0):
+                               c: float = 0):
 
         self.financialTimeSeries = financialTimeSeries
         self._fit_all_risk_driver_dynamics_param(scale, c)
@@ -62,8 +62,8 @@ class DynamicsCalibrator:
 
         elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
 
-            self._execute_general_threshold_regression(tgt_key=riskDriverDynamicsType, var_type='risk-driver', scale=scale,
-                                                       c=c)
+            self._execute_general_threshold_regression(tgt_key=riskDriverDynamicsType, var_type='risk-driver',
+                                                       scale=scale, c=c)
 
         else:
             raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
@@ -227,7 +227,7 @@ class DynamicsCalibrator:
 
         return df_model
 
-    def _extract_B_mu_sig2_from_reg(self, model_fit, scale: str):
+    def _extract_B_mu_sig2_from_reg(self, model_fit, scale: float):
 
         B = model_fit.params['factor']
         mu = model_fit.params['const'] / scale
@@ -235,7 +235,7 @@ class DynamicsCalibrator:
 
         return B, mu, sig2
 
-    def _extract_B_mu_sig2_from_auto_reg(self, auto_reg, scale_f: str):
+    def _extract_B_mu_sig2_from_auto_reg(self, auto_reg, scale_f: float):
 
         B = auto_reg.params.iloc[1]
         mu = auto_reg.params.iloc[0] / scale_f
@@ -243,7 +243,7 @@ class DynamicsCalibrator:
 
         return B, mu, sig2
 
-    def _extract_tarch_params_from_model_fit(self, params: dict, scale_f: str):
+    def _extract_tarch_params_from_model_fit(self, params: pd.Series, scale_f: float):
 
         alpha, beta, mu, omega = self._extract_garch_params_from_model_fit(params, scale_f)
         gamma = params['gamma[1]'] / scale_f ** 2
@@ -259,7 +259,7 @@ class DynamicsCalibrator:
 
         return alpha, beta, mu, omega
 
-    def _extract_ar_tarch_params_from_model_fit(self, params: dict, scale_f: float):
+    def _extract_ar_tarch_params_from_model_fit(self, params: pd.Series, scale_f: float):
 
         alpha, beta, gamma, mu, omega = self._extract_tarch_params_from_model_fit(params, scale_f)
         B = params['factor[1]']
@@ -274,8 +274,8 @@ class DynamicsCalibrator:
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['alpha'] = alpha
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['beta'] = beta
 
-    def _set_tarch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, gamma: float, mu: float,
-                          omega: float):
+    def _set_tarch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, gamma: float,
+                          mu: float, omega: float):
 
         self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega)
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['gamma'] = gamma
@@ -347,7 +347,9 @@ class DynamicsCalibrator:
             filename = '../reports/' + self.financialTimeSeries.ticker +\
                        '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
-                       '-' + dynamicsType.value + str(i) +'.txt'
+                       '-' + dynamicsType.value + str(i) + '.txt'
+        else:
+            raise NameError('Invalid dynamicsType: ' + dynamicsType.value)
 
         return filename
 

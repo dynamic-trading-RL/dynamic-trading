@@ -320,8 +320,8 @@ class Market:
         self.simulations['price'] = self.start_price + np.cumsum(self.simulations['pnl'], axis=1)
 
     def _get_next_step_risk_driver(self, risk_driver, f, ind_0, norm, sig2_0, t):
-        risk_driver[ind_0, t] = np.vectorize(self.next_step_risk_driver, otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[
-            ind_0, t]
+        risk_driver[ind_0, t] = np.vectorize(self.next_step_risk_driver,
+                                             otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[ind_0, t]
 
     def _next_step_factor_linear(self, B, f, ind, mu, norm, sig2, t):
         f[ind, t] = mu + B * f[ind, t - 1] + np.sqrt(sig2) * norm[ind, t]

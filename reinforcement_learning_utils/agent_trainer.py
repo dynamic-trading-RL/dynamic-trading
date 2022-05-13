@@ -8,6 +8,7 @@ from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State, Action
 
+
 # methods should be generalized, then specialized with a "trading" keyword in the name. E.g.
 # def _genera
 
@@ -151,7 +152,7 @@ class AgentTrainer:
                 action = self.state_action_grid_dict[n][j][t][1]
                 q = self.q_grid_dict[n][j][t]
 
-                x_grid.append(self.agent._extract_q_value_model_input_trading(state=state, action=action))
+                x_grid.append(self.agent.extract_q_value_model_input_trading(state=state, action=action))
                 y_grid.append(q)
 
         x_array = np.array(x_grid).squeeze()

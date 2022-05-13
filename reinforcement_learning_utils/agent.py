@@ -103,7 +103,7 @@ class Agent:
 
     def _q_value_trading(self, state: State, action: Action):
 
-        q_value_model_input = self._extract_q_value_model_input_trading(state, action)
+        q_value_model_input = self.extract_q_value_model_input_trading(state, action)
 
         qvl = 0.
 
@@ -129,7 +129,7 @@ class Agent:
 
         return res.x[0]
 
-    def _extract_q_value_model_input_trading(self, state, action):
+    def extract_q_value_model_input_trading(self, state, action):
 
         state_lst = self._extract_state_lst_trading(state)
         rescaled_trade = action.rescaled_trade

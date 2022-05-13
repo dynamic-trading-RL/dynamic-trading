@@ -18,7 +18,7 @@ class Environment:
 
         return reward, next_state
 
-    def instantiate_initial_state_trading(self, n: int, j: int, shares_scale: int = 1):
+    def instantiate_initial_state_trading(self, n: int, j: int, shares_scale: float = 1):
 
         current_rescaled_shares = 0.
         current_other_observable = 0.

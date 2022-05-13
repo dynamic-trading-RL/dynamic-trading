@@ -202,6 +202,7 @@ class RiskDriverDynamics(Dynamics):
 
         super()._set_parameters_from_file(ticker, riskDriverType)
 
+
 class FactorDynamics(Dynamics):
 
     def __init__(self, factorDynamicsType: FactorDynamicsType):
