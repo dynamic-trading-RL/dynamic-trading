@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import shgo
+from joblib import dump, load
 
 from enums import FactorType
 from reinforcement_learning_utils.environment import Environment
@@ -31,6 +32,20 @@ class Agent:
     def update_q_value_models(self, q_value_model):
 
         self._q_value_models.append(q_value_model)
+
+    def dump_q_value_models(self):
+
+        for n in range(len(self._q_value_models)):
+
+            q_value_model = self._q_value_models[n]
+            dump(q_value_model, '../data/supervised_regressors/q%d.joblib' % n)
+
+    def load_q_value_models(self, n_batches: int):
+
+        for n in range(n_batches):
+
+            q_value_model = load('../data/supervised_regressors/q%d.joblib' % n)
+            self.update_q_value_models(q_value_model)
 
     def _greedy_policy(self, state: State):
 
