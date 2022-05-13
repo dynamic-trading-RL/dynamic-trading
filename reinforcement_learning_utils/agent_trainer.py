@@ -51,6 +51,7 @@ class AgentTrainer:
 
         self.state_action_grid_dict = {}
         self.q_grid_dict = {}
+        self.reward = {}
 
         eps = eps_start
 
@@ -65,6 +66,7 @@ class AgentTrainer:
         self._check_n(n)
         self.state_action_grid_dict[n] = {}
         self.q_grid_dict[n] = {}
+        self.reward[n] = 0.
 
         if parallel_computing:
 
@@ -78,8 +80,9 @@ class AgentTrainer:
 
     def _create_batch_sequential(self, eps, n):
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
-            state_action_grid, q_grid = self._generate_single_episode(j, n, eps)
+            state_action_grid, q_grid, reward_j = self._generate_single_episode(j, n, eps)
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
+            self.reward[n] += reward_j
 
     def _create_batch_parallel(self, eps, n, n_cores):
         print('Creating batch %d of %d.' % (n + 1, self.n_batches))
@@ -91,7 +94,9 @@ class AgentTrainer:
         for j in range(len(episodes)):
             state_action_grid_j = episodes[j][0]
             q_grid_j = episodes[j][1]
+            reward_j = episodes[j][2]
             self._store_grids_in_dict(j, n, q_grid_j, state_action_grid_j)
+            self.reward[n] += reward_j
 
     def _store_grids_in_dict(self, j, n, q_grid, state_action_grid):
 
@@ -101,6 +106,7 @@ class AgentTrainer:
     def _generate_single_episode(self, j: int, n: int, eps: float):
 
         self._check_j(j)
+        reward_j = 0.
 
         # Initialize grid for supervised regressor interpolation
         state_action_grid = []
@@ -116,6 +122,7 @@ class AgentTrainer:
 
             # Observe reward and state at time t
             reward, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
+            reward_j += reward
 
             # Choose action at time t
             next_action = self.agent.policy(state=next_state, eps=eps)
@@ -131,7 +138,7 @@ class AgentTrainer:
             state = next_state
             action = next_action
 
-        return state_action_grid, q_grid
+        return state_action_grid, q_grid, reward_j
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
@@ -146,6 +153,8 @@ class AgentTrainer:
         return q
 
     def _fit_supervised_regressor(self, n: int):
+
+        print('    Fitting supervised regressor %d of %d.' % (n+1, self.n_batches))
 
         x_array, y_array = self._prepare_data_for_supervised_regressor_fit(n)
 
@@ -212,17 +221,20 @@ if __name__ == '__main__':
     ticker = 'WTI'
     riskDriverType = RiskDriverType.PnL
     factorType = FactorType.Observable
-    j_episodes = 100
-    n_batches = 2
+    shares_scale = 30.
+    j_episodes = 150
+    n_batches = 3
     t_ = 50
 
     agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
                                 factorDynamicsType=factorDynamicsType,
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
-                                factorType=factorType)
+                                factorType=factorType,
+                                shares_scale=shares_scale)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_,
                        parallel_computing=True,
                        n_cores=6)
 
-    agent.dump_q_value_models()
+    agentTrainer.agent.dump_q_value_models()
+    print(agentTrainer.reward)
