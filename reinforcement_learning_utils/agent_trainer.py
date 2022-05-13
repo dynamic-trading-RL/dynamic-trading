@@ -24,29 +24,33 @@ class AgentTrainer:
         self.environment = Environment(market=self.market)
         self.agent = Agent(self.environment)
 
-    def train(self, j_episodes: int, n_batches: int, t_: int):
+    def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1):
 
         self.j_episodes = j_episodes
         self.n_batches = n_batches
         self.t_ = t_
 
-        self._train_trading()
+        self._train_trading(eps_start)
 
-    def _train_trading(self):
+    def _train_trading(self, eps_start: float):
 
         self.market.simulate_market_trading(self.n_batches, self.j_episodes, self.t_)
-        self._generate_all_batches()
+        self._generate_all_batches(eps_start)
 
-    def _generate_all_batches(self):
+    def _generate_all_batches(self, eps_start: float):
 
         self.state_action_grid_dict = {}
         self.q_grid_dict = {}
 
+        eps = eps_start
+
         for n in range(self.n_batches):
 
-            self._generate_batch(n=n)
+            self._generate_batch(n=n, eps=eps)
 
-    def _generate_batch(self, n: int):
+            eps = eps/3
+
+    def _generate_batch(self, n: int, eps: float):
 
         self._check_n(n)
         self.state_action_grid_dict[n] = {}
@@ -54,11 +58,11 @@ class AgentTrainer:
 
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n+1, self.n_batches)):
 
-            self._generate_single_episode(n=n, j=j)
+            self._generate_single_episode(n=n, j=j, eps=eps)
 
         self._fit_supervised_regressor(n)
 
-    def _generate_single_episode(self, n: int, j: int):
+    def _generate_single_episode(self, n: int, j: int, eps: float):
 
         self._check_j(j)
 
@@ -70,7 +74,7 @@ class AgentTrainer:
         state = self.environment.instantiate_initial_state_trading(n=n, j=j, shares_scale=self.shares_scale)
 
         # Choose action at t = 0
-        action = self.agent.policy(state)
+        action = self.agent.policy(state=state, eps=eps)
 
         for t in range(1, self.t_):
 
@@ -78,7 +82,7 @@ class AgentTrainer:
             reward, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
 
             # Choose action at time t
-            next_action = self.agent.policy(state=next_state)
+            next_action = self.agent.policy(state=next_state, eps=eps)
 
             # Observe next point on value function grid
             q = self._sarsa_updating_formula(next_state=next_state, next_action=next_action, reward=reward)
@@ -176,8 +180,8 @@ if __name__ == '__main__':
     ticker = 'WTI'
     riskDriverType = RiskDriverType.PnL
     factorType = FactorType.Observable
-    j_episodes = 10000
-    n_batches = 2
+    j_episodes = 20
+    n_batches = 3
     t_ = 50
 
     agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
