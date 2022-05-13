@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import shgo
+from scipy.optimize import shgo, minimize
 from joblib import dump, load
 
 from enums import FactorType
@@ -125,7 +125,8 @@ class Agent:
             return - qvl
 
         bounds = [(lower_bound, upper_bound)]
-        res = shgo(func=func, bounds=bounds)
+        # res = shgo(func=func, bounds=bounds)
+        res = minimize(fun=func, bounds=bounds, x0=0.)
 
         return res.x[0]
 

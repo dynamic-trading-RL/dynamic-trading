@@ -1,6 +1,10 @@
+import os
+
 import numpy as np
 from sklearn.neural_network import MLPRegressor
 from tqdm import tqdm
+import multiprocessing as mp
+from functools import partial
 
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
 from market_utils.market import instantiate_market
@@ -25,20 +29,25 @@ class AgentTrainer:
         self.environment = Environment(market=self.market)
         self.agent = Agent(self.environment)
 
-    def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1):
+    def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
+              n_cores: int = None):
 
         self.j_episodes = j_episodes
         self.n_batches = n_batches
         self.t_ = t_
 
-        self._train_trading(eps_start)
+        if parallel_computing and n_cores is None:
+            print('Number of cores to use for parallel computing not set. Setting it to maximum available.')
+            n_cores = os.cpu_count()
 
-    def _train_trading(self, eps_start: float):
+        self._train_trading(eps_start, parallel_computing, n_cores)
+
+    def _train_trading(self, eps_start: float, parallel_computing: bool, n_cores: int):
 
         self.market.simulate_market_trading(self.n_batches, self.j_episodes, self.t_)
-        self._generate_all_batches(eps_start)
+        self._generate_all_batches(eps_start, parallel_computing, n_cores)
 
-    def _generate_all_batches(self, eps_start: float):
+    def _generate_all_batches(self, eps_start: float, parallel_computing: bool, n_cores: int):
 
         self.state_action_grid_dict = {}
         self.q_grid_dict = {}
@@ -47,23 +56,49 @@ class AgentTrainer:
 
         for n in range(self.n_batches):
 
-            self._generate_batch(n=n, eps=eps)
+            self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
 
             eps = eps/3
 
-    def _generate_batch(self, n: int, eps: float):
+    def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
 
         self._check_n(n)
         self.state_action_grid_dict[n] = {}
         self.q_grid_dict[n] = {}
 
-        for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n+1, self.n_batches)):
+        if parallel_computing:
 
-            self._generate_single_episode(n=n, j=j, eps=eps)
+            self._create_batch_parallel(eps, n, n_cores)
+
+        else:
+
+            self._create_batch_sequential(eps, n)
 
         self._fit_supervised_regressor(n)
 
-    def _generate_single_episode(self, n: int, j: int, eps: float):
+    def _create_batch_sequential(self, eps, n):
+        for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
+            state_action_grid, q_grid = self._generate_single_episode(j, n, eps)
+            self._store_grids_in_dict(j, n, q_grid, state_action_grid)
+
+    def _create_batch_parallel(self, eps, n, n_cores):
+        print('Creating batch %d of %d.' % (n + 1, self.n_batches))
+        p = mp.Pool(n_cores)
+        generate_single_episode = partial(self._generate_single_episode, n=n, eps=eps)
+        episodes = p.map(generate_single_episode, range(self.j_episodes))
+        p.close()
+        p.join()
+        for j in range(len(episodes)):
+            state_action_grid_j = episodes[j][0]
+            q_grid_j = episodes[j][1]
+            self._store_grids_in_dict(j, n, q_grid_j, state_action_grid_j)
+
+    def _store_grids_in_dict(self, j, n, q_grid, state_action_grid):
+
+        self.state_action_grid_dict[n][j] = state_action_grid
+        self.q_grid_dict[n][j] = q_grid
+
+    def _generate_single_episode(self, j: int, n: int, eps: float):
 
         self._check_j(j)
 
@@ -96,9 +131,7 @@ class AgentTrainer:
             state = next_state
             action = next_action
 
-        # Store grid for supervised regressor interpolation
-        self.state_action_grid_dict[n][j] = state_action_grid
-        self.q_grid_dict[n][j] = q_grid
+        return state_action_grid, q_grid
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
@@ -156,7 +189,7 @@ class AgentTrainer:
                 y_grid.append(q)
 
         x_array = np.array(x_grid).squeeze()
-        y_array = np.array(y_grid)
+        y_array = np.array(y_grid).squeeze()
         return x_array, y_array
 
     def _check_n(self, n: int):
@@ -173,16 +206,14 @@ class AgentTrainer:
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    import warnings
-    warnings.filterwarnings("ignore")
 
     riskDriverDynamicsType = RiskDriverDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
     ticker = 'WTI'
     riskDriverType = RiskDriverType.PnL
     factorType = FactorType.Observable
-    j_episodes = 20
-    n_batches = 5
+    j_episodes = 100
+    n_batches = 2
     t_ = 50
 
     agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
@@ -190,7 +221,8 @@ if __name__ == '__main__':
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
                                 factorType=factorType)
+    agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_,
+                       parallel_computing=True,
+                       n_cores=6)
 
-    agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_)
-
-    agentTrainer.agent.dump_q_value_models()
+    agent.dump_q_value_models()
