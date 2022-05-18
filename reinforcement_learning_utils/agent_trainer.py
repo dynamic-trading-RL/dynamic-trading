@@ -213,18 +213,19 @@ class AgentTrainer:
                             + 'but only %d market paths have been simulated.' % (j + 1, self.j_episodes + 1))
 
 
-def read_training_parameters(ticker):
+def read_trading_parameters_training(ticker):
 
     filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
-    shares_scale = df_trad_params.loc['shares_scale'][0]
-    j_episodes = df_trad_params.loc['factorDynamicsType'][0]
-    n_batches = df_trad_params.loc['riskDriverType'][0]
-    t_ = df_trad_params.loc['factorType'][0]
+
+    shares_scale = float(df_trad_params.loc['shares_scale'][0])
+    j_episodes = int(df_trad_params.loc['j_episodes'][0])
+    n_batches = int(df_trad_params.loc['n_batches'][0])
+    t_ = int(df_trad_params.loc['t_'][0])
 
     if df_trad_params.loc['parallel_computing'][0] == 'Yes':
         parallel_computing = True
-        n_cores = df_trad_params.loc['n_cores'][0]
+        n_cores = int(df_trad_params.loc['n_cores'][0])
     elif df_trad_params.loc['parallel_computing'][0] == 'No':
         parallel_computing = False
         n_cores = None

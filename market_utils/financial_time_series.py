@@ -10,16 +10,12 @@ class FinancialTimeSeries:
 
         self.ticker = ticker
 
-    def set_time_series(self,
-                        t_past: int = 8000,
-                        riskDriverType: RiskDriverType = RiskDriverType.PnL,
-                        factorDefinitionType: FactorDefinitionType = FactorDefinitionType.MovingAverage,
-                        window: int = 5):
+    def set_time_series(self):
 
-        self.riskDriverType = riskDriverType
-        self.factorDefinitionType = factorDefinitionType
-        self.window = window
-        self._set_asset_time_series(t_past)
+        self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
+        self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
+        self.window = int(self.info.loc['window'][0])
+        self._set_asset_time_series(int(self.info.loc['t_past'][0]))
         self._set_risk_driver_time_series()
         self._set_factor()
         self.time_series.dropna(inplace=True)
@@ -84,13 +80,15 @@ class FinancialTimeSeries:
                                         'start_price',
                                         't_past',
                                         'window',
-                                        'riskDriverType'],
+                                        'riskDriverType',
+                                        'factorDefinitionType'],
                                  data=[self.ticker,
                                        self.time_series.index[-1],
                                        self.time_series[self.ticker].iloc[-1],
                                        len(self.time_series),
                                        self.window,
-                                       self.riskDriverType.value],
+                                       self.riskDriverType.value,
+                                       self.factorDefinitionType.value],
                                  columns=['info'])
 
 

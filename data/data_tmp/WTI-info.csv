@@ -1,7 +1,8 @@
 ,info
 ticker,WTI
-end_date,2019-01-07 00:00:00
+end_date,1/7/2019 0:00
 start_price,48.27
-t_past,7995
+t_past,8000
 window,5
 riskDriverType,PnL
+factorDefinitionType,MovingAverage

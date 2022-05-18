@@ -26,8 +26,8 @@ class AgentBenchmark:
 
         df_trad_params = self._get_df_trad_params()
 
-        gamma = df_trad_params.loc['gamma'][0]
-        kappa = df_trad_params.loc['kappa'][0]
+        gamma = float(df_trad_params.loc['gamma'][0])
+        kappa = float(df_trad_params.loc['kappa'][0])
 
         return gamma, kappa
 
@@ -38,8 +38,8 @@ class AgentBenchmark:
         return df_trad_params
 
     def _get_next_step_pnl_and_sig2(self, current_factor, price):
-        pnl = market.next_step_pnl(factor=current_factor, price=price)
-        sig2 = market.next_step_pnl_sig2(factor=current_factor, price=price)
+        pnl = self.market.next_step_pnl(factor=current_factor, price=price)
+        sig2 = self.market.next_step_pnl_sig2(factor=current_factor, price=price)
         return pnl, sig2
 
     def _get_current_shares_pnl_and_sig2(self, current_factor, current_rescaled_shares, price, shares_scale):
@@ -139,7 +139,7 @@ class AgentGP(AgentBenchmark):
         filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
-        lam = df_trad_params.loc['lam'][0]
+        lam = float(df_trad_params.loc['lam'][0])
 
         return lam
 

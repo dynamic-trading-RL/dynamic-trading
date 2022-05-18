@@ -102,7 +102,7 @@ class Environment:
         ticker = self.market.ticker
         filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
-        lam = df_trad_params.loc['lam'][0]
+        lam = float(df_trad_params.loc['lam'][0])
 
         self.lam = lam
 
