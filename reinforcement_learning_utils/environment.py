@@ -102,12 +102,13 @@ class Environment:
         ticker = self.market.ticker
         filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
-        gamma = df_trad_params.loc['gamma'][0]
-        kappa = df_trad_params.loc['kappa'][0]
         lam = df_trad_params.loc['lam'][0]
 
-        self.gamma = gamma
-        self.kappa = kappa
         self.lam = lam
 
         self.factorType = self.market.factorType
+
+    def _get_trading_parameters_from_agent(self, gamma: float, kappa: float):
+
+        self.gamma = gamma
+        self.kappa = kappa

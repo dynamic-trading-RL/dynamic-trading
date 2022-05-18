@@ -1,4 +1,14 @@
 field, value 
-gamma, 0.9999 
-kappa, 0.0010 
-lam, 0.0146 
+riskDriverDynamicsType,Linear
+factorDynamicsType,AR
+riskDriverType,PnL
+factorType,Observable
+parallel_computing,No
+n_cores,1
+gamma,0.9999
+kappa,0.001
+lam,0.0146
+shares_scale,30
+j_episodes,150
+n_batches,1
+t_,50

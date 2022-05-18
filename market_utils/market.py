@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+
 from market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
 from market_utils.financial_time_series import FinancialTimeSeries
@@ -373,37 +375,13 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
     return Market(financialTimeSeries, marketDynamics, factorType)
 
 
-# ------------------------------ TESTS ---------------------------------------------------------------------------------
+def read_market_parameters(ticker):
 
-if __name__ == '__main__':
+    filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+    df_trad_params = pd.read_csv(filename, index_col=0)
+    riskDriverDynamicsType = RiskDriverDynamicsType(df_trad_params.loc['riskDriverDynamicsType'][0])
+    factorDynamicsType = FactorDynamicsType(df_trad_params.loc['factorDynamicsType'][0])
+    riskDriverType = RiskDriverType(df_trad_params.loc['riskDriverType'][0])
+    factorType = FactorType(df_trad_params.loc['factorType'][0])
 
-    riskDriverDynamicsType = RiskDriverDynamicsType.NonLinear
-    factorDynamicsType = FactorDynamicsType.AR_TARCH
-    ticker = 'WTI'
-    riskDriverType = RiskDriverType.PnL
-    j_ = 100
-    t_ = 200
-
-    market = instantiate_market(riskDriverDynamicsType, factorDynamicsType, ticker, riskDriverType)
-
-    market.simulate(j_, t_)
-
-    fig = plt.figure()
-
-    ax_price = plt.subplot2grid(shape=(4, 1), loc=(0, 0))
-    ax_price.set_title('Price')
-    ax_pnl = plt.subplot2grid(shape=(4, 1), loc=(1, 0))
-    ax_pnl.set_title('PnL')
-    ax_return = plt.subplot2grid(shape=(4, 1), loc=(2, 0))
-    ax_return.set_title('Risk Driver')
-    ax_factor = plt.subplot2grid(shape=(4, 1), loc=(3, 0))
-    ax_factor.set_title('Factor')
-
-    for j in range(min(j_, 50)):
-        ax_price.plot(market.simulations['price'][j, :], linewidth=0.5, alpha=1)
-        ax_pnl.plot(market.simulations['pnl'][j, :], '.', markersize=0.1, alpha=1)
-        ax_return.plot(market.simulations['risk-driver'][j, :], '.', markersize=0.1, alpha=1)
-        ax_factor.plot(market.simulations['factor'][j, :], '.', markersize=0.1, alpha=1)
-
-    plt.tight_layout()
-    plt.show()
+    return riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType

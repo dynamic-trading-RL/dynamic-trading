@@ -30,5 +30,5 @@ class FactorDefinitionType(Enum):
 
 class RiskDriverType(Enum):
 
-    PnL = 'Pnl'
+    PnL = 'PnL'
     Return = 'Return'

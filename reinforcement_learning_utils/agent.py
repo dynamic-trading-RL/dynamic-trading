@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy.optimize import shgo, minimize
 from joblib import dump, load
 
@@ -13,6 +14,7 @@ class Agent:
 
         self.environment = environment
         self._q_value_models = []
+        self._set_agent_attributes()
 
     def policy(self, state: State, eps: float = None):
 
@@ -155,3 +157,16 @@ class Agent:
             raise NameError('Invalid factorType: ' + self.environment.factorType.value)
 
         return state_lst
+
+    def _set_agent_attributes(self):
+
+        ticker = self.environment.market.ticker
+        filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        df_trad_params = pd.read_csv(filename, index_col=0)
+        gamma = df_trad_params.loc['gamma'][0]
+        kappa = df_trad_params.loc['kappa'][0]
+
+        self.gamma = gamma
+        self.kappa = kappa
+
+        self.environment._get_trading_parameters_from_agent(self.gamma, self.kappa)

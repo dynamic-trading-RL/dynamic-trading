@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
@@ -212,29 +213,22 @@ class AgentTrainer:
                             + 'but only %d market paths have been simulated.' % (j + 1, self.j_episodes + 1))
 
 
-# ------------------------------ TESTS ---------------------------------------------------------------------------------
+def read_training_parameters(ticker):
 
-if __name__ == '__main__':
+    filename = '../data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+    df_trad_params = pd.read_csv(filename, index_col=0)
+    shares_scale = df_trad_params.loc['shares_scale'][0]
+    j_episodes = df_trad_params.loc['factorDynamicsType'][0]
+    n_batches = df_trad_params.loc['riskDriverType'][0]
+    t_ = df_trad_params.loc['factorType'][0]
 
-    riskDriverDynamicsType = RiskDriverDynamicsType.Linear
-    factorDynamicsType = FactorDynamicsType.AR
-    ticker = 'WTI'
-    riskDriverType = RiskDriverType.PnL
-    factorType = FactorType.Observable
-    shares_scale = 30.
-    j_episodes = 150
-    n_batches = 3
-    t_ = 50
+    if df_trad_params.loc['parallel_computing'][0] == 'Yes':
+        parallel_computing = True
+        n_cores = df_trad_params.loc['n_cores'][0]
+    elif df_trad_params.loc['parallel_computing'][0] == 'No':
+        parallel_computing = False
+        n_cores = None
+    else:
+        raise NameError('Invalid value for parameter parallel_computing in ' + ticker + '-trading-parameters.csv')
 
-    agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
-                                factorDynamicsType=factorDynamicsType,
-                                ticker=ticker,
-                                riskDriverType=riskDriverType,
-                                factorType=factorType,
-                                shares_scale=shares_scale)
-    agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_,
-                       parallel_computing=True,
-                       n_cores=6)
-
-    agentTrainer.agent.dump_q_value_models()
-    print(agentTrainer.reward)
+    return shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores
