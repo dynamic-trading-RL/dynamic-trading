@@ -4,7 +4,7 @@ factorDynamicsType,AR
 riskDriverType,PnL
 factorType,Observable
 parallel_computing,Yes
-n_cores,6
+n_cores,20
 gamma,0.999921
 kappa,0.001
 lam,0.014776
