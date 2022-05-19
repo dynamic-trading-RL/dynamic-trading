@@ -39,7 +39,7 @@ class AgentBenchmark:
 
     def _get_next_step_pnl_and_sig2(self, current_factor, price):
         pnl = self.market.next_step_pnl(factor=current_factor, price=price)
-        sig2 = self.market.next_step_pnl_sig2(factor=current_factor, price=price)
+        sig2 = self.market.next_step_sig2(factor=current_factor, price=price)
         return pnl, sig2
 
     def _get_current_shares_pnl_and_sig2(self, current_factor, current_rescaled_shares, price, shares_scale):
@@ -114,24 +114,20 @@ class AgentGP(AgentBenchmark):
             warnings.warn('Trying to use GP with a model not on PnL. The model is actually on '
                           + self.market.riskDriverType.value)
 
-        B, Phi = self._read_B_Phi()
+        Phi = self._read_Phi()
 
-        gp_rescaling = B / (1 + Phi * a / self.kappa)
+        gp_rescaling = 1 / (1 + Phi * a / self.kappa)
 
         return gp_rescaling
 
-    def _read_B_Phi(self):
+    def _read_Phi(self):
         ticker = self.market.ticker
         riskDriverType = self.market.riskDriverType
-        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + \
-                   '-risk-driver-calibrations.xlsx'
-        df_risk_driver_params = pd.read_excel(filename, sheet_name='Linear', index_col=0)
-        B = df_risk_driver_params.loc['B'][0]
         filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + \
                    '-factor-calibrations.xlsx'
         df_factor_params = pd.read_excel(filename, sheet_name='AR', index_col=0)
         Phi = 1 - df_factor_params.loc['B'][0]
-        return B, Phi
+        return Phi
 
     def _read_lam(self):
 

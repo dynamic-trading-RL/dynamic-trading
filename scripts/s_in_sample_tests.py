@@ -14,7 +14,7 @@ if __name__ == '__main__':
     riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = read_trading_parameters_market(ticker)
 
     # Tradind parameters
-    shares_scale, _, _, _, _, _ = read_trading_parameters_training(ticker)
+    shares_scale, _, n_batches, _, _, _ = read_trading_parameters_training(ticker)
 
     # Instantiate market and environment
     market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
@@ -28,6 +28,7 @@ if __name__ == '__main__':
     agentMarkowitz = AgentMarkowitz(market)
     agentGP = AgentGP(market)
     agentRL = Agent(environment)
+    agentRL.load_q_value_models(n_batches)
 
     # Get factor_series
     factor_series = market.financialTimeSeries.time_series['factor'].iloc[-50:]
@@ -45,7 +46,7 @@ if __name__ == '__main__':
         current_rescaled_shares += rescaled_trade
         markowitz_strategy.append(current_rescaled_shares * shares_scale)
 
-    plt.plot(factor_series.index, markowitz_strategy, color='m')
+    plt.plot(factor_series.index, markowitz_strategy, color='m', label='Markowitz')
 
     # GP strategy
     GP_strategy = []
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         current_rescaled_shares += rescaled_trade
         GP_strategy.append(current_rescaled_shares * shares_scale)
 
-    plt.plot(factor_series.index, GP_strategy, color='g')
+    plt.plot(factor_series.index, GP_strategy, color='g', label='GP')
 
     # RL strategy
     RL_strategy = []
@@ -74,6 +75,8 @@ if __name__ == '__main__':
         current_rescaled_shares += rescaled_trade
         RL_strategy.append(current_rescaled_shares * shares_scale)
 
-    plt.plot(factor_series.index, RL_strategy, color='r')
+    plt.plot(factor_series.index, RL_strategy, color='r', label='RL')
 
-    plt.show()
+    plt.legend()
+
+    plt.savefig('../figures/backtesting.png')

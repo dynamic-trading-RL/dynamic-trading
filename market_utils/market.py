@@ -51,7 +51,7 @@ class Market:
 
         return pnl
 
-    def next_step_pnl_sig2(self, factor: float, price: float = None):
+    def next_step_sig2(self, factor: float, price: float = None):
 
         if self.riskDriverType == RiskDriverType.PnL:
 

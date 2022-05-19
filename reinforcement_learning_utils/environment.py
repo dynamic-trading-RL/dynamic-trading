@@ -52,7 +52,7 @@ class Environment:
         current_price = state.current_price
 
         pnl = self.market.next_step_pnl(factor=current_factor, price=current_price)
-        sig2 = self.market.next_step_pnl_sig2(factor=current_factor, price=current_price)
+        sig2 = self.market.next_step_sig2(factor=current_factor, price=current_price)
 
         cost = self._compute_trading_cost(action, sig2)
 

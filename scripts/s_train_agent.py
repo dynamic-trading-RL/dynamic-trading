@@ -19,6 +19,6 @@ if __name__ == '__main__':
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_,
                        parallel_computing=parallel_computing,
                        n_cores=n_cores,
-                       eps_start=0.001)
+                       eps_start=0.01)
 
     agentTrainer.agent.dump_q_value_models()
