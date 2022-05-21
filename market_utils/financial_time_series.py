@@ -1,5 +1,5 @@
 import pandas as pd
-import yfinance as yf
+# import yfinance as yf
 
 from enums import FactorDefinitionType, RiskDriverType
 
@@ -39,6 +39,8 @@ class FinancialTimeSeries:
                                       na_values='.').fillna(method='pad')
 
         else:
+
+            import yfinance as yf
 
             end_date = '2021-12-31'
             time_series = yf.download(self.ticker, end=end_date)['Adj Close'].to_frame()
