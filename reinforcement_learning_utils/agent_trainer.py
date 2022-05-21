@@ -226,6 +226,7 @@ def read_trading_parameters_training(ticker):
     if df_trad_params.loc['parallel_computing'][0] == 'Yes':
         parallel_computing = True
         n_cores = int(df_trad_params.loc['n_cores'][0])
+        n_cores = min(n_cores, mp.cpu_count())
     elif df_trad_params.loc['parallel_computing'][0] == 'No':
         parallel_computing = False
         n_cores = None

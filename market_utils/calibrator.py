@@ -1,6 +1,6 @@
 import pandas as pd
-from arch import arch_model
-from arch.univariate import ARX, GARCH
+# from arch import arch_model
+# from arch.univariate import ARX, GARCH
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
@@ -163,8 +163,10 @@ class DynamicsCalibrator:
             df_model = self._prepare_df_model_factor_diff()
 
             if factorDynamicsType == FactorDynamicsType.GARCH:
+                from arch import arch_model
                 model = arch_model(df_model, p=1, q=1, rescale=False)
             else:
+                from arch import arch_model
                 model = arch_model(df_model, p=1, o=1, q=1, rescale=False)
 
             model_fit = model.fit()
@@ -178,6 +180,8 @@ class DynamicsCalibrator:
                 self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega)
 
         elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
+
+            from arch.univariate import ARX, GARCH
 
             df_model = self._prepare_df_model_factor()
 
