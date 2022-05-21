@@ -1,5 +1,5 @@
 import warnings
-
+import os
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -33,7 +33,7 @@ class AgentBenchmark:
 
     def _get_df_trad_params(self):
         ticker = self.market.ticker
-        filename = 'data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         return df_trad_params
 
@@ -123,7 +123,7 @@ class AgentGP(AgentBenchmark):
     def _read_Phi(self):
         ticker = self.market.ticker
         riskDriverType = self.market.riskDriverType
-        filename = 'data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + \
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + \
                    '-factor-calibrations.xlsx'
         df_factor_params = pd.read_excel(filename, sheet_name='AR', index_col=0)
         Phi = 1 - df_factor_params.loc['B'][0]
@@ -132,7 +132,7 @@ class AgentGP(AgentBenchmark):
     def _read_lam(self):
 
         ticker = self.market.ticker
-        filename = 'data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
         lam = float(df_trad_params.loc['lam'][0])

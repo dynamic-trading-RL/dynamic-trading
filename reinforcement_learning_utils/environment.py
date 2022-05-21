@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 
 from reinforcement_learning_utils.state_action_utils import Action, State
 from market_utils.market import Market
@@ -100,7 +101,7 @@ class Environment:
     def _set_trading_attributes(self):
 
         ticker = self.market.ticker
-        filename = 'data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         lam = float(df_trad_params.loc['lam'][0])
 

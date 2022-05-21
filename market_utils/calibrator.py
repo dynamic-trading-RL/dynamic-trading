@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 # from arch import arch_model
 # from arch.univariate import ARX, GARCH
 from statsmodels.regression.linear_model import OLS
@@ -302,8 +303,8 @@ class DynamicsCalibrator:
         ticker = self.financialTimeSeries.ticker
         riskDriverType = self.riskDriverType
 
-        filename = 'data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
-                   '-calibrations.xlsx'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + \
+                   var_type + '-calibrations.xlsx'
 
         writer = pd.ExcelWriter(filename)
         workbook = writer.book
@@ -365,7 +366,7 @@ class DynamicsCalibrator:
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
 
-    filename = 'data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
+    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
                '-calibrations.xlsx'
 
     return filename

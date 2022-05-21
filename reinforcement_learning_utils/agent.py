@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 from scipy.optimize import shgo, minimize
 from joblib import dump, load
 
@@ -40,13 +41,13 @@ class Agent:
         for n in range(len(self._q_value_models)):
 
             q_value_model = self._q_value_models[n]
-            dump(q_value_model, 'data/supervised_regressors/q%d.joblib' % n)
+            dump(q_value_model, os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
 
     def load_q_value_models(self, n_batches: int):
 
         for n in range(n_batches):
 
-            q_value_model = load('data/supervised_regressors/q%d.joblib' % n)
+            q_value_model = load(os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
             self.update_q_value_models(q_value_model)
 
     def _greedy_policy(self, state: State):
@@ -161,7 +162,7 @@ class Agent:
     def _set_agent_attributes(self):
 
         ticker = self.environment.market.ticker
-        filename = 'data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_trad_params.loc['kappa'][0])
