@@ -22,3 +22,5 @@ if __name__ == '__main__':
                        eps_start=0.01)
 
     agentTrainer.agent.dump_q_value_models()
+
+    print('--- End s_train_agent.py')

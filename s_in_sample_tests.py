@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import os
 
 from benchmark_agents.agents import AgentMarkowitz, AgentGP
 from market_utils.market import instantiate_market, read_trading_parameters_market
@@ -79,4 +80,6 @@ if __name__ == '__main__':
 
     plt.legend()
 
-    plt.savefig('../figures/backtesting.png')
+    plt.savefig('figures/backtesting.png')
+
+    print('--- End s_in_sample_testing.py')

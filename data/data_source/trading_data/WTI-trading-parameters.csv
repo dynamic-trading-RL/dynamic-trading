@@ -4,11 +4,11 @@ factorDynamicsType,AR
 riskDriverType,PnL
 factorType,Observable
 parallel_computing,Yes
-n_cores,4
+n_cores,20
 gamma,0.999921
 kappa,0.001
 lam,0.014776
 shares_scale,57.472311
-j_episodes,5000
-n_batches,3
+j_episodes,15000
+n_batches,6
 t_,50
