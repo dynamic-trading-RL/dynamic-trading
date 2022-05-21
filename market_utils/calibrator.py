@@ -302,7 +302,7 @@ class DynamicsCalibrator:
         ticker = self.financialTimeSeries.ticker
         riskDriverType = self.riskDriverType
 
-        filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
+        filename = 'data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
                    '-calibrations.xlsx'
 
         writer = pd.ExcelWriter(filename)
@@ -365,7 +365,7 @@ class DynamicsCalibrator:
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
 
-    filename = '../data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
+    filename = 'data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
                '-calibrations.xlsx'
 
     return filename

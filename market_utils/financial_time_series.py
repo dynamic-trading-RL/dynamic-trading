@@ -23,19 +23,19 @@ class FinancialTimeSeries:
 
     def print_info(self):
 
-        filename = '../data/data_tmp/' + self.ticker + '-info.csv'
+        filename = 'data/data_tmp/' + self.ticker + '-info.csv'
         self.info.to_csv(filename)
 
     def set_info_from_file(self):
 
-        filename = '../data/data_tmp/' + self.ticker + '-info.csv'
+        filename = 'data/data_tmp/' + self.ticker + '-info.csv'
         self.info = pd.read_csv(filename, index_col=0)
 
     def _set_asset_time_series(self, t_past: int):
 
         if self.ticker == 'WTI':
 
-            time_series = pd.read_csv('../data/data_source/market_data/DCOILWTICO.csv', index_col=0,
+            time_series = pd.read_csv('data/data_source/market_data/DCOILWTICO.csv', index_col=0,
                                       na_values='.').fillna(method='pad')
 
         else:

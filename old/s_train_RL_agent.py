@@ -50,8 +50,8 @@ if __name__ == '__main__':
 
     flag_qaverage = True
     predict_r = True
-    return_is_pnl = load('../data/data_tmp/return_is_pnl.joblib')
-    fit_stock = load('../data/data_tmp/fit_stock.joblib')
+    return_is_pnl = load('data/data_tmp/return_is_pnl.joblib')
+    fit_stock = load('data/data_tmp/fit_stock.joblib')
 
     bound = None
 
@@ -71,8 +71,8 @@ if __name__ == '__main__':
     # Market parameters
     riskDriverDynamicsType = RiskDriverDynamicsType.Linear
     factorDynamicsType = FactorDynamicsType.AR
-    dump(riskDriverDynamicsType, '../data/data_tmp/riskDriverDynamicsType.joblib')
-    dump(factorDynamicsType, '../data/data_tmp/factorDynamicsType.joblib')
+    dump(riskDriverDynamicsType, 'data/data_tmp/riskDriverDynamicsType.joblib')
+    dump(factorDynamicsType, 'data/data_tmp/factorDynamicsType.joblib')
 
     if fit_stock:
         gamma = 10**-4  # risk aversion
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     # ??? latent case to be discussed: issue with constant solutions
 
     # ------------------------------------- Reinforcement learning ------------
-    calibration_parameters = pd.read_excel('../data/data_tmp/calibration_parameters.xlsx',
+    calibration_parameters = pd.read_excel('data/data_tmp/calibration_parameters.xlsx',
                                            index_col=0)
     start_price = calibration_parameters.loc['start_price',
                                             'calibration-parameters']
@@ -115,7 +115,7 @@ if __name__ == '__main__':
         print('Number of cores available: %d' % mp.cpu_count())
         n_cores = min(mp.cpu_count(), n_cores_max)
         print('Number of cores used: %d' % n_cores)
-        dump(n_cores, '../data/data_tmp/n_cores.joblib')
+        dump(n_cores, 'data/data_tmp/n_cores.joblib')
 
     # Instantiate market
     market = instantiate_market(riskDriverDynamicsType, factorDynamicsType,
@@ -260,8 +260,8 @@ if __name__ == '__main__':
         qb_list.append(model)
         dump(model, 'supervised_regressors/q%d.joblib' % b)  # export regressor
         if dump_XY:
-            dump(X, '../data/data_tmp/X%d.joblib' % b)
-            dump(Y, '../data/data_tmp/Y%d.joblib' % b)
+            dump(X, 'data/data_tmp/X%d.joblib' % b)
+            dump(Y, 'data/data_tmp/Y%d.joblib' % b)
         if make_plots:
             X_plot[b] = X
             Y_plot[b] = Y
@@ -273,17 +273,17 @@ if __name__ == '__main__':
 
     # ------------------------------------- Dump data/data_tmp -------------------------
     print(optimizers)
-    dump(n_batches, '../data/data_tmp/n_batches.joblib')
-    dump(optimizers, '../data/data_tmp/optimizers.joblib')
-    dump(optimizer, '../data/data_tmp/optimizer.joblib')
-    dump(lam, '../data/data_tmp/lam.joblib')
-    dump(gamma, '../data/data_tmp/gamma.joblib')
-    dump(rho, '../data/data_tmp/rho.joblib')
-    dump(factorType, '../data/data_tmp/factorType.joblib')
-    dump(flag_qaverage, '../data/data_tmp/flag_qaverage.joblib')
-    dump(bound, '../data/data_tmp/bound.joblib')
-    dump(rescale_n_a, '../data/data_tmp/rescale_n_a.joblib')
-    dump(parallel_computing, '../data/data_tmp/parallel_computing.joblib')
+    dump(n_batches, 'data/data_tmp/n_batches.joblib')
+    dump(optimizers, 'data/data_tmp/optimizers.joblib')
+    dump(optimizer, 'data/data_tmp/optimizer.joblib')
+    dump(lam, 'data/data_tmp/lam.joblib')
+    dump(gamma, 'data/data_tmp/gamma.joblib')
+    dump(rho, 'data/data_tmp/rho.joblib')
+    dump(factorType, 'data/data_tmp/factorType.joblib')
+    dump(flag_qaverage, 'data/data_tmp/flag_qaverage.joblib')
+    dump(bound, 'data/data_tmp/bound.joblib')
+    dump(rescale_n_a, 'data/data_tmp/rescale_n_a.joblib')
+    dump(parallel_computing, 'data/data_tmp/parallel_computing.joblib')
 
     # ------------------------------------- Plots -----------------------------
 
