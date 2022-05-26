@@ -55,7 +55,7 @@ class Environment:
         pnl = self.market.next_step_pnl(factor=current_factor, price=current_price)
         sig2 = self.market.next_step_sig2(factor=current_factor, price=current_price)
 
-        cost = self._compute_trading_cost(action, sig2)
+        cost = self.compute_trading_cost(action, sig2)
 
         reward = self.gamma * (current_shares * pnl - 0.5*self.kappa*current_shares*sig2*current_shares) - cost
 
@@ -82,7 +82,7 @@ class Environment:
 
         return next_state
 
-    def _compute_trading_cost(self, action, sig2):
+    def compute_trading_cost(self, action, sig2):
 
         trade = action.trade
 

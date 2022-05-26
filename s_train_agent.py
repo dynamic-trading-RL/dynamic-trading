@@ -3,6 +3,7 @@ from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_tradin
 
 if __name__ == '__main__':
 
+    # -------------------- Input parameters
     # Market parameters
     ticker = 'WTI'
     riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = read_trading_parameters_market(ticker)
@@ -10,6 +11,7 @@ if __name__ == '__main__':
     # Training parameters
     shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores = read_trading_parameters_training(ticker)
 
+    # -------------------- Execution
     agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
                                 factorDynamicsType=factorDynamicsType,
                                 ticker=ticker,

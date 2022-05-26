@@ -14,6 +14,13 @@ class AgentBenchmark:
 
         self.market = market
         self._set_attributes()
+        self._set_lam()
+
+    def get_cost_trade(self, trade, current_factor, price):
+
+        sig2 = self.market.next_step_sig2(factor=current_factor, price=price)
+
+        return 0.5 * trade * self.lam * sig2 * trade
 
     def _set_attributes(self):
 
@@ -47,6 +54,21 @@ class AgentBenchmark:
         pnl, sig2 = self._get_next_step_pnl_and_sig2(current_factor, price)
         return current_shares, pnl, sig2
 
+    def _set_lam(self):
+
+        lam = self._read_lam()
+        self.lam = lam
+
+    def _read_lam(self):
+
+        ticker = self.market.ticker
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        df_trad_params = pd.read_csv(filename, index_col=0)
+
+        lam = float(df_trad_params.loc['lam'][0])
+
+        return lam
+
 
 class AgentMarkowitz(AgentBenchmark):
 
@@ -76,7 +98,6 @@ class AgentGP(AgentBenchmark):
     def __init__(self, market: Market):
 
         super().__init__(market)
-        self._set_lam()
 
     def policy(self, current_factor: float, current_rescaled_shares: float, shares_scale: float = 1,
                price: float = None):
@@ -103,11 +124,6 @@ class AgentGP(AgentBenchmark):
                      4 * self.kappa * self.lam * self.gamma ** 2)) / (2 * self.gamma)
         return a
 
-    def _set_lam(self):
-
-        lam = self._read_lam()
-        self.lam = lam
-
     def _get_gp_rescaling(self, a):
 
         if self.market.riskDriverType != RiskDriverType.PnL:
@@ -128,16 +144,6 @@ class AgentGP(AgentBenchmark):
         df_factor_params = pd.read_excel(filename, sheet_name='AR', index_col=0)
         Phi = 1 - df_factor_params.loc['B'][0]
         return Phi
-
-    def _read_lam(self):
-
-        ticker = self.market.ticker
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
-        df_trad_params = pd.read_csv(filename, index_col=0)
-
-        lam = float(df_trad_params.loc['lam'][0])
-
-        return lam
 
 
 if __name__ == '__main__':

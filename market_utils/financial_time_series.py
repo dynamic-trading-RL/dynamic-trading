@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-# import yfinance as yf
+import numpy as np
 
 from enums import FactorDefinitionType, RiskDriverType
 
@@ -56,6 +56,7 @@ class FinancialTimeSeries:
             t_past = len(time_series)
 
         self.time_series = time_series.iloc[-t_past:]
+        self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
 
     def _set_risk_driver_time_series(self):
 
