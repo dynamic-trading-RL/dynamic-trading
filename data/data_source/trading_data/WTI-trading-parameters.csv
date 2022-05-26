@@ -11,4 +11,4 @@ lam,0.014776
 shares_scale,57.472311
 j_episodes,15000
 n_batches,6
-t_,500
+t_,50
