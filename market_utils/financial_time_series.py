@@ -13,6 +13,8 @@ class FinancialTimeSeries:
 
     def set_time_series(self):
 
+        self._set_info_from_file()
+
         self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
         self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
         self.window = int(self.info.loc['window'][0])
@@ -21,23 +23,27 @@ class FinancialTimeSeries:
         self._set_factor()
         self.time_series.dropna(inplace=True)
         self._set_info()
+        self._print_info()
 
-    def print_info(self):
+    def _print_info(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + self.ticker + '-info.csv'
+        filename =\
+            os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + self.ticker + '-info.csv'
         self.info.to_csv(filename)
 
-    def set_info_from_file(self):
+    def _set_info_from_file(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + self.ticker + '-info.csv'
+        filename =\
+            os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + self.ticker + '-info.csv'
         self.info = pd.read_csv(filename, index_col=0)
 
     def _set_asset_time_series(self, t_past: int):
 
-        if self.ticker == 'WTI':
+        if self.ticker in get_available_futures_tickers():
 
-            time_series = pd.read_csv(os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/market_data/DCOILWTICO.csv', index_col=0,
-                                      na_values='.').fillna(method='pad')
+            time_series = pd.read_excel(os.path.dirname(os.path.dirname(__file__))
+                                        + '/data/data_source/market_data/futures_data.xlsx',
+                                        sheet_name=self.ticker, index_col=0).fillna(method='pad')
 
         else:
 
@@ -46,10 +52,12 @@ class FinancialTimeSeries:
             end_date = '2021-12-31'
             time_series = yf.download(self.ticker, end=end_date)['Adj Close'].to_frame()
 
-        first_valid_loc = time_series.first_valid_index()
-        time_series = time_series.loc[first_valid_loc:]
-
         time_series.index = pd.to_datetime(time_series.index)
+        first_valid_loc = time_series.first_valid_index()
+        last_valid_loc = time_series.last_valid_index()
+        date_range = pd.date_range(first_valid_loc, last_valid_loc)
+        time_series = time_series.reindex(date_range, method='pad')
+
         time_series.columns = [self.ticker]
 
         if t_past > len(time_series):
@@ -96,10 +104,17 @@ class FinancialTimeSeries:
                                  columns=['info'])
 
 
+def get_available_futures_tickers():
+
+    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter', 'nickel',
+           'silver', 'sugar', 'tin', 'unleaded', 'zinc']
+
+    return lst
+
+
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
     financialTimeSeries = FinancialTimeSeries('WTI')
     financialTimeSeries.set_time_series()
-    financialTimeSeries.print_info()

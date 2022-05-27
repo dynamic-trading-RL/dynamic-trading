@@ -1,8 +1,8 @@
 ,info
 ticker,WTI
-end_date,1/7/2019 0:00
-start_price,48.27
-t_past,8000
+end_date,2022-05-23 00:00:00
+start_price,110.29
+t_past,7300
 window,5
 riskDriverType,PnL
 factorDefinitionType,MovingAverage

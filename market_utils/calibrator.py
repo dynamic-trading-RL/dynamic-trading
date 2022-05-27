@@ -303,8 +303,8 @@ class DynamicsCalibrator:
         ticker = self.financialTimeSeries.ticker
         riskDriverType = self.riskDriverType
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + \
-                   var_type + '-calibrations.xlsx'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' +\
+                   riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
 
         writer = pd.ExcelWriter(filename)
         workbook = writer.book
@@ -344,12 +344,12 @@ class DynamicsCalibrator:
 
         if dynamicsType in (RiskDriverDynamicsType.Linear, FactorDynamicsType.AR, FactorDynamicsType.GARCH,
                             FactorDynamicsType.TARCH, FactorDynamicsType.AR_TARCH):
-            filename = '../reports/' + self.financialTimeSeries.ticker +\
+            filename =  os.path.dirname(os.path.dirname(__file__)) + '/reports/' + self.financialTimeSeries.ticker +\
                        '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
                        '-' + dynamicsType.value + '.txt'
         elif dynamicsType in (RiskDriverDynamicsType.NonLinear, FactorDynamicsType.SETAR):
-            filename = '../reports/' + self.financialTimeSeries.ticker +\
+            filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/' + self.financialTimeSeries.ticker +\
                        '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
                        '-' + dynamicsType.value + str(i) + '.txt'

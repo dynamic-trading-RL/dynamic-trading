@@ -65,7 +65,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Shares [#]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting-shares.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/' + self._ticker + 'backtesting-shares.png')
 
     def _plot_value(self):
         plt.figure()
@@ -76,7 +76,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Portfolio value [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting-value.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/' + self._ticker + 'backtesting-value.png')
 
     def _plot_cost(self):
         plt.figure()
@@ -87,7 +87,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Cost [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting-cost.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/' + self._ticker + 'backtesting-cost.png')
 
     def _plot_wealth(self):
         plt.figure()
@@ -99,7 +99,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Wealth [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting-wealth.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/' + self._ticker + 'backtesting-wealth.png')
 
     def _plot_trades_scatter(self):
         plt.figure()
@@ -110,7 +110,7 @@ class Backtester:
         plt.axis('equal')
         plt.xlim([np.quantile(self._trade_all['GP'], 0.02), np.quantile(self._trade_all['GP'], 0.98)])
         plt.ylim([np.quantile(self._trade_all['RL'], 0.02), np.quantile(self._trade_all['RL'], 0.98)])
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting-trades-scatter.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/' + self._ticker + 'backtesting-trades-scatter.png')
 
     def _plot_sharpe_ratio(self):
         plt.figure()
@@ -121,7 +121,7 @@ class Backtester:
         plt.grid()
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting-sharpe-ratio.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/' + self._ticker + 'backtesting-sharpe-ratio.png')
 
     def _instantiate_agents_and_environment(self):
 
