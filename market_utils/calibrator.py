@@ -108,11 +108,12 @@ class DynamicsCalibrator:
         ind = df_reg.index
 
         # regression
-        B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, var_type)
+        B, mu, model_fit, sig2, abs_epsi_autocorr = self._execute_ols(df_reg, ind, scale, var_type)
 
         self._all_dynamics_param_dict[var_type][tgt_key]['mu'] = mu
         self._all_dynamics_param_dict[var_type][tgt_key]['B'] = B
         self._all_dynamics_param_dict[var_type][tgt_key]['sig2'] = sig2
+        self._all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_autocorr'] = abs_epsi_autocorr
 
         self._all_dynamics_model_dict[var_type][tgt_key] = [model_fit]
 
@@ -140,11 +141,12 @@ class DynamicsCalibrator:
             ind = ind_lst[i]
 
             # regression
-            B, mu, model_fit, sig2 = self._execute_ols(df_reg, ind, scale, var_type)
+            B, mu, model_fit, sig2, abs_epsi_autocorr = self._execute_ols(df_reg, ind, scale, var_type)
 
             self._all_dynamics_param_dict[var_type][tgt_key]['mu_%d' % i] = mu
             self._all_dynamics_param_dict[var_type][tgt_key]['B_%d' % i] = B
             self._all_dynamics_param_dict[var_type][tgt_key]['sig2_%d' % i] = sig2
+            self._all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_autocorr_%d' % i] = abs_epsi_autocorr
 
             model_lst.append(model_fit)
 
@@ -155,12 +157,14 @@ class DynamicsCalibrator:
         if var_type == 'risk-driver':
             model_fit = OLS(df_reg['risk-driver'].loc[ind], add_constant(df_reg['factor'].loc[ind])).fit(disp=0)
             B, mu, sig2 = self._extract_B_mu_sig2_from_reg(model_fit, scale)
-
         else:
             model_fit = AutoReg(df_reg['factor'].loc[ind], lags=1, old_names=False).fit()
             B, mu, sig2 = self._extract_B_mu_sig2_from_auto_reg(model_fit, scale)
 
-        return B, mu, model_fit, sig2
+        abs_epsi = np.abs(model_fit.resid)
+        abs_epsi_autocorr = abs_epsi.autocorr(1)
+
+        return B, mu, model_fit, sig2, abs_epsi_autocorr
 
     def _execute_garch_tarch_ar_tarch(self, factorDynamicsType: FactorDynamicsType, scale_f: float):
 
@@ -181,12 +185,14 @@ class DynamicsCalibrator:
             model_fit = model.fit(disp=0)
             params = model_fit.params.copy()
 
+            abs_epsi_autocorr = self._get_arch_abs_epsi_autocorr(model_fit, scale_f)
+
             if factorDynamicsType == FactorDynamicsType.GARCH:
                 alpha, beta, mu, omega = self._extract_garch_params_from_model_fit(params, scale_f)
-                self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega)
+                self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega, abs_epsi_autocorr)
             else:
                 alpha, beta, gamma, mu, omega = self._extract_tarch_params_from_model_fit(params, scale_f)
-                self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega)
+                self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_autocorr)
 
         elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
 
@@ -201,14 +207,23 @@ class DynamicsCalibrator:
             params = model_fit.params.copy()
             params.rename(index={'Const': 'mu'}, inplace=True)
 
+            abs_epsi_autocorr = self._get_arch_abs_epsi_autocorr(model_fit, scale_f)
+
             B, alpha, beta, gamma, mu, omega = self._extract_ar_tarch_params_from_model_fit(params, scale_f)
 
-            self._set_ar_tarch_params(B, alpha, beta, factorDynamicsType, gamma, mu, omega)
+            self._set_ar_tarch_params(B, alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_autocorr)
 
         else:
             raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
 
         self._all_dynamics_model_dict['factor'][factorDynamicsType] = [model_fit]
+
+    def _get_arch_abs_epsi_autocorr(self, model_fit, scale_f):
+        resid = model_fit.resid / scale_f
+        sigma = model_fit.conditional_volatility / scale_f
+        abs_epsi = np.abs(np.divide(resid, sigma))
+        abs_epsi_autocorr = abs_epsi.autocorr(1)
+        return abs_epsi_autocorr
 
     def _prepare_df_reg(self, var_type: str):
 
@@ -280,24 +295,25 @@ class DynamicsCalibrator:
         return B, alpha, beta, gamma, mu, omega
 
     def _set_garch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, mu: float,
-                          omega: float):
+                          omega: float, abs_epsi_autocorr: float):
 
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['mu'] = mu
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['omega'] = omega
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['alpha'] = alpha
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['beta'] = beta
+        self._all_dynamics_param_dict['factor'][factorDynamicsType]['abs_epsi_autocorr'] = abs_epsi_autocorr
 
     def _set_tarch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, gamma: float,
-                          mu: float, omega: float):
+                          mu: float, omega: float, abs_epsi_autocorr):
 
-        self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega)
+        self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega, abs_epsi_autocorr)
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['gamma'] = gamma
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['c'] = 0
 
     def _set_ar_tarch_params(self, B: float, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType,
-                             gamma: float, mu: float, omega: float):
+                             gamma: float, mu: float, omega: float, abs_epsi_autocorr: float):
 
-        self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega)
+        self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_autocorr)
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['B'] = B
 
     def _print_results_impl(self, var_type: str):
