@@ -6,7 +6,7 @@ from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorDefinitionType
 from market_utils.financial_time_series import FinancialTimeSeries
 
 
@@ -364,6 +364,26 @@ class DynamicsCalibrator:
             raise NameError('var_type must be equal to risk-driver or factor')
 
 
+class AllSeriesDynamicsCalibrator:
+
+    def __init__(self):
+
+        self._all_series_dynamics_calibrators = {}
+
+    def fit_all_series_dynamics(self):
+
+        filename = get_futures_data_filename()
+
+        for ticker in get_available_futures_tickers():
+
+            time_series = read_futures_data_by_ticker(filename, ticker)
+
+            for lag in range(1, 21):
+
+                df = time_series.copy()
+                df['factor'] =
+
+
 def build_filename_calibrations(riskDriverType, ticker, var_type):
 
     filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
@@ -376,9 +396,27 @@ def build_filename_calibrations(riskDriverType, ticker, var_type):
 
 if __name__ == '__main__':
 
-    financialTimeSeries = FinancialTimeSeries('WTI')
-    financialTimeSeries.set_time_series()
+    financialTimeSeries = FinancialTimeSeries(ticker='WTI', t_past=8000, window=5, riskDriverType=RiskDriverType.PnL,
+                                              factorDefinitionType=FactorDefinitionType.MovingAverage)
 
     dynamicsCalibrator = DynamicsCalibrator()
     dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, scale_f=1, c=0)
     dynamicsCalibrator.print_results()
+
+
+def get_available_futures_tickers():
+
+    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter', 'nickel',
+           'silver', 'sugar', 'tin', 'unleaded', 'zinc']
+
+    return lst
+
+
+def get_futures_data_filename():
+    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/market_data/futures_data.xlsx'
+    return filename
+
+
+def read_futures_data_by_ticker(filename, ticker):
+    time_series = pd.read_excel(filename, sheet_name=ticker, index_col=0).fillna(method='pad')
+    return time_series
