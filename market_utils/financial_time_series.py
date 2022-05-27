@@ -7,13 +7,14 @@ from enums import FactorDefinitionType, RiskDriverType
 
 class FinancialTimeSeries:
 
-    def __init__(self, ticker: str):
+    def __init__(self, ticker: str, window: int = None):
 
         self.ticker = ticker
+        self._set_time_series(window)
 
-    def set_time_series(self):
+    def _set_time_series(self, window: int):
 
-        self._set_info_from_file()
+        self._set_info_from_file(window)
 
         self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
         self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
@@ -27,15 +28,22 @@ class FinancialTimeSeries:
 
     def _print_info(self):
 
-        filename =\
-            os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + self.ticker + '-info.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + self.ticker +\
+                   '-info.csv'
         self.info.to_csv(filename)
 
-    def _set_info_from_file(self):
+    def _set_info_from_file(self, window):
 
         filename =\
-            os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + self.ticker + '-info.csv'
+            os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/time-series-info.csv'
         self.info = pd.read_csv(filename, index_col=0)
+
+        if window is not None:
+            self.info.loc['window'] = window
+        else:
+            if 'window' not in self.info.index:
+                raise NameError('financialTimeSeries was instantiated without window, therefore window must be '
+                                + 'written in time-series-info.csv')
 
     def _set_asset_time_series(self, t_past: int):
 
@@ -116,5 +124,4 @@ def get_available_futures_tickers():
 
 if __name__ == '__main__':
 
-    financialTimeSeries = FinancialTimeSeries('WTI')
-    financialTimeSeries.set_time_series()
+    financialTimeSeries = FinancialTimeSeries('WTI', window=10)

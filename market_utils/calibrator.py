@@ -1,13 +1,16 @@
 import pandas as pd
 import os
-# from arch import arch_model
-# from arch.univariate import ARX, GARCH
+import numpy as np
+from tqdm import tqdm
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorDefinitionType
 from market_utils.financial_time_series import FinancialTimeSeries
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class DynamicsCalibrator:
@@ -27,15 +30,20 @@ class DynamicsCalibrator:
         self._fit_all_factor_dynamics_param(scale_f, c)
         self._set_riskDriverType()
 
-    def _set_riskDriverType(self):
-
-        self.riskDriverType = self.financialTimeSeries.riskDriverType
-
     def get_params_dict(self, var_type, dynamicsType):
 
         param_dict = self._all_dynamics_param_dict[var_type][dynamicsType]
 
         return param_dict
+
+    def print_results(self):
+
+        self._print_results_impl('risk-driver')
+        self._print_results_impl('factor')
+
+    def _set_riskDriverType(self):
+
+        self.riskDriverType = self.financialTimeSeries.riskDriverType
 
     def _fit_all_risk_driver_dynamics_param(self, scale: float, c: float):
 
@@ -145,7 +153,7 @@ class DynamicsCalibrator:
     def _execute_ols(self, df_reg: pd.DataFrame, ind: pd.Index, scale: float, var_type: str):
 
         if var_type == 'risk-driver':
-            model_fit = OLS(df_reg['risk-driver'].loc[ind], add_constant(df_reg['factor'].loc[ind])).fit()
+            model_fit = OLS(df_reg['risk-driver'].loc[ind], add_constant(df_reg['factor'].loc[ind])).fit(disp=0)
             B, mu, sig2 = self._extract_B_mu_sig2_from_reg(model_fit, scale)
 
         else:
@@ -170,7 +178,7 @@ class DynamicsCalibrator:
                 from arch import arch_model
                 model = arch_model(df_model, p=1, o=1, q=1, rescale=False)
 
-            model_fit = model.fit()
+            model_fit = model.fit(disp=0)
             params = model_fit.params.copy()
 
             if factorDynamicsType == FactorDynamicsType.GARCH:
@@ -189,7 +197,7 @@ class DynamicsCalibrator:
             model = ARX(df_model, lags=1, rescale=False)
             model.volatility = GARCH(p=1, o=1, q=1)
 
-            model_fit = model.fit()
+            model_fit = model.fit(disp=0)
             params = model_fit.params.copy()
             params.rename(index={'Const': 'mu'}, inplace=True)
 
@@ -292,11 +300,6 @@ class DynamicsCalibrator:
         self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega)
         self._all_dynamics_param_dict['factor'][factorDynamicsType]['B'] = B
 
-    def print_results(self):
-
-        self._print_results_impl('risk-driver')
-        self._print_results_impl('factor')
-
     def _print_results_impl(self, var_type: str):
 
         self._check_var_type(var_type)
@@ -366,22 +369,28 @@ class DynamicsCalibrator:
 
 class AllSeriesDynamicsCalibrator:
 
-    def __init__(self):
+    def __init__(self, riskDriverType: RiskDriverType, factorDefinitionType: FactorDefinitionType):
 
+        self._riskDriverType = riskDriverType
+        self._factorDefinitionType = factorDefinitionType
         self._all_series_dynamics_calibrators = {}
+        self._best_factor_model = {}
 
     def fit_all_series_dynamics(self):
 
-        filename = get_futures_data_filename()
+        for ticker in tqdm(get_available_futures_tickers(), 'Fitting all time series'):
 
-        for ticker in get_available_futures_tickers():
+            self._set_dynamicsCalibrator(ticker)
 
-            time_series = read_futures_data_by_ticker(filename, ticker)
+            self._best_factor_model[ticker] = None  # ???
 
-            for lag in range(1, 21):
+            a = 1
 
-                df = time_series.copy()
-                df['factor'] =
+    def _set_dynamicsCalibrator(self, ticker):
+        financialTimeSeries = FinancialTimeSeries(ticker=ticker)
+        dynamicsCalibrator = DynamicsCalibrator()
+        dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries)
+        self._all_series_dynamics_calibrators[ticker] = dynamicsCalibrator
 
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
@@ -390,18 +399,6 @@ def build_filename_calibrations(riskDriverType, ticker, var_type):
                '-calibrations.xlsx'
 
     return filename
-
-
-# ------------------------------ TESTS ---------------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    financialTimeSeries = FinancialTimeSeries(ticker='WTI', t_past=8000, window=5, riskDriverType=RiskDriverType.PnL,
-                                              factorDefinitionType=FactorDefinitionType.MovingAverage)
-
-    dynamicsCalibrator = DynamicsCalibrator()
-    dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, scale_f=1, c=0)
-    dynamicsCalibrator.print_results()
 
 
 def get_available_futures_tickers():
@@ -420,3 +417,16 @@ def get_futures_data_filename():
 def read_futures_data_by_ticker(filename, ticker):
     time_series = pd.read_excel(filename, sheet_name=ticker, index_col=0).fillna(method='pad')
     return time_series
+
+
+if __name__ == '__main__':
+
+    # financialTimeSeries = FinancialTimeSeries(ticker='WTI')
+
+    # dynamicsCalibrator = DynamicsCalibrator()
+    # dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, scale_f=1, c=0)
+    # dynamicsCalibrator.print_results()
+
+    allSeriesDynamicsCalibrator = AllSeriesDynamicsCalibrator(riskDriverType=RiskDriverType.PnL,
+                                                              factorDefinitionType=FactorDefinitionType.MovingAverage)
+    allSeriesDynamicsCalibrator.fit_all_series_dynamics()

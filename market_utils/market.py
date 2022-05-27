@@ -359,7 +359,6 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
 
     # Instantiate financialTimeSeries
     financialTimeSeries = FinancialTimeSeries(ticker)
-    financialTimeSeries.set_time_series()
 
     # Instantiate dynamics
     riskDriverDynamics = RiskDriverDynamics(riskDriverDynamicsType)
