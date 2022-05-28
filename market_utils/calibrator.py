@@ -31,6 +31,7 @@ class DynamicsCalibrator:
         self._fit_all_risk_driver_dynamics_param(scale, c)
         self._fit_all_factor_dynamics_param(scale_f, c)
         self._set_riskDriverType()
+        self.print_results()
 
     def _get_params_dict(self, var_type, dynamicsType):
 
