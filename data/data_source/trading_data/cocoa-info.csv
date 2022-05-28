@@ -1,8 +1,0 @@
-,info
-ticker,cocoa
-end_date,2022-05-23 00:00:00
-start_price,2175.19920444104
-t_past,7280
-window,5
-riskDriverType,PnL
-factorDefinitionType,MovingAverage
