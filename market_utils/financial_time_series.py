@@ -28,6 +28,8 @@ class FinancialTimeSeries:
 
     def _print_info(self):
 
+        # ??? this function should print elsewhere; warning: exported parameters might be read from other code
+
         filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + self.ticker +\
                    '-info.csv'
         self.info.to_csv(filename)
