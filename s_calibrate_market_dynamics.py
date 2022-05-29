@@ -16,4 +16,5 @@ if __name__ == '__main__':
 
     dynamicsCalibrator = DynamicsCalibrator()
     dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=scale, scale_f=scale_f, c=c)
-    dynamicsCalibrator.print_results()
+
+    print('--- End s_calibrate_market_dynamics.py')

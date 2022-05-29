@@ -14,7 +14,7 @@ class FinancialTimeSeries:
 
     def _set_time_series(self, window: int):
 
-        self._set_info_from_file(window)
+        self._set_settings_from_file(window)
 
         self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
         self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
@@ -28,16 +28,15 @@ class FinancialTimeSeries:
 
     def _print_info(self):
 
-        # ??? this function should print elsewhere; warning: exported parameters might be read from other code
-
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + self.ticker +\
-                   '-info.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/financial_time_series_data/financial_time_series_info/' + self.ticker + '-info.csv'
         self.info.to_csv(filename)
 
-    def _set_info_from_file(self, window):
+    def _set_settings_from_file(self, window):
 
         filename =\
-            os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/time-series-info.csv'
+            os.path.dirname(os.path.dirname(__file__)) +\
+            '/data/data_source/trading_settings/financial_time_series_settings.csv'
         self.info = pd.read_csv(filename, index_col=0)
 
         if window is not None:

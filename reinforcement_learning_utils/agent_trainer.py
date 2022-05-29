@@ -215,7 +215,9 @@ class AgentTrainer:
 
 def read_trading_parameters_training(ticker):
 
-    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+    filename = os.path.dirname(os.path.dirname(__file__)) +\
+               '/data/data_source/trading_settings/financial_time_series_trading_parameters/' +\
+               ticker + '_trading_parameters.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
 
     shares_scale = float(df_trad_params.loc['shares_scale'][0])
@@ -231,6 +233,6 @@ def read_trading_parameters_training(ticker):
         parallel_computing = False
         n_cores = None
     else:
-        raise NameError('Invalid value for parameter parallel_computing in ' + ticker + '-trading-parameters.csv')
+        raise NameError('Invalid value for parameter parallel_computing in ' + ticker + '_trading_parameters.csv')
 
     return shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores

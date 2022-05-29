@@ -339,8 +339,9 @@ class DynamicsCalibrator:
         ticker = self.financialTimeSeries.ticker
         riskDriverType = self.riskDriverType
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' +\
-                   riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/financial_time_series_data/financial_time_series_calibrations/' +\
+                   ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
 
         writer = pd.ExcelWriter(filename)
         workbook = writer.book
@@ -402,10 +403,8 @@ class DynamicsCalibrator:
 
 class AllSeriesDynamicsCalibrator:
 
-    def __init__(self, riskDriverType: RiskDriverType, factorDefinitionType: FactorDefinitionType):
+    def __init__(self):
 
-        self.riskDriverType = riskDriverType
-        self.factorDefinitionType = factorDefinitionType
         self.all_series_dynamics_calibrators = {}
         self.best_factorDynamicsType = {}
         self.best_factorDynamicsType_resid = {}
@@ -537,12 +536,15 @@ class AllSeriesDynamicsCalibrator:
         dynamicsCalibrator = DynamicsCalibrator()
         dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries)
         self.all_series_dynamics_calibrators[ticker] = dynamicsCalibrator
+        self.riskDriverType = financialTimeSeries.riskDriverType
+        self.factorDefinitionType = financialTimeSeries.factorDefinitionType
 
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
 
-    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/' + ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + \
-               '-calibrations.xlsx'
+    filename = os.path.dirname(os.path.dirname(__file__)) +\
+               '/data/financial_time_series_data/financial_time_series_calibrations/' +\
+               ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
 
     return filename
 

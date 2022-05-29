@@ -376,7 +376,9 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
 
 def read_trading_parameters_market(ticker):
 
-    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+    filename = os.path.dirname(os.path.dirname(__file__)) +\
+               '/data/data_source/trading_settings/financial_time_series_trading_parameters/' +\
+               ticker + '_trading_parameters.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
     riskDriverDynamicsType = RiskDriverDynamicsType(df_trad_params.loc['riskDriverDynamicsType'][0])
     factorDynamicsType = FactorDynamicsType(df_trad_params.loc['factorDynamicsType'][0])

@@ -162,7 +162,9 @@ class Agent:
     def _set_agent_attributes(self):
 
         ticker = self.environment.market.ticker
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/trading_data/' + ticker + '-trading-parameters.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/data_source/trading_settings/financial_time_series_trading_parameters/' +\
+                   ticker + '_trading_parameters.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_trad_params.loc['kappa'][0])
