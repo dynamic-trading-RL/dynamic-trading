@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 import numpy as np
 from tqdm import tqdm
 from statsmodels.regression.linear_model import OLS
@@ -113,12 +114,12 @@ class DynamicsCalibrator:
         ind = df_reg.index
 
         # regression
-        B, mu, model_fit, sig2, abs_epsi_abs_autocorr, epsi = self._execute_ols(df_reg, ind, scale, var_type)
+        B, mu, model_fit, sig2, abs_epsi_autocorr, epsi = self._execute_ols(df_reg, ind, scale, var_type)
 
         self.all_dynamics_param_dict[var_type][tgt_key]['mu'] = mu
         self.all_dynamics_param_dict[var_type][tgt_key]['B'] = B
         self.all_dynamics_param_dict[var_type][tgt_key]['sig2'] = sig2
-        self.all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_abs_autocorr'] = abs_epsi_abs_autocorr
+        self.all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_autocorr'] = abs_epsi_autocorr
 
         self.all_dynamics_model_dict[var_type][tgt_key] = [model_fit]
 
@@ -142,7 +143,6 @@ class DynamicsCalibrator:
         self.all_dynamics_param_dict[var_type][tgt_key]['p'] = p
 
         model_lst = []
-        abs_epsi_abs_autocorr_lst = []
         epsi_lst = []
 
         for i in range(len(ind_lst)):
@@ -150,19 +150,22 @@ class DynamicsCalibrator:
             ind = ind_lst[i]
 
             # regression
-            B, mu, model_fit, sig2, abs_epsi_abs_autocorr, epsi = self._execute_ols(df_reg, ind, scale, var_type)
+            B, mu, model_fit, sig2, abs_epsi_autocorr, epsi = self._execute_ols(df_reg, ind, scale, var_type)
 
             self.all_dynamics_param_dict[var_type][tgt_key]['mu_%d' % i] = mu
             self.all_dynamics_param_dict[var_type][tgt_key]['B_%d' % i] = B
             self.all_dynamics_param_dict[var_type][tgt_key]['sig2_%d' % i] = sig2
-            abs_epsi_abs_autocorr_lst.append(abs_epsi_abs_autocorr)
             model_lst.append(model_fit)
             epsi_lst.append(epsi)
 
-        self.all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_abs_autocorr'] = np.max(abs_epsi_abs_autocorr_lst)
+
         self.all_dynamics_model_dict[var_type][tgt_key] = model_lst
+
         all_epsi = pd.concat(epsi_lst, axis=0)
         all_epsi.sort_index(inplace=True)
+
+        self.all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_autocorr'] =\
+            [np.abs(all_epsi).autocorr(lag) for lag in range(20)]
         self.all_dynamics_resid_dict[var_type][tgt_key] = all_epsi
 
     def _execute_ols(self, df_reg: pd.DataFrame, ind: pd.Index, scale: float, var_type: str):
@@ -176,9 +179,9 @@ class DynamicsCalibrator:
 
         epsi = model_fit.resid
         abs_epsi = np.abs(epsi)
-        abs_epsi_abs_autocorr = np.abs(abs_epsi.autocorr(1))
+        abs_epsi_autocorr = [abs_epsi.autocorr(lag) for lag in range(20)]
 
-        return B, mu, model_fit, sig2, abs_epsi_abs_autocorr, epsi
+        return B, mu, model_fit, sig2, abs_epsi_autocorr, epsi
 
     def _execute_garch_tarch_ar_tarch(self, factorDynamicsType: FactorDynamicsType, scale_f: float):
 
@@ -199,14 +202,14 @@ class DynamicsCalibrator:
             model_fit = model.fit(disp=0)
             params = model_fit.params.copy()
 
-            abs_epsi_abs_autocorr, epsi = self._get_arch_abs_epsi_abs_autocorr(model_fit, scale_f)
+            abs_epsi_autocorr, epsi = self._get_arch_abs_epsi_autocorr(model_fit, scale_f)
 
             if factorDynamicsType == FactorDynamicsType.GARCH:
                 alpha, beta, mu, omega = self._extract_garch_params_from_model_fit(params, scale_f)
-                self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega, abs_epsi_abs_autocorr, epsi)
+                self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega, abs_epsi_autocorr, epsi)
             else:
                 alpha, beta, gamma, mu, omega = self._extract_tarch_params_from_model_fit(params, scale_f)
-                self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_abs_autocorr, epsi)
+                self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_autocorr, epsi)
 
         elif factorDynamicsType == FactorDynamicsType.AR_TARCH:
 
@@ -221,24 +224,24 @@ class DynamicsCalibrator:
             params = model_fit.params.copy()
             params.rename(index={'Const': 'mu'}, inplace=True)
 
-            abs_epsi_abs_autocorr, epsi = self._get_arch_abs_epsi_abs_autocorr(model_fit, scale_f)
+            abs_epsi_autocorr, epsi = self._get_arch_abs_epsi_autocorr(model_fit, scale_f)
 
             B, alpha, beta, gamma, mu, omega = self._extract_ar_tarch_params_from_model_fit(params, scale_f)
 
-            self._set_ar_tarch_params(B, alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_abs_autocorr, epsi)
+            self._set_ar_tarch_params(B, alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_autocorr, epsi)
 
         else:
             raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
 
         self.all_dynamics_model_dict['factor'][factorDynamicsType] = [model_fit]
 
-    def _get_arch_abs_epsi_abs_autocorr(self, model_fit, scale_f):
+    def _get_arch_abs_epsi_autocorr(self, model_fit, scale_f):
         resid = model_fit.resid / scale_f
         sigma = model_fit.conditional_volatility / scale_f
         epsi = np.divide(resid, sigma)
         abs_epsi = np.abs(epsi)
-        abs_epsi_abs_autocorr = np.abs(abs_epsi.autocorr(1))
-        return abs_epsi_abs_autocorr, epsi
+        abs_epsi_autocorr = [abs_epsi.autocorr(lag) for lag in range(20)]
+        return abs_epsi_autocorr, epsi
 
     def _prepare_df_reg(self, var_type: str):
 
@@ -310,27 +313,27 @@ class DynamicsCalibrator:
         return B, alpha, beta, gamma, mu, omega
 
     def _set_garch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, mu: float,
-                          omega: float, abs_epsi_abs_autocorr: float, epsi: pd.Series):
+                          omega: float, abs_epsi_autocorr: float, epsi: pd.Series):
 
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['mu'] = mu
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['omega'] = omega
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['alpha'] = alpha
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['beta'] = beta
-        self.all_dynamics_param_dict['factor'][factorDynamicsType]['abs_epsi_abs_autocorr'] = abs_epsi_abs_autocorr
+        self.all_dynamics_param_dict['factor'][factorDynamicsType]['abs_epsi_autocorr'] = abs_epsi_autocorr
 
         self.all_dynamics_resid_dict['factor'][factorDynamicsType] = epsi
 
     def _set_tarch_params(self, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType, gamma: float,
-                          mu: float, omega: float, abs_epsi_abs_autocorr: float,  epsi: pd.Series):
+                          mu: float, omega: float, abs_epsi_autocorr: float,  epsi: pd.Series):
 
-        self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega, abs_epsi_abs_autocorr, epsi)
+        self._set_garch_params(alpha, beta, factorDynamicsType, mu, omega, abs_epsi_autocorr, epsi)
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['gamma'] = gamma
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['c'] = 0
 
     def _set_ar_tarch_params(self, B: float, alpha: float, beta: float, factorDynamicsType: FactorDynamicsType,
-                             gamma: float, mu: float, omega: float, abs_epsi_abs_autocorr: float, epsi: pd.Series):
+                             gamma: float, mu: float, omega: float, abs_epsi_autocorr: float, epsi: pd.Series):
 
-        self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_abs_autocorr, epsi)
+        self._set_tarch_params(alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_autocorr, epsi)
         self.all_dynamics_param_dict['factor'][factorDynamicsType]['B'] = B
 
     def _print_results_impl(self, var_type: str):
@@ -430,18 +433,19 @@ class AllSeriesDynamicsCalibrator:
         for ticker, d1 in self.best_factorDynamicsType_resid.items():
 
             factorDynamicsType = d1['factorDynamicsType']
-            abs_epsi_abs_autocorr = d1['abs_epsi_abs_autocorr']
+            abs_epsi_autocorr = d1['abs_epsi_autocorr']
 
-            ll.append([ticker, factorDynamicsType.value, abs_epsi_abs_autocorr])
+            ll.append([ticker, factorDynamicsType.value] + [a for a in abs_epsi_autocorr])
 
             for factorDynamicsType, d2 in self.non_best_factorDynamicsType_resid[ticker].items():
 
-                abs_epsi_abs_autocorr = d2['abs_epsi_abs_autocorr']
+                abs_epsi_autocorr = d2['abs_epsi_autocorr']
 
-                ll.append([ticker, factorDynamicsType.value, abs_epsi_abs_autocorr])
+                ll.append([ticker, factorDynamicsType.value] + [a for a in abs_epsi_autocorr])
 
         df_report = pd.DataFrame(data=ll,
-                                 columns=['ticker', 'factorDynamicsType', 'abs_epsi_abs_autocorr'])
+                                 columns=['ticker', 'factorDynamicsType']
+                                         + ['autocorr_lag_%d' % a for a in range(len(abs_epsi_autocorr))])
 
         filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/model_choice/residuals_analysis.csv'
         df_report.to_csv(filename, index=False)
@@ -456,15 +460,28 @@ class AllSeriesDynamicsCalibrator:
 
             factorDynamicsType = d['factorDynamicsType']
             resid = d['resid']
+            abs_epsi_autocorr = d['abs_epsi_autocorr']
 
             s = ticker + ', ' + factorDynamicsType.value
 
             plt.figure()
+            ax1 = plt.subplot2grid((2, 1), (0, 0))
             plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
             plt.legend()
             plt.title('Residuals for ' + s)
             plt.xlabel('Date')
             plt.ylabel('Residual')
+
+            ax2 = plt.subplot2grid((2, 1), (1, 0))
+            plt.bar(range(len(abs_epsi_autocorr)), abs_epsi_autocorr)
+            plt.title('Autocorrelation')
+            plt.xlabel('Lag')
+            plt.ylabel('Autocorrelation')
+            plt.xticks(range(len(abs_epsi_autocorr)))
+            ax2.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
+
+            plt.tight_layout()
+
             plt.savefig(os.path.dirname(os.path.dirname(__file__))
                         + '/figures/residuals/'
                         + ticker + '-residuals-best-' + factorDynamicsType.value + '.png')
@@ -476,15 +493,28 @@ class AllSeriesDynamicsCalibrator:
             for factorDynamicsType, d in d1.items():
 
                 resid = d['resid']
+                abs_epsi_autocorr = d['abs_epsi_autocorr']
 
                 s = ticker + ', ' + factorDynamicsType.value
 
                 plt.figure()
+                ax1 = plt.subplot2grid((2, 1), (0, 0))
                 plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
                 plt.legend()
                 plt.title('Residuals for ' + s)
                 plt.xlabel('Date')
                 plt.ylabel('Residual')
+
+                ax2 = plt.subplot2grid((2, 1), (1, 0))
+                plt.bar(range(len(abs_epsi_autocorr)), abs_epsi_autocorr)
+                plt.title('Autocorrelation')
+                plt.xlabel('Lag')
+                plt.ylabel('Autocorrelation')
+                plt.xticks(range(len(abs_epsi_autocorr)))
+                ax2.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
+
+                plt.tight_layout()
+
                 plt.savefig(os.path.dirname(os.path.dirname(__file__))
                             + '/figures/residuals/'
                             + ticker + '-residuals-non-best-' + factorDynamicsType.value + '.png')
@@ -504,19 +534,26 @@ class AllSeriesDynamicsCalibrator:
                                                         ticker)
 
     def _get_best_factorDynamicsType_and_resid_impl(self, all_factor_params, all_factor_resids, ticker):
-        abs_epsi_abs_autocorr_best = 1.
+
+        abs_epsi_autocorr_best = None
+        abs_epsi_autocorr_best_lag1 = 1.
+
         factorDynamics_best = None
         for factorDynamicsType in FactorDynamicsType:
 
-            abs_epsi_abs_autocorr = all_factor_params[factorDynamicsType]['abs_epsi_abs_autocorr']
+            abs_epsi_autocorr = all_factor_params[factorDynamicsType]['abs_epsi_autocorr']
 
-            if abs_epsi_abs_autocorr <= abs_epsi_abs_autocorr_best:
-                abs_epsi_abs_autocorr_best = abs_epsi_abs_autocorr
+            if np.abs(abs_epsi_autocorr[1]) <= np.abs(abs_epsi_autocorr_best_lag1):
+
+                abs_epsi_autocorr_best = abs_epsi_autocorr
+                abs_epsi_autocorr_best_lag1 = abs_epsi_autocorr_best[1]
+
                 factorDynamics_best = factorDynamicsType
+
         self.best_factorDynamicsType[ticker] = factorDynamics_best
         self.best_factorDynamicsType_resid[ticker]['factorDynamicsType'] = factorDynamics_best
         self.best_factorDynamicsType_resid[ticker]['resid'] = all_factor_resids[factorDynamics_best]
-        self.best_factorDynamicsType_resid[ticker]['abs_epsi_abs_autocorr'] = abs_epsi_abs_autocorr_best
+        self.best_factorDynamicsType_resid[ticker]['abs_epsi_autocorr'] = abs_epsi_autocorr_best
         return factorDynamics_best
 
     def _get_non_best_factorDynamicsType_and_resid(self, all_factor_params, all_factor_resids, factorDynamics_best,
@@ -529,7 +566,7 @@ class AllSeriesDynamicsCalibrator:
 
             self.non_best_factorDynamicsType_resid[ticker][factorDynamicsType] =\
                 {'resid': all_factor_resids[factorDynamicsType],
-                 'abs_epsi_abs_autocorr': all_factor_params[factorDynamicsType]['abs_epsi_abs_autocorr']}
+                 'abs_epsi_autocorr': all_factor_params[factorDynamicsType]['abs_epsi_autocorr']}
 
     def _set_dynamicsCalibrator(self, ticker):
         financialTimeSeries = FinancialTimeSeries(ticker=ticker)
@@ -571,8 +608,7 @@ def read_futures_data_by_ticker(filename, ticker):
 
 if __name__ == '__main__':
 
-    allSeriesDynamicsCalibrator = AllSeriesDynamicsCalibrator(riskDriverType=RiskDriverType.PnL,
-                                                              factorDefinitionType=FactorDefinitionType.StdMovingAverage)
+    allSeriesDynamicsCalibrator = AllSeriesDynamicsCalibrator()
     allSeriesDynamicsCalibrator.fit_all_series_dynamics()
     allSeriesDynamicsCalibrator.print_all_series_dynamics_results()
 
