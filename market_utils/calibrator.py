@@ -423,8 +423,28 @@ class AllSeriesDynamicsCalibrator:
 
     def print_all_series_dynamics_results(self):
 
+        self._plot_financial_time_series()
         self._plot_residuals()
         self._print_report()
+
+    def _plot_financial_time_series(self):
+
+        for ticker, dynamicsCalibrator in self.all_series_dynamics_calibrators.items():
+
+            financialTimeSeries = dynamicsCalibrator.financialTimeSeries
+            time_series = financialTimeSeries.time_series[ticker]
+
+            fig = plt.figure()
+            plt.plot(time_series, label=ticker)
+            plt.title(ticker + ' time series')
+            plt.xlabel('Date')
+            plt.ylabel('Value [$]')
+
+            plt.savefig(os.path.dirname(os.path.dirname(__file__))
+                        + '/figures/residuals/'
+                        + ticker + '-time-series.png')
+
+            plt.close(fig)
 
     def _print_report(self):
 
@@ -464,7 +484,7 @@ class AllSeriesDynamicsCalibrator:
 
             s = ticker + ', ' + factorDynamicsType.value
 
-            plt.figure()
+            fig = plt.figure()
             ax1 = plt.subplot2grid((2, 1), (0, 0))
             plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
             plt.legend()
@@ -486,6 +506,8 @@ class AllSeriesDynamicsCalibrator:
                         + '/figures/residuals/'
                         + ticker + '-residuals-best-' + factorDynamicsType.value + '.png')
 
+            plt.close(fig)
+
     def _plot_non_best_residuals(self):
 
         for ticker, d1 in self.non_best_factorDynamicsType_resid.items():
@@ -497,7 +519,7 @@ class AllSeriesDynamicsCalibrator:
 
                 s = ticker + ', ' + factorDynamicsType.value
 
-                plt.figure()
+                fig = plt.figure()
                 ax1 = plt.subplot2grid((2, 1), (0, 0))
                 plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
                 plt.legend()
@@ -518,6 +540,8 @@ class AllSeriesDynamicsCalibrator:
                 plt.savefig(os.path.dirname(os.path.dirname(__file__))
                             + '/figures/residuals/'
                             + ticker + '-residuals-non-best-' + factorDynamicsType.value + '.png')
+
+                plt.close(fig)
 
     def _get_best_factorDynamicsType_and_resid(self, ticker):
 
