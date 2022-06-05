@@ -41,6 +41,10 @@ class AgentTrainer:
             print('Number of cores to use for parallel computing not set. Setting it to maximum available.')
             n_cores = os.cpu_count()
 
+        if n_cores > os.cpu_count():
+            print('Number of cores set is greater than those available on this machine. Setting it to maximum available.')
+            n_cores = os.cpu_count()
+
         self._train_trading(eps_start, parallel_computing, n_cores)
 
     def _train_trading(self, eps_start: float, parallel_computing: bool, n_cores: int):
@@ -87,11 +91,13 @@ class AgentTrainer:
 
     def _create_batch_parallel(self, eps, n, n_cores):
         print('Creating batch %d of %d.' % (n + 1, self.n_batches))
-        p = mp.Pool(n_cores)
         generate_single_episode = partial(self._generate_single_episode, n=n, eps=eps)
-        episodes = p.map(generate_single_episode, range(self.j_episodes))
+
+        p = mp.Pool(n_cores)
+        episodes = list(tqdm(p.imap_unordered(generate_single_episode, range(self.j_episodes)), total=self.j_episodes))
         p.close()
         p.join()
+
         for j in range(len(episodes)):
             state_action_grid_j = episodes[j][0]
             q_grid_j = episodes[j][1]
