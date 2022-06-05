@@ -4,7 +4,7 @@ factorDynamicsType,TARCH
 riskDriverType,PnL
 factorType,Observable
 parallel_computing,Yes
-n_cores,1
+n_cores,10
 gamma,0.9999
 kappa,0.001
 lam,0.015

@@ -159,7 +159,6 @@ class Market:
         epsi, sig = self._initialize_arch_simulations(j_, omega, t_stationary)
         for t in range(1, t_stationary):
             sig2 = self._get_next_step_sig2_arch(alpha, beta, epsi, omega, sig, t)
-
             self._get_next_step_arch(epsi, factor, mu, norm, sig, sig2, t)
         self.simulations['sig'] = sig
 
@@ -168,7 +167,6 @@ class Market:
         epsi, sig = self._initialize_arch_simulations(j_, omega, t_stationary)
         for t in range(1, t_stationary):
             sig2 = self._get_next_step_sig2_tarch(alpha, beta, c, epsi, gamma, omega, sig, t)
-
             self._get_next_step_arch(epsi, factor, mu, norm, sig, sig2, t)
         self.simulations['sig'] = sig
 
@@ -261,15 +259,18 @@ class Market:
         return epsi, sig
 
     def _get_next_step_sig2_arch(self, alpha, beta, epsi, omega, sig, t):
-        sig2 = omega + alpha * epsi[:, t - 1] ** 2 + beta * sig[:, t - 1] ** 2
+
+        sig2 = omega + alpha * (epsi[:, t - 1] ** 2) + beta * (sig[:, t - 1] ** 2)
+
         return sig2
 
     def _get_next_step_sig2_tarch(self, alpha, beta, c, epsi, gamma, omega, sig, t):
         sig2 = self._get_next_step_sig2_arch(alpha, beta, epsi, omega, sig, t)
-        sig2[epsi[:, t - 1] < c] += gamma * epsi[epsi[:, t - 1] < c, t - 1]
+        sig2[epsi[:, t - 1] < c] += gamma * (epsi[epsi[:, t - 1] < c, t - 1] ** 2)
         return sig2
 
     def _get_next_step_arch(self, epsi, factor, mu, norm, sig, sig2, t):
+
         sig[:, t] = np.sqrt(sig2)
         epsi[:, t] = sig[:, t] * norm[:, t]
         factor[:, t] = mu + factor[:, t - 1] + epsi[:, t]

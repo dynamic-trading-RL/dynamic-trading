@@ -193,9 +193,11 @@ class AgentTrainer:
 
                 state = self.state_action_grid_dict[n][j][t][0]
                 action = self.state_action_grid_dict[n][j][t][1]
+
+                x = self.agent.extract_q_value_model_input_trading(state=state, action=action)
                 q = self.q_grid_dict[n][j][t]
 
-                x_grid.append(self.agent.extract_q_value_model_input_trading(state=state, action=action))
+                x_grid.append(x)
                 y_grid.append(q)
 
         x_array = np.array(x_grid).squeeze()
