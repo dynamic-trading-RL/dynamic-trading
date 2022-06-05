@@ -1,5 +1,6 @@
 ,info
-t_past,8000
+max_len,8000
 riskDriverType,PnL
 factorDefinitionType,MovingAverage
 window,5
+in_sample_proportion,0.8

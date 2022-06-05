@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import os
 
+from tqdm import tqdm
+
 from benchmark_agents.agents import AgentMarkowitz, AgentGP
 from market_utils.market import read_trading_parameters_market, instantiate_market
 from reinforcement_learning_utils.agent import Agent
@@ -14,10 +16,9 @@ from reinforcement_learning_utils.state_action_utils import State
 
 class Backtester:
 
-    def __init__(self, ticker: str, t_past: int):
+    def __init__(self, ticker: str):
 
         self._ticker = ticker
-        self._t_past = t_past
         self._read_parameters()
 
     def _read_parameters(self):
@@ -25,6 +26,8 @@ class Backtester:
         # Trading parameters
         riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType =\
             read_trading_parameters_market(self._ticker)
+
+        self._read_out_of_sample_proportion_len()
 
         # Training parameters
         shares_scale, _, n_batches, _, _, _ = read_trading_parameters_training(self._ticker)
@@ -35,6 +38,12 @@ class Backtester:
         self._factorType = factorType
         self._shares_scale = shares_scale
         self._n_batches = n_batches
+
+    def _read_out_of_sample_proportion_len(self):
+        filename = os.path.dirname(os.path.dirname(__file__)) + \
+                   '/data/financial_time_series_data/financial_time_series_info/' + self._ticker + '-info.csv'
+        df_info = pd.read_csv(filename, index_col=0)
+        self._out_of_sample_proportion_len = int(df_info.loc['out_of_sample_proportion_len'][0])
 
     def execute_backtesting(self):
 
@@ -65,7 +74,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Shares [#]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + 'backtesting-shares.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-shares.png')
 
     def _plot_value(self):
         plt.figure()
@@ -76,7 +85,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Portfolio value [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + 'backtesting-value.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-value.png')
 
     def _plot_cost(self):
         plt.figure()
@@ -87,7 +96,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Cost [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + 'backtesting-cost.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-cost.png')
 
     def _plot_wealth(self):
         plt.figure()
@@ -99,7 +108,7 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Wealth [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + 'backtesting-wealth.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-wealth.png')
 
     def _plot_trades_scatter(self):
         plt.figure()
@@ -110,7 +119,7 @@ class Backtester:
         plt.axis('equal')
         plt.xlim([np.quantile(self._trade_all['GP'], 0.02), np.quantile(self._trade_all['GP'], 0.98)])
         plt.ylim([np.quantile(self._trade_all['RL'], 0.02), np.quantile(self._trade_all['RL'], 0.98)])
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + 'backtesting-trades-scatter.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-trades-scatter.png')
 
     def _plot_sharpe_ratio(self):
         plt.figure()
@@ -121,7 +130,7 @@ class Backtester:
         plt.grid()
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + 'backtesting-sharpe-ratio.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-sharpe-ratio.png')
 
     def _instantiate_agents_and_environment(self):
 
@@ -145,7 +154,8 @@ class Backtester:
 
     def _get_factor_pnl_price(self):
 
-        factor_series = self._market.financialTimeSeries.time_series['factor'].iloc[-self._t_past:].copy()
+        factor_series =\
+            self._market.financialTimeSeries.time_series['factor'].iloc[-self._out_of_sample_proportion_len:].copy()
         pnl_series = self._market.financialTimeSeries.time_series['pnl'].copy()
         price_series = self._market.financialTimeSeries.time_series[self._ticker].copy()
         factor_pnl_and_price = pd.concat([factor_series, pnl_series, price_series], axis=1)
@@ -173,7 +183,8 @@ class Backtester:
 
             current_rescaled_shares = 0.
 
-            for i in range(len(self._factor_pnl_and_price) - 1):
+            for i in tqdm(range(len(self._factor_pnl_and_price) - 1),
+                          desc='Computing ' + agent_type + ' strategy.'):
 
                 factor = self._factor_pnl_and_price['factor'].iloc[i]
                 pnl = self._factor_pnl_and_price['pnl'].iloc[i + 1]

@@ -13,13 +13,14 @@ class FinancialTimeSeries:
         self._set_time_series(window)
 
     def _set_time_series(self, window: int):
+        # if window is None, then it is taken from financial_time_series_setting.csv
 
         self._set_settings_from_file(window)
 
         self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
         self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
         self.window = int(self.info.loc['window'][0])
-        self._set_asset_time_series(int(self.info.loc['t_past'][0]))
+        self._set_asset_time_series(int(self.info.loc['max_len'][0]), float(self.info.loc['in_sample_proportion'][0]))
         self._set_risk_driver_time_series()
         self._set_factor()
         self.time_series.dropna(inplace=True)
@@ -46,7 +47,7 @@ class FinancialTimeSeries:
                 raise NameError('financialTimeSeries was instantiated without window, therefore window must be '
                                 + 'written in time-series-info.csv')
 
-    def _set_asset_time_series(self, t_past: int):
+    def _set_asset_time_series(self, max_len: int, in_sample_proportion: float):
 
         if self.ticker in get_available_futures_tickers():
 
@@ -69,10 +70,14 @@ class FinancialTimeSeries:
 
         time_series.columns = [self.ticker]
 
-        if t_past > len(time_series):
-            t_past = len(time_series)
+        if max_len > len(time_series):
+            max_len = len(time_series)
 
-        self.time_series = time_series.iloc[-t_past:]
+        self._time_series_len = max_len
+        self._in_sample_proportion_len = int(self._time_series_len * in_sample_proportion)
+        self._out_of_sample_proportion_len = max_len - self._in_sample_proportion_len
+
+        self.time_series = time_series.iloc[-max_len : -max_len + self._in_sample_proportion_len]
         self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
 
     def _set_risk_driver_time_series(self):
@@ -99,7 +104,8 @@ class FinancialTimeSeries:
         self.info = pd.DataFrame(index=['ticker',
                                         'end_date',
                                         'start_price',
-                                        't_past',
+                                        'len',
+                                        'out_of_sample_proportion_len',
                                         'window',
                                         'riskDriverType',
                                         'factorDefinitionType'],
@@ -107,6 +113,7 @@ class FinancialTimeSeries:
                                        self.time_series.index[-1],
                                        self.time_series[self.ticker].iloc[-1],
                                        len(self.time_series),
+                                       self._out_of_sample_proportion_len,
                                        self.window,
                                        self.riskDriverType.value,
                                        self.factorDefinitionType.value],
