@@ -41,7 +41,7 @@ class AgentTrainer:
             print('Number of cores to use for parallel computing not set. Setting it to maximum available.')
             n_cores = os.cpu_count()
 
-        if n_cores > os.cpu_count():
+        if parallel_computing and n_cores > os.cpu_count():
             print('Number of cores set is greater than those available on this machine. Setting it to maximum available.')
             n_cores = os.cpu_count()
 
