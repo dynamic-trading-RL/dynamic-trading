@@ -187,8 +187,8 @@ class AgentTrainer:
 
     def _set_supervised_regressor_parameters(self):
         hidden_layer_sizes = (64, 32, 8)
-        max_iter = 100
-        n_iter_no_change = 10
+        max_iter = 20
+        n_iter_no_change = 5
         alpha_ann = 0.0001
         return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change
 
