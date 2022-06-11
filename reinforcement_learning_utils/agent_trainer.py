@@ -94,7 +94,8 @@ class AgentTrainer:
         generate_single_episode = partial(self._generate_single_episode, n=n, eps=eps)
 
         p = mp.Pool(n_cores)
-        episodes = list(tqdm(p.imap_unordered(generate_single_episode, range(self.j_episodes)), total=self.j_episodes))
+        # episodes = list(tqdm(p.imap_unordered(generate_single_episode, range(self.j_episodes)), total=self.j_episodes))
+        episodes = p.map(generate_single_episode, range(self.j_episodes))
         p.close()
         p.join()
 
