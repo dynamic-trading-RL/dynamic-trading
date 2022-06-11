@@ -181,7 +181,8 @@ class AgentTrainer:
                              alpha=alpha_ann,
                              max_iter=max_iter,
                              n_iter_no_change=n_iter_no_change,
-                             activation='relu').fit(x_array, y_array)
+                             activation='relu',
+                             verbose=1).fit(x_array, y_array)
         return model
 
     def _set_supervised_regressor_parameters(self):
