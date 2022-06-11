@@ -1,0 +1,25 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:            risk-driver   R-squared:                       0.007
+Model:                            OLS   Adj. R-squared:                  0.006
+Method:                 Least Squares   F-statistic:                     9.248
+Date:                Sat, 11 Jun 2022   Prob (F-statistic):            0.00240
+Time:                        09:50:41   Log-Likelihood:                 3121.2
+No. Observations:                1400   AIC:                            -6238.
+Df Residuals:                    1398   BIC:                            -6228.
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.0001      0.001      0.185      0.853      -0.001       0.002
+factor        -0.2296      0.076     -3.041      0.002      -0.378      -0.082
+==============================================================================
+Omnibus:                      670.932   Durbin-Watson:                   2.046
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):          1038987.788
+Skew:                          -0.553   Prob(JB):                         0.00
+Kurtosis:                     136.454   Cond. No.                         108.
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

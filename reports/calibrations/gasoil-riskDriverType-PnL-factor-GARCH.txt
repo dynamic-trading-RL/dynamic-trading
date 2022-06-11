@@ -1,0 +1,27 @@
+                     Constant Mean - GARCH Model Results                      
+==============================================================================
+Dep. Variable:                 factor   R-squared:                       0.000
+Mean Model:             Constant Mean   Adj. R-squared:                  0.000
+Vol Model:                      GARCH   Log-Likelihood:               -27068.2
+Distribution:                  Normal   AIC:                           54144.4
+Method:            Maximum Likelihood   BIC:                           54171.5
+                                        No. Observations:                 6568
+Date:                Sat, Jun 11 2022   Df Residuals:                     6567
+Time:                        09:50:31   Df Model:                            1
+                                  Mean Model                                 
+=============================================================================
+                 coef    std err          t      P>|t|       95.0% Conf. Int.
+-----------------------------------------------------------------------------
+mu         4.1863e-03  3.397e-02      0.123      0.902 [-6.240e-02,7.077e-02]
+                             Volatility Model                             
+==========================================================================
+                 coef    std err          t      P>|t|    95.0% Conf. Int.
+--------------------------------------------------------------------------
+omega          0.1764  6.396e-02      2.758  5.821e-03 [5.102e-02,  0.302]
+alpha[1]       0.1591  1.540e-02     10.332  5.042e-25   [  0.129,  0.189]
+beta[1]        0.8409  1.098e-02     76.602      0.000   [  0.819,  0.862]
+==========================================================================
+
+Covariance estimator: robust
+WARNING: The optimizer did not indicate successful convergence. The message was Positive directional derivative for linesearch.
+See convergence_flag.
