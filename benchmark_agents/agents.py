@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType
+from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, FactorType
 from market_utils.market import Market, instantiate_market
 
 
@@ -12,9 +12,25 @@ class AgentBenchmark:
 
     def __init__(self, market: Market):
 
+        self._check_input(market)
+
         self.market = market
         self._set_attributes()
         self._set_lam()
+
+    def _check_input(self, market: Market):
+
+        if market.marketDynamics.riskDriverDynamics.riskDriverDynamicsType != RiskDriverDynamicsType.Linear:
+            raise NameError('riskDriverDynamicsType for benchmark agent should be Linear')
+
+        if market.marketDynamics.factorDynamics.factorDynamicsType != FactorDynamicsType.AR:
+            raise NameError('factorDynamicsType for benchmark agent should be AR')
+
+        if market.riskDriverType != RiskDriverType.PnL:
+            raise NameError('riskDriverType for benchmark agent should be PnL')
+
+        if market.factorType != FactorType.Observable:
+            raise NameError('factorType for benchmark agent should be Observable')
 
     def get_cost_trade(self, trade, current_factor, price):
 

@@ -12,6 +12,7 @@ from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.agent_trainer import read_trading_parameters_training
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
 
 
 class Backtester:
@@ -74,7 +75,8 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Shares [#]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-shares.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-shares.png')
 
     def _plot_value(self):
         plt.figure()
@@ -85,7 +87,8 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Portfolio value [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-value.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-value.png')
 
     def _plot_cost(self):
         plt.figure()
@@ -96,7 +99,8 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Cost [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-cost.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-cost.png')
 
     def _plot_wealth(self):
         plt.figure()
@@ -108,7 +112,8 @@ class Backtester:
         plt.xlabel('Date')
         plt.ylabel('Wealth [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-wealth.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-wealth.png')
 
     def _plot_trades_scatter(self):
         plt.figure()
@@ -119,7 +124,8 @@ class Backtester:
         plt.axis('equal')
         plt.xlim([np.quantile(self._trade_all['GP'], 0.02), np.quantile(self._trade_all['GP'], 0.98)])
         plt.ylim([np.quantile(self._trade_all['RL'], 0.02), np.quantile(self._trade_all['RL'], 0.98)])
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-trades-scatter.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-trades-scatter.png')
 
     def _plot_sharpe_ratio(self):
         plt.figure()
@@ -130,27 +136,35 @@ class Backtester:
         plt.grid()
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker + '-backtesting-sharpe-ratio.png')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-sharpe-ratio.png')
 
     def _instantiate_agents_and_environment(self):
 
-        # Instantiate market, environment and agents
+        # Instantiate market for benchmark agents: market for them is necessarily Linear - AR
+        market_benchmark = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
+                                              factorDynamicsType=FactorDynamicsType.AR,
+                                              ticker=self._ticker,
+                                              riskDriverType=RiskDriverType.PnL,
+                                              factorType=FactorType.Observable)
+
+        agentMarkowitz = AgentMarkowitz(market_benchmark)
+        agentGP = AgentGP(market_benchmark)
+
+        # Instantiate market for RL, environment and RL agent
         market = instantiate_market(riskDriverDynamicsType=self._riskDriverDynamicsType,
                                     factorDynamicsType=self._factorDynamicsType,
                                     ticker=self._ticker,
                                     riskDriverType=self._riskDriverType,
                                     factorType=self._factorType)
-
         environment = Environment(market)
-
-        agentMarkowitz = AgentMarkowitz(market)
-        agentGP = AgentGP(market)
         agentRL = Agent(environment)
         agentRL.load_q_value_models(self._n_batches)
 
         self._agents = {'Markowitz': agentMarkowitz, 'GP': agentGP, 'RL': agentRL}
         self._environment = environment
         self._market = market
+        self._market_benchmark = market_benchmark
 
     def _get_factor_pnl_price(self):
 
@@ -205,11 +219,11 @@ class Backtester:
 
                 else:
                     rescaled_trade = self._agents[agent_type].policy(current_factor=factor,
-                                                                    current_rescaled_shares=current_rescaled_shares,
-                                                                    shares_scale=self._shares_scale)
+                                                                     current_rescaled_shares=current_rescaled_shares,
+                                                                     shares_scale=self._shares_scale)
                     cost_trade = self._agents[agent_type].get_cost_trade(trade=rescaled_trade * self._shares_scale,
-                                                                        current_factor=factor,
-                                                                        price=price)
+                                                                         current_factor=factor,
+                                                                         price=price)
 
                 current_rescaled_shares += rescaled_trade
 
