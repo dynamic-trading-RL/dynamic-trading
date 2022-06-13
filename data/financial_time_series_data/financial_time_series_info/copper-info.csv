@@ -1,0 +1,9 @@
+,info
+ticker,copper
+end_date,2021-04-27 00:00:00
+start_price,9860.5
+len,3514
+out_of_sample_proportion_len,391
+window,5
+riskDriverType,PnL
+factorDefinitionType,MovingAverage

@@ -1,0 +1,28 @@
+                   Constant Mean - GJR-GARCH Model Results                    
+==============================================================================
+Dep. Variable:                 factor   R-squared:                       0.000
+Mean Model:             Constant Mean   Adj. R-squared:                  0.000
+Vol Model:                  GJR-GARCH   Log-Likelihood:                12928.5
+Distribution:                  Normal   AIC:                          -25847.0
+Method:            Maximum Likelihood   BIC:                          -25817.5
+                                        No. Observations:                 2712
+Date:                Sat, Jun 11 2022   Df Residuals:                     2711
+Time:                        09:50:40   Df Model:                            1
+                                   Mean Model                                  
+===============================================================================
+                  coef    std err          t      P>|t|        95.0% Conf. Int.
+-------------------------------------------------------------------------------
+mu         -2.5737e-06  3.687e-08    -69.809      0.000 [-2.646e-06,-2.501e-06]
+                              Volatility Model                              
+============================================================================
+                 coef    std err          t      P>|t|      95.0% Conf. Int.
+----------------------------------------------------------------------------
+omega      8.6808e-07  2.589e-11  3.353e+04      0.000 [8.680e-07,8.681e-07]
+alpha[1]       0.2000  6.297e-02      3.176  1.493e-03   [7.658e-02,  0.323]
+gamma[1]       0.2000      0.202      0.991      0.322     [ -0.196,  0.596]
+beta[1]        0.6800  1.576e-02     43.149      0.000     [  0.649,  0.711]
+============================================================================
+
+Covariance estimator: robust
+WARNING: The optimizer did not indicate successful convergence. The message was Inequality constraints incompatible.
+See convergence_flag.

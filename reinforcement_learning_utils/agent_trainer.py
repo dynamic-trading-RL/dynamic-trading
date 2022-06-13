@@ -41,7 +41,7 @@ class AgentTrainer:
             print('Number of cores to use for parallel computing not set. Setting it to maximum available.')
             n_cores = os.cpu_count()
 
-        if n_cores > os.cpu_count():
+        if parallel_computing and n_cores > os.cpu_count():
             print('Number of cores set is greater than those available on this machine. Setting it to maximum available.')
             n_cores = os.cpu_count()
 
@@ -94,7 +94,8 @@ class AgentTrainer:
         generate_single_episode = partial(self._generate_single_episode, n=n, eps=eps)
 
         p = mp.Pool(n_cores)
-        episodes = list(tqdm(p.imap_unordered(generate_single_episode, range(self.j_episodes)), total=self.j_episodes))
+        # episodes = list(tqdm(p.imap_unordered(generate_single_episode, range(self.j_episodes)), total=self.j_episodes))
+        episodes = p.map(generate_single_episode, range(self.j_episodes))
         p.close()
         p.join()
 
@@ -181,13 +182,14 @@ class AgentTrainer:
                              alpha=alpha_ann,
                              max_iter=max_iter,
                              n_iter_no_change=n_iter_no_change,
-                             activation='relu').fit(x_array, y_array)
+                             activation='relu',
+                             verbose=1).fit(x_array, y_array)
         return model
 
     def _set_supervised_regressor_parameters(self):
         hidden_layer_sizes = (64, 32, 8)
-        max_iter = 10
-        n_iter_no_change = 2
+        max_iter = 50
+        n_iter_no_change = 10
         alpha_ann = 0.0001
         return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change
 

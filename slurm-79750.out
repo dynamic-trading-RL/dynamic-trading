@@ -1,0 +1,45 @@
+Creating batch 1 of 6.
+    Fitting supervised regressor 1 of 6.
+Creating batch 2 of 6.
+/root/anaconda3/lib/python3.7/site-packages/sklearn/neural_network/_multilayer_perceptron.py:571: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (10) reached and the optimization hasn't converged yet.
+  % self.max_iter, ConvergenceWarning)
+    Fitting supervised regressor 2 of 6.
+Creating batch 3 of 6.
+/root/anaconda3/lib/python3.7/site-packages/sklearn/neural_network/_multilayer_perceptron.py:571: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (10) reached and the optimization hasn't converged yet.
+  % self.max_iter, ConvergenceWarning)
+    Fitting supervised regressor 3 of 6.
+Creating batch 4 of 6.
+/root/anaconda3/lib/python3.7/site-packages/sklearn/neural_network/_multilayer_perceptron.py:571: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (10) reached and the optimization hasn't converged yet.
+  % self.max_iter, ConvergenceWarning)
+    Fitting supervised regressor 4 of 6.
+Creating batch 5 of 6.
+/root/anaconda3/lib/python3.7/site-packages/sklearn/neural_network/_multilayer_perceptron.py:571: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (10) reached and the optimization hasn't converged yet.
+  % self.max_iter, ConvergenceWarning)
+    Fitting supervised regressor 5 of 6.
+Creating batch 6 of 6.
+/root/anaconda3/lib/python3.7/site-packages/sklearn/neural_network/_multilayer_perceptron.py:571: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (10) reached and the optimization hasn't converged yet.
+  % self.max_iter, ConvergenceWarning)
+Traceback (most recent call last):
+  File "s_train_agent.py", line 24, in <module>
+    eps_start=0.01)
+  File "/home/giorgi/trading/reinforcement_learning_utils/agent_trainer.py", line 44, in train
+    self._train_trading(eps_start, parallel_computing, n_cores)
+  File "/home/giorgi/trading/reinforcement_learning_utils/agent_trainer.py", line 49, in _train_trading
+    self._generate_all_batches(eps_start, parallel_computing, n_cores)
+  File "/home/giorgi/trading/reinforcement_learning_utils/agent_trainer.py", line 61, in _generate_all_batches
+    self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
+  File "/home/giorgi/trading/reinforcement_learning_utils/agent_trainer.py", line 74, in _generate_batch
+    self._create_batch_parallel(eps, n, n_cores)
+  File "/home/giorgi/trading/reinforcement_learning_utils/agent_trainer.py", line 92, in _create_batch_parallel
+    episodes = p.map(generate_single_episode, range(self.j_episodes))
+  File "/root/anaconda3/lib/python3.7/multiprocessing/pool.py", line 268, in map
+    return self._map_async(func, iterable, mapstar, chunksize).get()
+  File "/root/anaconda3/lib/python3.7/multiprocessing/pool.py", line 657, in get
+    raise self._value
+  File "/root/anaconda3/lib/python3.7/multiprocessing/pool.py", line 431, in _handle_tasks
+    put(task)
+  File "/root/anaconda3/lib/python3.7/multiprocessing/connection.py", line 206, in send
+    self._send_bytes(_ForkingPickler.dumps(obj))
+  File "/root/anaconda3/lib/python3.7/multiprocessing/connection.py", line 393, in _send_bytes
+    header = struct.pack("!i", n)
+struct.error: 'i' format requires -2147483648 <= number <= 2147483647

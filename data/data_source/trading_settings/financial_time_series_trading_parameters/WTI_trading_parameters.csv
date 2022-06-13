@@ -1,10 +1,10 @@
 field,value
-riskDriverDynamicsType,NonLinear
-factorDynamicsType,TARCH
+riskDriverDynamicsType,Linear
+factorDynamicsType,AR
 riskDriverType,PnL
 factorType,Observable
 parallel_computing,Yes
-n_cores,10
+n_cores,20
 gamma,0.9999
 kappa,0.001
 lam,0.015
