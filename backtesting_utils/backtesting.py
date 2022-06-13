@@ -131,8 +131,8 @@ class Backtester:
         plt.figure()
         plt.bar(self._sharpe_ratio_all.keys(), self._sharpe_ratio_all.values()),
         plt.xlabel('Agent')
-        plt.ylabel('Sharpe ratio (annualized)')
-        plt.title('Sharpe ratio')
+        plt.ylabel('Realized Sharpe ratio (annualized)')
+        plt.title('Realized Sharpe ratio')
         plt.grid()
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
