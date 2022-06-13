@@ -10,5 +10,5 @@ kappa,0.001
 lam,0.015
 shares_scale,57.5
 j_episodes,15000
-n_batches,6
+n_batches,5
 t_,70
