@@ -6,8 +6,8 @@ Vol Model:                  GJR-GARCH   Log-Likelihood:               -23944.8
 Distribution:                  Normal   AIC:                           47899.7
 Method:            Maximum Likelihood   BIC:                           47933.6
                                         No. Observations:                 6568
-Date:                Sat, Jun 11 2022   Df Residuals:                     6567
-Time:                        09:50:26   Df Model:                            1
+Date:                Mon, Jun 13 2022   Df Residuals:                     6567
+Time:                        12:45:04   Df Model:                            1
                                Mean Model                               
 ========================================================================
                  coef    std err          t      P>|t|  95.0% Conf. Int.
