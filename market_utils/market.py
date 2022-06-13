@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import pandas as pd
 import os
@@ -16,6 +18,7 @@ class Market:
         self.marketDynamics = marketDynamics
         self.factorType = factorType
         self._set_market_attributes()
+        self.simulations_trading = None
 
     def next_step_risk_driver(self, factor: float):
 
@@ -72,15 +75,13 @@ class Market:
         self._simulate_factor(j_, t_, delta_stationary)
         self._simulate_risk_driver_and_pnl_and_price()
 
-    def simulate_market_trading(self, n_batches: int, j_episodes: int, t_: int):
+    def simulate_market_trading(self, n: int, j_episodes: int, t_: int):
 
-        self.simulate(j_=j_episodes * n_batches, t_=t_)
+        if self.simulations_trading is None:
+            self.simulations_trading = {}
 
-        self.simulations_trading = {}
-
-        self.simulations_trading['pnl'] = self.simulations['pnl'].reshape((j_episodes, n_batches, t_))
-        self.simulations_trading['factor'] = self.simulations['factor'].reshape((j_episodes, n_batches, t_))
-        self.simulations_trading['price'] = self.simulations['price'].reshape((j_episodes, n_batches, t_))
+        self.simulate(j_=j_episodes, t_=t_)
+        self.simulations_trading[n] = copy.deepcopy(self.simulations)
 
     def _get_sig2(self, factor: float = None):
 

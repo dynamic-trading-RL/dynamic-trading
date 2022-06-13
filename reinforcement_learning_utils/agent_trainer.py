@@ -49,7 +49,6 @@ class AgentTrainer:
 
     def _train_trading(self, eps_start: float, parallel_computing: bool, n_cores: int):
 
-        self.market.simulate_market_trading(self.n_batches, self.j_episodes, self.t_)
         self._generate_all_batches(eps_start, parallel_computing, n_cores)
 
     def _generate_all_batches(self, eps_start: float, parallel_computing: bool, n_cores: int):
@@ -69,6 +68,9 @@ class AgentTrainer:
     def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
 
         self._check_n(n)
+
+        self.market.simulate_market_trading(n, self.j_episodes, self.t_)  # should go to dedicated method
+
         self.state_action_grid_dict[n] = {}
         self.q_grid_dict[n] = {}
         self.reward[n] = 0.
@@ -81,7 +83,9 @@ class AgentTrainer:
 
             self._create_batch_sequential(eps, n)
 
-        self._fit_supervised_regressor(n)
+        self._fit_supervised_regressor(n)  # should go to dedicated method
+
+        del self.market.simulations_trading[n]
 
     def _create_batch_sequential(self, eps, n):
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):

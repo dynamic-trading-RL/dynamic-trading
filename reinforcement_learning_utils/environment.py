@@ -90,9 +90,9 @@ class Environment:
 
     def _get_market_simulation_trading(self, n: int, j: int, t: int):
 
-        return (self.market.simulations_trading['pnl'][j, n, t],
-                self.market.simulations_trading['factor'][j, n, t],
-                self.market.simulations_trading['price'][j, n, t])
+        return (self.market.simulations_trading[n]['pnl'][j, t],
+                self.market.simulations_trading[n]['factor'][j, t],
+                self.market.simulations_trading[n]['price'][j, t])
 
     def _set_attributes(self):
 
