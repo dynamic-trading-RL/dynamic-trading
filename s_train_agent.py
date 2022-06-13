@@ -1,7 +1,11 @@
+import numpy as np
+
 from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
 
 if __name__ == '__main__':
+
+    np.random.seed(789)
 
     # -------------------- Input parameters
     # Market parameters
