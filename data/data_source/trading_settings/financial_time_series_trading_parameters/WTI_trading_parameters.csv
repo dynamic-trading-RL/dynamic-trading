@@ -9,6 +9,6 @@ gamma,0.9999
 kappa,0.001
 lam,0.015
 shares_scale,57.5
-j_episodes,25000
-n_batches,4
-t_,70
+j_episodes,15000
+n_batches,7
+t_,50
