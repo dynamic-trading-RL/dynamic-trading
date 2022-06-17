@@ -1,9 +1,9 @@
 ,info
 ticker,gasoil
-end_date,2020-05-22 00:00:00
-start_price,287.75
-len,6569
-out_of_sample_proportion_len,731
+end_date,2016-05-22 00:00:00
+start_price,440.75
+len,5108
+out_of_sample_proportion_len,2192
 window,5
 riskDriverType,PnL
 factorDefinitionType,MovingAverage

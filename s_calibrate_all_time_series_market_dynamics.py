@@ -1,4 +1,3 @@
-from enums import RiskDriverType, FactorDefinitionType
 from market_utils.calibrator import AllSeriesDynamicsCalibrator
 
 if __name__ == '__main__':

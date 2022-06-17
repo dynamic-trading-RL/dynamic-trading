@@ -1,27 +1,27 @@
                          AR - GJR-GARCH Model Results                         
 ==============================================================================
-Dep. Variable:                 factor   R-squared:                       0.615
-Mean Model:                        AR   Adj. R-squared:                  0.615
-Vol Model:                  GJR-GARCH   Log-Likelihood:                4207.03
-Distribution:                  Normal   AIC:                          -8402.07
-Method:            Maximum Likelihood   BIC:                          -8363.31
-                                        No. Observations:                 4719
-Date:                Mon, Jun 13 2022   Df Residuals:                     4717
-Time:                        12:45:09   Df Model:                            2
+Dep. Variable:                 factor   R-squared:                       0.612
+Mean Model:                        AR   Adj. R-squared:                  0.612
+Vol Model:                  GJR-GARCH   Log-Likelihood:                3169.15
+Distribution:                  Normal   AIC:                          -6326.31
+Method:            Maximum Likelihood   BIC:                          -6289.06
+                                        No. Observations:                 3668
+Date:                Fri, Jun 17 2022   Df Residuals:                     3666
+Time:                        16:08:43   Df Model:                            2
                                   Mean Model                                 
 =============================================================================
                  coef    std err          t      P>|t|       95.0% Conf. Int.
 -----------------------------------------------------------------------------
-Const      8.9689e-04  1.390e-03      0.645      0.519 [-1.828e-03,3.622e-03]
-factor[1]      0.7589  1.482e-02     51.219      0.000      [  0.730,  0.788]
+Const      6.5550e-04  1.648e-03      0.398      0.691 [-2.574e-03,3.885e-03]
+factor[1]      0.7524  2.558e-02     29.410 4.058e-190      [  0.702,  0.803]
                                Volatility Model                              
 =============================================================================
                  coef    std err          t      P>|t|       95.0% Conf. Int.
 -----------------------------------------------------------------------------
-omega      4.7080e-04  2.302e-04      2.045  4.081e-02  [1.968e-05,9.219e-04]
-alpha[1]       0.0674  1.738e-02      3.878  1.054e-04    [3.333e-02,  0.101]
-gamma[1]       0.0206  1.687e-02      1.219      0.223 [-1.249e-02,5.362e-02]
-beta[1]        0.8833  3.799e-02     23.253 1.329e-119      [  0.809,  0.958]
+omega      7.6331e-04  8.234e-04      0.927      0.354 [-8.504e-04,2.377e-03]
+alpha[1]       0.0738  4.348e-02      1.696  8.983e-02   [-1.147e-02,  0.159]
+gamma[1]       0.0284  2.371e-02      1.199      0.231 [-1.805e-02,7.491e-02]
+beta[1]        0.8487      0.119      7.108  1.180e-12      [  0.615,  1.083]
 =============================================================================
 
 Covariance estimator: robust

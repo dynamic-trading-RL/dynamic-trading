@@ -1,9 +1,9 @@
 ,info
 ticker,tin
-end_date,2021-07-22 00:00:00
-start_price,0.0753
-len,2713
-out_of_sample_proportion_len,302
+end_date,2019-11-26 00:00:00
+start_price,0.0151
+len,2109
+out_of_sample_proportion_len,906
 window,5
 riskDriverType,PnL
 factorDefinitionType,MovingAverage

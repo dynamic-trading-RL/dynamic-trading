@@ -1,9 +1,9 @@
 ,info
 ticker,coffee
-end_date,2020-12-14 00:00:00
-start_price,1349.0
-len,4717
-out_of_sample_proportion_len,525
+end_date,2018-01-29 00:00:00
+start_price,1751.0
+len,3667
+out_of_sample_proportion_len,1575
 window,5
 riskDriverType,PnL
 factorDefinitionType,MovingAverage
