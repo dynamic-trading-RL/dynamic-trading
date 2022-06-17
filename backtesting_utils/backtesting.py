@@ -57,6 +57,9 @@ class Backtester:
         # Output
         self._compute_in_sample_output()
 
+        # Print Sharpe ratios
+        print(self._sharpe_ratio_all)
+
     def make_plots(self):
 
         self._plot_shares()

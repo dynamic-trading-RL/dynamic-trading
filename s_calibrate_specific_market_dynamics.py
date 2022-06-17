@@ -1,6 +1,5 @@
 from market_utils.calibrator import DynamicsCalibrator
 from market_utils.financial_time_series import FinancialTimeSeries
-from enums import RiskDriverType, FactorDefinitionType
 
 
 if __name__ == '__main__':

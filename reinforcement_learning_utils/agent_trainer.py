@@ -87,6 +87,8 @@ class AgentTrainer:
 
         del self.market.simulations_trading[n]
 
+        print(f'Reward for batch {n+1}: {self.reward[n]} \n')
+
     def _create_batch_sequential(self, eps, n):
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
             state_action_grid, q_grid, reward_j = self._generate_single_episode(j, n, eps)
