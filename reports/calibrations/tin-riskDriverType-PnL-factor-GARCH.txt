@@ -1,0 +1,27 @@
+                     Constant Mean - GARCH Model Results                      
+==============================================================================
+Dep. Variable:                 factor   R-squared:                       0.000
+Mean Model:             Constant Mean   Adj. R-squared:                  0.000
+Vol Model:                      GARCH   Log-Likelihood:                10517.8
+Distribution:                  Normal   AIC:                          -21027.5
+Method:            Maximum Likelihood   BIC:                          -21004.9
+                                        No. Observations:                 2108
+Date:                Fri, Jun 17 2022   Df Residuals:                     2107
+Time:                        16:08:48   Df Model:                            1
+                                  Mean Model                                  
+==============================================================================
+                  coef    std err          t      P>|t|       95.0% Conf. Int.
+------------------------------------------------------------------------------
+mu         -2.7514e-07  1.117e-06     -0.246      0.805 [-2.465e-06,1.915e-06]
+                              Volatility Model                              
+============================================================================
+                 coef    std err          t      P>|t|      95.0% Conf. Int.
+----------------------------------------------------------------------------
+omega      9.8302e-08  4.230e-11   2323.680      0.000 [9.822e-08,9.838e-08]
+alpha[1]       0.1000  4.009e-02      2.494  1.262e-02   [2.142e-02,  0.179]
+beta[1]        0.8800  3.172e-02     27.743 2.106e-169     [  0.818,  0.942]
+============================================================================
+
+Covariance estimator: robust
+WARNING: The optimizer did not indicate successful convergence. The message was Inequality constraints incompatible.
+See convergence_flag.

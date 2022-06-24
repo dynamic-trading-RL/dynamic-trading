@@ -1,0 +1,9 @@
+,info
+ticker,sugar
+end_date,2016-05-23 00:00:00
+start_price,472.9
+len,5109
+out_of_sample_proportion_len,2192
+window,5
+riskDriverType,PnL
+factorDefinitionType,MovingAverage

@@ -1,0 +1,9 @@
+,info
+ticker,cocoa
+end_date,2016-05-22 00:00:00
+start_price,3114.57819795262
+len,5108
+out_of_sample_proportion_len,2192
+window,5
+riskDriverType,PnL
+factorDefinitionType,MovingAverage

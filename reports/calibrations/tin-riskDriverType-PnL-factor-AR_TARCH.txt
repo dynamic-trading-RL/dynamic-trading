@@ -1,0 +1,29 @@
+                         AR - GJR-GARCH Model Results                         
+==============================================================================
+Dep. Variable:                 factor   R-squared:                       0.429
+Mean Model:                        AR   Adj. R-squared:                  0.428
+Vol Model:                  GJR-GARCH   Log-Likelihood:                10649.4
+Distribution:                  Normal   AIC:                          -21286.9
+Method:            Maximum Likelihood   BIC:                          -21252.9
+                                        No. Observations:                 2108
+Date:                Fri, Jun 17 2022   Df Residuals:                     2106
+Time:                        16:08:48   Df Model:                            2
+                                  Mean Model                                 
+=============================================================================
+                 coef    std err          t      P>|t|       95.0% Conf. Int.
+-----------------------------------------------------------------------------
+Const      8.8762e-07  3.343e-05  2.655e-02      0.979 [-6.463e-05,6.640e-05]
+factor[1]      0.6548  1.432e-03    457.096      0.000      [  0.652,  0.658]
+                              Volatility Model                              
+============================================================================
+                 coef    std err          t      P>|t|      95.0% Conf. Int.
+----------------------------------------------------------------------------
+omega      4.0666e-07  4.285e-12  9.490e+04      0.000 [4.067e-07,4.067e-07]
+alpha[1]       0.2000  5.651e-02      3.539  4.012e-04   [8.925e-02,  0.311]
+gamma[1]       0.0500  7.303e-02      0.685      0.494  [-9.314e-02,  0.193]
+beta[1]        0.6750  4.306e-02     15.677  2.159e-55     [  0.591,  0.759]
+============================================================================
+
+Covariance estimator: robust
+WARNING: The optimizer did not indicate successful convergence. The message was Inequality constraints incompatible.
+See convergence_flag.
