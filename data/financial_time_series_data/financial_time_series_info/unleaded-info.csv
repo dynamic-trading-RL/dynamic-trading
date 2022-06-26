@@ -6,4 +6,4 @@ len,4249
 out_of_sample_proportion_len,1824
 window,5
 riskDriverType,PnL
-factorDefinitionType,MovingAverage
+factorDefinitionType,StdMovingAverage

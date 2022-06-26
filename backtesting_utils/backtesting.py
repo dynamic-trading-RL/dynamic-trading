@@ -80,6 +80,7 @@ class Backtester:
         plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
                     + '-backtesting-shares.png')
+        plt.show()
 
     def _plot_value(self):
         plt.figure()

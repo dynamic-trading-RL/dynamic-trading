@@ -1,29 +1,27 @@
                          AR - GJR-GARCH Model Results                         
 ==============================================================================
-Dep. Variable:                 factor   R-squared:                   -2916.286
-Mean Model:                        AR   Adj. R-squared:              -2916.973
-Vol Model:                  GJR-GARCH   Log-Likelihood:               -12397.1
-Distribution:                  Normal   AIC:                           24806.3
-Method:            Maximum Likelihood   BIC:                           24844.4
+Dep. Variable:                 factor   R-squared:                       0.596
+Mean Model:                        AR   Adj. R-squared:                  0.596
+Vol Model:                  GJR-GARCH   Log-Likelihood:               -1190.77
+Distribution:                  Normal   AIC:                           2393.54
+Method:            Maximum Likelihood   BIC:                           2431.67
                                         No. Observations:                 4248
-Date:                Fri, Jun 17 2022   Df Residuals:                     4246
-Time:                        16:08:49   Df Model:                            2
+Date:                Sun, Jun 26 2022   Df Residuals:                     4246
+Time:                        15:42:25   Df Model:                            2
                                   Mean Model                                 
 =============================================================================
                  coef    std err          t      P>|t|       95.0% Conf. Int.
 -----------------------------------------------------------------------------
-Const         -0.9572      3.351     -0.286      0.775      [ -7.525,  5.611]
-factor[1]      0.7790    432.968  1.799e-03      0.999 [-8.478e+02,8.494e+02]
+Const      5.1773e-03  4.980e-03      1.040      0.299 [-4.584e-03,1.494e-02]
+factor[1]      0.7731  9.674e-03     79.914      0.000      [  0.754,  0.792]
                                Volatility Model                              
 =============================================================================
                  coef    std err          t      P>|t|       95.0% Conf. Int.
 -----------------------------------------------------------------------------
-omega      2.4783e-06  3.675e-03  6.744e-04      0.999 [-7.200e-03,7.205e-03]
-alpha[1]       0.1000      0.220      0.455      0.649      [ -0.330,  0.530]
-gamma[1]   9.9994e-03    133.337  7.499e-05      1.000 [-2.613e+02,2.613e+02]
-beta[1]        0.8750      0.336      2.608  9.115e-03      [  0.217,  1.533]
+omega          0.0995  1.906e-02      5.222  1.767e-07    [6.218e-02,  0.137]
+alpha[1]       0.0104  2.602e-02      0.399      0.690 [-4.063e-02,6.137e-02]
+gamma[1]       0.0403  2.725e-02      1.481      0.139 [-1.306e-02,9.376e-02]
+beta[1]        0.0000      0.211      0.000      1.000      [ -0.414,  0.414]
 =============================================================================
 
 Covariance estimator: robust
-WARNING: The optimizer did not indicate successful convergence. The message was Inequality constraints incompatible.
-See convergence_flag.

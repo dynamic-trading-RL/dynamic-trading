@@ -2,25 +2,27 @@
 ==============================================================================
 Dep. Variable:                 factor   R-squared:                       0.000
 Mean Model:             Constant Mean   Adj. R-squared:                  0.000
-Vol Model:                  GJR-GARCH   Log-Likelihood:                2952.01
-Distribution:                  Normal   AIC:                          -5894.02
-Method:            Maximum Likelihood   BIC:                          -5862.98
+Vol Model:                  GJR-GARCH   Log-Likelihood:               -1142.97
+Distribution:                  Normal   AIC:                           2295.95
+Method:            Maximum Likelihood   BIC:                           2326.99
                                         No. Observations:                 3668
-Date:                Fri, Jun 17 2022   Df Residuals:                     3667
-Time:                        16:08:43   Df Model:                            1
-                                  Mean Model                                  
-==============================================================================
-                  coef    std err          t      P>|t|       95.0% Conf. Int.
-------------------------------------------------------------------------------
-mu         -1.7029e-03  1.822e-03     -0.935      0.350 [-5.274e-03,1.868e-03]
-                               Volatility Model                              
+Date:                Sun, Jun 26 2022   Df Residuals:                     3667
+Time:                        15:42:18   Df Model:                            1
+                                  Mean Model                                 
 =============================================================================
                  coef    std err          t      P>|t|       95.0% Conf. Int.
 -----------------------------------------------------------------------------
-omega      5.5625e-04  2.481e-04      2.242  2.496e-02  [6.997e-05,1.043e-03]
-alpha[1]       0.0590  2.327e-02      2.535  1.123e-02    [1.339e-02,  0.105]
-gamma[1]       0.0366  2.408e-02      1.521      0.128 [-1.056e-02,8.384e-02]
-beta[1]        0.8840  3.506e-02     25.216 2.697e-140      [  0.815,  0.953]
-=============================================================================
+mu         7.7746e-05  1.729e-02  4.497e-03      0.996 [-3.380e-02,3.396e-02]
+                             Volatility Model                            
+=========================================================================
+                  coef    std err          t      P>|t|  95.0% Conf. Int.
+-------------------------------------------------------------------------
+omega           0.0156      0.184  8.435e-02      0.933 [ -0.346,  0.377]
+alpha[1]    3.4142e-16      0.105  3.266e-15      1.000 [ -0.205,  0.205]
+gamma[1]   -6.8951e-05      0.132 -5.224e-04      1.000 [ -0.259,  0.259]
+beta[1]         0.8573      1.655      0.518      0.604 [ -2.386,  4.101]
+=========================================================================
 
 Covariance estimator: robust
+WARNING: The optimizer did not indicate successful convergence. The message was Positive directional derivative for linesearch.
+See convergence_flag.
