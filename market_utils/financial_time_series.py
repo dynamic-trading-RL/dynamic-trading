@@ -29,14 +29,14 @@ class FinancialTimeSeries:
 
     def _print_info(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
+        filename = os.path.dirname(os.path.dirname(__file__)) + \
                    '/data/financial_time_series_data/financial_time_series_info/' + self.ticker + '-info.csv'
         self.info.to_csv(filename)
 
     def _set_settings_from_file(self, window):
 
-        filename =\
-            os.path.dirname(os.path.dirname(__file__)) +\
+        filename = \
+            os.path.dirname(os.path.dirname(__file__)) + \
             '/data/data_source/trading_settings/financial_time_series_settings.csv'
         self.info = pd.read_csv(filename, index_col=0)
 
@@ -77,7 +77,7 @@ class FinancialTimeSeries:
         self._in_sample_proportion_len = int(self._time_series_len * in_sample_proportion)
         self._out_of_sample_proportion_len = max_len - self._in_sample_proportion_len
 
-        self.time_series = time_series.iloc[-max_len : -max_len + self._in_sample_proportion_len]
+        self.time_series = time_series.iloc[-max_len: -max_len + self._in_sample_proportion_len]
         self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
 
     def _set_risk_driver_time_series(self):
@@ -97,7 +97,11 @@ class FinancialTimeSeries:
             self.time_series['factor'] = x.rolling(self.window).mean()
 
         elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
-            self.time_series['factor'] = x.rolling(self.window).mean() / x.rolling(self.window).std()
+            all_stds = x.rolling(self.window).std()
+            lower_bound = all_stds.quantile(0.1)
+            den = x.rolling(self.window).std()
+            den[den < lower_bound] = lower_bound
+            self.time_series['factor'] = x.rolling(self.window).mean() / den
 
     def _set_info(self):
 
@@ -121,7 +125,6 @@ class FinancialTimeSeries:
 
 
 def get_available_futures_tickers():
-
     lst = ['cocoa', 'coffee', 'copper', 'WTI', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter', 'nickel',
            'silver', 'sugar', 'tin', 'unleaded', 'zinc']
 
@@ -131,5 +134,4 @@ def get_available_futures_tickers():
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-
     financialTimeSeries = FinancialTimeSeries('WTI', window=10)
