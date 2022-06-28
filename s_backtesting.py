@@ -1,5 +1,5 @@
 
-from backtesting_utils.backtesting import Backtester
+from testing_utils.testing import BackTester
 
 if __name__ == '__main__':
 
@@ -7,7 +7,7 @@ if __name__ == '__main__':
     ticker = 'WTI'
 
     # -------------------- Execution
-    backtester = Backtester(ticker=ticker)
+    backtester = BackTester(ticker=ticker)
     backtester.execute_backtesting()
     backtester.make_plots()
 
