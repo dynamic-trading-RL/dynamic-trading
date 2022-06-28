@@ -302,7 +302,7 @@ class SimulationTester(Tester):
 
         super().__init__(ticker)
 
-    def execute_simulationtesting(self, j_, t_):
+    def execute_simulation_testing(self, j_, t_):
 
         self.j_ = j_
         self.t_ = t_
@@ -314,7 +314,7 @@ class SimulationTester(Tester):
         self._simulate_factor_pnl_price()
 
         # Output
-        self._compute_simulationtesting_output()
+        self._compute_simulation_testing_output()
 
         # Print outputs
         print()
@@ -349,7 +349,7 @@ class SimulationTester(Tester):
 
             self._factor_pnl_and_price_sims[data_type] = sims
 
-    def _compute_simulationtesting_output(self):
+    def _compute_simulation_testing_output(self):
 
         pass # TODO: implement
 
@@ -359,4 +359,4 @@ if __name__ == '__main__':
 
     simulationTester = SimulationTester('WTI')
 
-    simulationTester.execute_simulationtesting(100, 20)
+    simulationTester.execute_simulation_testing(100, 20)
