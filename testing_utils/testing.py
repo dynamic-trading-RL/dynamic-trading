@@ -78,7 +78,7 @@ class BackTester(Tester):
     def execute_backtesting(self):
 
         # Instantiate agents
-        super()._instantiate_agents_and_environment()
+        self._instantiate_agents_and_environment()
 
         # Get factor_series and price_series
         self._get_factor_pnl_price()
@@ -108,8 +108,9 @@ class BackTester(Tester):
 
     def _get_factor_pnl_price(self):
 
-        factor_series =\
-            self._market.financialTimeSeries.time_series['factor'].iloc[-self._out_of_sample_proportion_len:].copy()
+        length = self._out_of_sample_proportion_len
+
+        factor_series = self._market.financialTimeSeries.time_series['factor'].iloc[-length:].copy()
         pnl_series = self._market.financialTimeSeries.time_series['pnl'].copy()
         price_series = self._market.financialTimeSeries.time_series[self._ticker].copy()
         factor_pnl_and_price = pd.concat([factor_series, pnl_series, price_series], axis=1)
@@ -117,9 +118,12 @@ class BackTester(Tester):
         factor_pnl_and_price.dropna(inplace=True)
 
         self._factor_pnl_and_price = factor_pnl_and_price
+        self.t_ = len(self._factor_pnl_and_price)
 
     def _compute_backtesting_output(self):
+        # TODO: unify this and the corresponding in SimulationTester and move as much as possible to superclass
 
+        # initialize output dicts: {agent_type: list}
         self._strategy_all = {}
         self._trade_all = {}
         self._cum_value_all = {}
@@ -128,6 +132,14 @@ class BackTester(Tester):
         self._cum_wealth_all = {}
         self._cum_wealth_net_risk_all = {}
         self._sharpe_ratio_all = {}
+
+        # get time series
+        factor_series = self._factor_pnl_and_price['factor']
+        pnl_series = self._factor_pnl_and_price['pnl']
+        price_series = self._factor_pnl_and_price['price']
+
+        # get dates
+        dates = factor_series.index
 
         for agent_type in self._agents.keys():
 
@@ -139,12 +151,14 @@ class BackTester(Tester):
 
             current_rescaled_shares = 0.
 
-            for i in tqdm(range(len(self._factor_pnl_and_price) - 1),
-                          desc='Computing ' + agent_type + ' strategy.'):
+            for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy.'):
 
-                factor = self._factor_pnl_and_price['factor'].iloc[i]
-                pnl = self._factor_pnl_and_price['pnl'].iloc[i + 1]
-                price = self._factor_pnl_and_price['price'].iloc[i]
+                i_loc = dates.get_loc(date)
+                next_date = dates[i_loc + 1]
+
+                factor = factor_series.loc[date]
+                pnl = pnl_series.loc[next_date]
+                price = price_series.loc[date]
 
                 if agent_type == 'RL':
                     state = State()
@@ -308,7 +322,7 @@ class SimulationTester(Tester):
         self.t_ = t_
 
         # Instantiate agents
-        super()._instantiate_agents_and_environment()
+        self._instantiate_agents_and_environment()
 
         # Simulate factor_series and price_series
         self._simulate_factor_pnl_price()
@@ -320,6 +334,8 @@ class SimulationTester(Tester):
         print()
 
     def make_plots(self):
+
+        # TODO: implement
 
         self._plot_shares()
         self._plot_value()
@@ -342,6 +358,7 @@ class SimulationTester(Tester):
         for data_type in ('factor', 'pnl', 'price'):
 
             sims = pd.DataFrame(data=self._environment.market.simulations[data_type], columns=dates)
+            sims.index.name = 'simulation'
             sims = pd.melt(sims, var_name='date', ignore_index=False)
             sims.set_index('date', append=True, inplace=True)
             sims = sims.squeeze()
@@ -351,12 +368,122 @@ class SimulationTester(Tester):
 
     def _compute_simulation_testing_output(self):
 
-        pass # TODO: implement
+        # TODO: implement
 
+        # TODO: unify this and the corresponding in BackTester and move as much as possible to superclass
+
+        # initialize output dicts: {agent_type: {j: list}}
+        self._strategy_all = {}
+        self._trade_all = {}
+        self._cum_value_all = {}
+        self._cum_cost_all = {}
+        self._cum_risk_all = {}
+        self._cum_wealth_all = {}
+        self._cum_wealth_net_risk_all = {}
+        self._sharpe_ratio_all = {}
+
+        # get time series
+        factor_series = self._factor_pnl_and_price_sims['factor']
+        pnl_series = self._factor_pnl_and_price_sims['pnl']
+        price_series = self._factor_pnl_and_price_sims['price']
+
+        # get dates
+        dates = factor_series.index.get_level_values('date').unique()
+
+        # get simulation index
+        j_index = factor_series.index.get_level_values('simulation').unique()
+
+        for agent_type in self._agents.keys():
+
+            strategy = {}
+            trades = {}
+            value = {}
+            cost = {}
+            risk = {}
+
+            self._strategy_all[agent_type] = {}
+            self._trade_all[agent_type] = {}
+            self._cum_value_all[agent_type] = {}
+            self._cum_cost_all[agent_type] = {}
+            self._cum_risk_all[agent_type] = {}
+            self._cum_wealth_all[agent_type] = {}
+            self._cum_wealth_net_risk_all[agent_type] = {}
+            self._sharpe_ratio_all[agent_type] = {}
+
+            for j in tqdm(j_index, desc='Computing simulations of ' + agent_type + ' strategy.'):
+
+                strategy[j] = []
+                trades[j] = []
+                value[j] = []
+                cost[j] = []
+                risk[j] = []
+
+                current_rescaled_shares = 0.
+
+                for date in dates[:-1]:
+
+                    i_loc = dates.get_loc(date)
+                    next_date = dates[i_loc + 1]
+
+                    factor = factor_series.loc[j, date]
+                    pnl = pnl_series.loc[j, next_date]
+                    price = price_series.loc[j, date]
+
+                    if agent_type == 'RL':
+                        state = State()
+                        state.set_trading_attributes(current_factor=factor,
+                                                     current_rescaled_shares=current_rescaled_shares,
+                                                     current_other_observable=None,
+                                                     shares_scale=self._shares_scale,
+                                                     current_price=None)
+                        action = self._agents[agent_type].policy(state=state)
+                        rescaled_trade = action.rescaled_trade
+
+                        sig2 = self._market.next_step_sig2(factor=factor, price=price)
+                        cost_trade = self._environment.compute_trading_cost(action, sig2)
+                        risk_trade = self._environment.compute_trading_risk(state, sig2)
+
+                    else:
+                        rescaled_trade = self._agents[agent_type].policy(current_factor=factor,
+                                                                         current_rescaled_shares=current_rescaled_shares,
+                                                                         shares_scale=self._shares_scale)
+                        cost_trade = self._agents[agent_type].compute_trading_cost(trade=rescaled_trade * self._shares_scale,
+                                                                                   current_factor=factor,
+                                                                                   price=price)
+                        risk_trade = \
+                            self._agents[agent_type].compute_trading_risk(current_factor=factor,
+                                                                          price=price,
+                                                                          current_rescaled_shares=current_rescaled_shares,
+                                                                          shares_scale=self._shares_scale)
+
+                    current_rescaled_shares += rescaled_trade
+
+                    strategy[j].append(current_rescaled_shares * self._shares_scale)
+                    trades[j].append(rescaled_trade * self._shares_scale)
+                    value[j].append(strategy[j][-1] * pnl)
+                    cost[j].append(cost_trade)
+                    risk[j].append(risk_trade)
+
+                self._strategy_all[agent_type][j] = strategy[j]
+                self._trade_all[agent_type][j] = trades[j]
+                self._cum_value_all[agent_type][j] = list(np.cumsum(value[j]))
+                self._cum_cost_all[agent_type][j] = list(np.cumsum(cost[j]))
+                self._cum_risk_all[agent_type][j] = list(np.cumsum(risk[j]))
+                self._cum_wealth_all[agent_type][j] = list(np.cumsum(value[j])
+                                                           - np.cumsum(cost[j]))
+                self._cum_wealth_net_risk_all[agent_type][j] = list(np.cumsum(value[j])
+                                                                    - np.cumsum(cost[j])
+                                                                    - np.cumsum(risk[j]))
+
+                pnl_net = np.diff(np.array(self._cum_wealth_all[agent_type][j]))
+
+                self._sharpe_ratio_all[agent_type][j] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
+
+        a = 1
 
 
 if __name__ == '__main__':
 
     simulationTester = SimulationTester('WTI')
 
-    simulationTester.execute_simulation_testing(100, 20)
+    simulationTester.execute_simulation_testing(20, 10)
