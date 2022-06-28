@@ -8,7 +8,7 @@ n_cores,20
 gamma,0.9999
 kappa,0.001
 lam,0.01
-shares_scale,60.0
+shares_scale,80.0
 j_episodes,25000
 n_batches,7
 t_,70
