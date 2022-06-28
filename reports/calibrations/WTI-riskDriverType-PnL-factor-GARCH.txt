@@ -2,24 +2,24 @@
 ==============================================================================
 Dep. Variable:                 factor   R-squared:                       0.000
 Mean Model:             Constant Mean   Adj. R-squared:                  0.000
-Vol Model:                      GARCH   Log-Likelihood:               -1782.88
-Distribution:                  Normal   AIC:                           3573.76
-Method:            Maximum Likelihood   BIC:                           3599.91
-                                        No. Observations:                 5107
-Date:                Sun, Jun 26 2022   Df Residuals:                     5106
-Time:                        15:42:15   Df Model:                            1
+Vol Model:                      GARCH   Log-Likelihood:               -2047.09
+Distribution:                  Normal   AIC:                           4102.19
+Method:            Maximum Likelihood   BIC:                           4128.88
+                                        No. Observations:                 5838
+Date:                Tue, Jun 28 2022   Df Residuals:                     5837
+Time:                        11:20:24   Df Model:                            1
                                   Mean Model                                 
 =============================================================================
                  coef    std err          t      P>|t|       95.0% Conf. Int.
 -----------------------------------------------------------------------------
-mu         1.0425e-03  4.823e-03      0.216      0.829 [-8.410e-03,1.050e-02]
+mu         9.8732e-04  4.512e-03      0.219      0.827 [-7.855e-03,9.830e-03]
                               Volatility Model                              
 ============================================================================
                  coef    std err          t      P>|t|      95.0% Conf. Int.
 ----------------------------------------------------------------------------
-omega          0.1127  1.058e-02     10.653  1.690e-26   [9.198e-02,  0.133]
-alpha[1]       0.0446  1.784e-02      2.498  1.248e-02 [9.601e-03,7.953e-02]
-beta[1]    8.4876e-09  9.728e-02  8.725e-08      1.000     [ -0.191,  0.191]
+omega          0.1133  9.556e-03     11.858  1.959e-32   [9.458e-02,  0.132]
+alpha[1]       0.0422  1.627e-02      2.595  9.460e-03 [1.033e-02,7.411e-02]
+beta[1]        0.0000  8.747e-02      0.000      1.000     [ -0.171,  0.171]
 ============================================================================
 
 Covariance estimator: robust

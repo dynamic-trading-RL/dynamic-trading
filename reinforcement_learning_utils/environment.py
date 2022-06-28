@@ -88,6 +88,12 @@ class Environment:
 
         return 0.5 * trade * self.lam * sig2 * trade
 
+    def compute_trading_risk(self, state, sig2):
+
+        current_shares = state.current_shares
+
+        return 0.5 * current_shares * self.kappa * sig2 * current_shares
+
     def _get_market_simulation_trading(self, n: int, j: int, t: int):
 
         return (self.market.simulations_trading[n]['pnl'][j, t],

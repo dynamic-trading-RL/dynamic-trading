@@ -65,7 +65,9 @@ class Backtester:
         self._plot_shares()
         self._plot_value()
         self._plot_cost()
+        self._plot_risk()
         self._plot_wealth()
+        self._plot_wealth_net_risk()
         self._plot_trades_scatter()
         self._plot_sharpe_ratio()
 
@@ -80,7 +82,6 @@ class Backtester:
         plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
                     + '-backtesting-shares.png')
-        plt.show()
 
     def _plot_value(self):
         plt.figure()
@@ -106,6 +107,18 @@ class Backtester:
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
                     + '-backtesting-cost.png')
 
+    def _plot_risk(self):
+        plt.figure()
+        for agent_type in self._agents.keys():
+            plt.plot(self._factor_pnl_and_price.index[:-1], self._cum_risk_all[agent_type],
+                     color=self._colors[agent_type], label=agent_type)
+        plt.title('Risk')
+        plt.xlabel('Date')
+        plt.ylabel('Risk')
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-risk.png')
+
     def _plot_wealth(self):
         plt.figure()
         for agent_type in self._agents.keys():
@@ -114,10 +127,23 @@ class Backtester:
                      color=self._colors[agent_type], label=agent_type)
         plt.title('Wealth')
         plt.xlabel('Date')
-        plt.ylabel('Wealth [$]')
+        plt.ylabel('Wealth = Value - Cost [$]')
         plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
                     + '-backtesting-wealth.png')
+
+    def _plot_wealth_net_risk(self):
+        plt.figure()
+        for agent_type in self._agents.keys():
+            plt.plot(self._factor_pnl_and_price.index[:-1],
+                     self._cum_wealth_net_risk_all[agent_type],
+                     color=self._colors[agent_type], label=agent_type)
+        plt.title('Wealth net Risk')
+        plt.xlabel('Date')
+        plt.ylabel('Wealth net Risk = Value - Cost - Risk [$]')
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-backtesting-wealth-net-risk.png')
 
     def _plot_trades_scatter(self):
         plt.figure()
@@ -126,8 +152,12 @@ class Backtester:
         plt.xlabel('GP trades [#]')
         plt.ylabel('RL trades [#]')
         plt.axis('equal')
-        plt.xlim([np.quantile(self._trade_all['GP'], 0.02), np.quantile(self._trade_all['GP'], 0.98)])
-        plt.ylim([np.quantile(self._trade_all['RL'], 0.02), np.quantile(self._trade_all['RL'], 0.98)])
+        xlim = [np.quantile(self._trade_all['GP'], 0.02), np.quantile(self._trade_all['GP'], 0.98)]
+        ylim = [np.quantile(self._trade_all['RL'], 0.02), np.quantile(self._trade_all['RL'], 0.98)]
+        plt.plot(xlim, ylim, color='r', label='45° line')
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
                     + '-backtesting-trades-scatter.png')
 
@@ -189,7 +219,9 @@ class Backtester:
         self._trade_all = {}
         self._cum_value_all = {}
         self._cum_cost_all = {}
+        self._cum_risk_all = {}
         self._cum_wealth_all = {}
+        self._cum_wealth_net_risk_all = {}
         self._sharpe_ratio_all = {}
 
         for agent_type in ('Markowitz', 'GP', 'RL'):
@@ -198,6 +230,7 @@ class Backtester:
             trades = []
             value = []
             cost = []
+            risk = []
 
             current_rescaled_shares = 0.
 
@@ -220,14 +253,20 @@ class Backtester:
 
                     sig2 = self._market.next_step_sig2(factor=factor, price=price)
                     cost_trade = self._environment.compute_trading_cost(action, sig2)
+                    risk_trade = self._environment.compute_trading_risk(state, sig2)
 
                 else:
                     rescaled_trade = self._agents[agent_type].policy(current_factor=factor,
                                                                      current_rescaled_shares=current_rescaled_shares,
                                                                      shares_scale=self._shares_scale)
-                    cost_trade = self._agents[agent_type].get_cost_trade(trade=rescaled_trade * self._shares_scale,
-                                                                         current_factor=factor,
-                                                                         price=price)
+                    cost_trade = self._agents[agent_type].compute_trading_cost(trade=rescaled_trade * self._shares_scale,
+                                                                               current_factor=factor,
+                                                                               price=price)
+                    risk_trade = \
+                        self._agents[agent_type].compute_trading_risk(current_factor=factor,
+                                                                      price=price,
+                                                                      current_rescaled_shares=current_rescaled_shares,
+                                                                      shares_scale=self._shares_scale)
 
                 current_rescaled_shares += rescaled_trade
 
@@ -235,12 +274,15 @@ class Backtester:
                 trades.append(rescaled_trade * self._shares_scale)
                 value.append(strategy[-1] * pnl)
                 cost.append(cost_trade)
+                risk.append(risk_trade)
 
             self._strategy_all[agent_type] = strategy
             self._trade_all[agent_type] = trades
             self._cum_value_all[agent_type] = list(np.cumsum(value))
             self._cum_cost_all[agent_type] = list(np.cumsum(cost))
+            self._cum_risk_all[agent_type] = list(np.cumsum(risk))
             self._cum_wealth_all[agent_type] = list(np.cumsum(value) - np.cumsum(cost))
+            self._cum_wealth_net_risk_all[agent_type] = list(np.cumsum(value) - np.cumsum(cost) - np.cumsum(risk))
 
             pnl_net = np.diff(np.array(self._cum_wealth_all[agent_type]))
 

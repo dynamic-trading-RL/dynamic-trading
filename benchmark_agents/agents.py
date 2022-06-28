@@ -32,11 +32,19 @@ class AgentBenchmark:
         if market.factorType != FactorType.Observable:
             raise NameError('factorType for benchmark agent should be Observable')
 
-    def get_cost_trade(self, trade, current_factor, price):
+    def compute_trading_cost(self, trade, current_factor, price):
 
         sig2 = self.market.next_step_sig2(factor=current_factor, price=price)
 
         return 0.5 * trade * self.lam * sig2 * trade
+
+    def compute_trading_risk(self, current_factor, price, current_rescaled_shares, shares_scale):
+
+        sig2 = self.market.next_step_sig2(factor=current_factor, price=price)
+        current_shares = current_rescaled_shares * shares_scale
+
+        return 0.5 * current_shares * self.kappa * sig2 * current_shares
+
 
     def _set_attributes(self):
 
