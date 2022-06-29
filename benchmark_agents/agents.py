@@ -65,8 +65,7 @@ class AgentBenchmark:
     def _get_df_trad_params(self):
         ticker = self.market.ticker
         filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/trading_settings/financial_time_series_trading_parameters/' +\
-                   ticker + '_trading_parameters.csv'
+                   '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         return df_trad_params
 
@@ -89,8 +88,7 @@ class AgentBenchmark:
 
         ticker = self.market.ticker
         filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/trading_settings/financial_time_series_trading_parameters/' +\
-                   ticker + '_trading_parameters.csv'
+                   '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
         lam = float(df_trad_params.loc['lam'][0])

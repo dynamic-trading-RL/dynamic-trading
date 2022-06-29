@@ -1,0 +1,9 @@
+,info
+ticker,lead
+end_date,2020-02-28 00:00:00
+start_price,2057.04803593397
+len,3259
+out_of_sample_proportion_len,816
+window,5
+riskDriverType,PnL
+factorDefinitionType,StdMovingAverage

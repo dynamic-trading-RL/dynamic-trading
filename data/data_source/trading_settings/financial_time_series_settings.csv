@@ -1,8 +1,0 @@
-,info
-max_len,8000
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage
-window,5
-in_sample_proportion,0.8
-factorSourceType,Constructed
-factor_ticker,

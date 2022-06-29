@@ -1,0 +1,9 @@
+,info
+ticker,silver
+end_date,2020-05-20 00:00:00
+start_price,597
+len,2928
+out_of_sample_proportion_len,734
+window,5
+riskDriverType,PnL
+factorDefinitionType,StdMovingAverage

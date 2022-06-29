@@ -1,0 +1,9 @@
+,info
+ticker,nat-gas-reuter
+end_date,2018-05-23 00:00:00
+start_price,2.914
+len,5839
+out_of_sample_proportion_len,1462
+window,5
+riskDriverType,PnL
+factorDefinitionType,StdMovingAverage

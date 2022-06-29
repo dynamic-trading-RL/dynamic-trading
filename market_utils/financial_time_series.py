@@ -37,7 +37,7 @@ class FinancialTimeSeries:
 
         filename = \
             os.path.dirname(os.path.dirname(__file__)) + \
-            '/data/data_source/trading_settings/financial_time_series_settings.csv'
+            '/data/data_source/settings/settings.csv'
         self.info = pd.read_csv(filename, index_col=0)
 
         if window is not None:
