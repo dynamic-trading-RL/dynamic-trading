@@ -47,9 +47,9 @@ class FinancialTimeSeries:
                 raise NameError('financialTimeSeries was instantiated without window, therefore window must be '
                                 + 'written in time-series-info.csv')
 
-        if self.info.loc['factorSourceType'] == FactorSourceType.Exogenous.value:
+        if self.info.loc['factorSourceType'].item() == FactorSourceType.Exogenous.value:
 
-            if self.info.loc['factor_ticker'] == '':
+            if self.info.loc['factor_ticker'].item() == '':
                 raise NameError('User specified factorSourceType = Exogenous but has not provided a factor_ticker')
 
     def _set_asset_time_series(self, max_len: int, in_sample_proportion: float):
@@ -96,26 +96,39 @@ class FinancialTimeSeries:
 
     def _set_factor(self):
 
-        if self.info.loc['factorSourceType'] == FactorSourceType.Constructed.value:
+        if self.info.loc['factorSourceType'].item() == FactorSourceType.Constructed.value:
 
             x = self.time_series['risk-driver']
 
-            if self.factorDefinitionType == FactorDefinitionType.MovingAverage:
-                self.time_series['factor'] = x.rolling(self.window).mean()
+            self._get_factor_time_series_from_x(x)
 
-            elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
-                all_stds = x.rolling(self.window).std()
-                lower_bound = all_stds.quantile(0.1)
-                den = x.rolling(self.window).std()
-                den[den < lower_bound] = lower_bound
-                self.time_series['factor'] = x.rolling(self.window).mean() / den
+        elif self.info.loc['factorSourceType'].item() == FactorSourceType.Exogenous.value:
 
-        elif self.info.loc['factorSourceType'] == FactorSourceType.Exogenous.value:
+            factor_ticker = self.info.loc['factor_ticker'].item()
+            filename = \
+                os.path.dirname(os.path.dirname(__file__)) + \
+                '/data/data_source/market_data/' + factor_ticker + '.xlsx'
+            df = pd.read_excel(filename, index_col=0, parse_dates=True)
 
-            pass
+            x = np.log(df.squeeze()).diff()
+
+            self._get_factor_time_series_from_x(x)
+
+            self.time_series['factor'].plot()
 
         else:
             raise NameError('factorSourceType not correctly specified')
+
+    def _get_factor_time_series_from_x(self, x):
+        if self.factorDefinitionType == FactorDefinitionType.MovingAverage:
+            self.time_series['factor'] = x.rolling(self.window).mean()
+
+        elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
+            all_stds = x.rolling(self.window).std()
+            lower_bound = all_stds.quantile(0.1)
+            den = x.rolling(self.window).std()
+            den[den < lower_bound] = lower_bound
+            self.time_series['factor'] = x.rolling(self.window).mean() / den
 
     def _set_info(self):
 
