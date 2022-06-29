@@ -1,9 +1,9 @@
 ,info
 ticker,unleaded
-end_date,2017-05-26 00:00:00
-start_price,1.6426
-len,4249
-out_of_sample_proportion_len,1824
+end_date,2019-01-24 00:00:00
+start_price,1.3876
+len,4857
+out_of_sample_proportion_len,1216
 window,5
 riskDriverType,PnL
-factorDefinitionType,MovingAverage
+factorDefinitionType,StdMovingAverage

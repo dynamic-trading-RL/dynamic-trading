@@ -88,6 +88,12 @@ class Environment:
 
         return 0.5 * trade * self.lam * sig2 * trade
 
+    def compute_trading_risk(self, state, sig2):
+
+        current_shares = state.current_shares
+
+        return 0.5 * current_shares * self.kappa * sig2 * current_shares
+
     def _get_market_simulation_trading(self, n: int, j: int, t: int):
 
         return (self.market.simulations_trading[n]['pnl'][j, t],
@@ -102,8 +108,7 @@ class Environment:
 
         ticker = self.market.ticker
         filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/trading_settings/financial_time_series_trading_parameters/' +\
-                   ticker + '_trading_parameters.csv'
+                   '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         lam = float(df_trad_params.loc['lam'][0])
 

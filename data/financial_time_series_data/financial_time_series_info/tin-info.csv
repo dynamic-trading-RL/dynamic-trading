@@ -1,9 +1,9 @@
 ,info
 ticker,tin
-end_date,2019-11-26 00:00:00
-start_price,0.0151
-len,2109
-out_of_sample_proportion_len,906
+end_date,2020-09-23 00:00:00
+start_price,-0.0062
+len,2411
+out_of_sample_proportion_len,604
 window,5
 riskDriverType,PnL
-factorDefinitionType,MovingAverage
+factorDefinitionType,StdMovingAverage

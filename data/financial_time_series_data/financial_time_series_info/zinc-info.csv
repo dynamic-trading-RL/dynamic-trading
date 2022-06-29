@@ -1,9 +1,9 @@
 ,info
 ticker,zinc
-end_date,2017-11-04 00:00:00
-start_price,3968.50512356841
-len,3872
-out_of_sample_proportion_len,1662
+end_date,2019-05-12 00:00:00
+start_price,3115.79225119839
+len,4426
+out_of_sample_proportion_len,1108
 window,5
 riskDriverType,PnL
-factorDefinitionType,MovingAverage
+factorDefinitionType,StdMovingAverage

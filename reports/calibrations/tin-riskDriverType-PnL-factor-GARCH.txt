@@ -2,26 +2,24 @@
 ==============================================================================
 Dep. Variable:                 factor   R-squared:                       0.000
 Mean Model:             Constant Mean   Adj. R-squared:                  0.000
-Vol Model:                      GARCH   Log-Likelihood:                10517.8
-Distribution:                  Normal   AIC:                          -21027.5
-Method:            Maximum Likelihood   BIC:                          -21004.9
-                                        No. Observations:                 2108
-Date:                Fri, Jun 17 2022   Df Residuals:                     2107
-Time:                        16:08:48   Df Model:                            1
+Vol Model:                      GARCH   Log-Likelihood:               -796.799
+Distribution:                  Normal   AIC:                           1601.60
+Method:            Maximum Likelihood   BIC:                           1624.75
+                                        No. Observations:                 2410
+Date:                Wed, Jun 29 2022   Df Residuals:                     2409
+Time:                        14:46:02   Df Model:                            1
                                   Mean Model                                  
 ==============================================================================
                   coef    std err          t      P>|t|       95.0% Conf. Int.
 ------------------------------------------------------------------------------
-mu         -2.7514e-07  1.117e-06     -0.246      0.805 [-2.465e-06,1.915e-06]
-                              Volatility Model                              
-============================================================================
-                 coef    std err          t      P>|t|      95.0% Conf. Int.
-----------------------------------------------------------------------------
-omega      9.8302e-08  4.230e-11   2323.680      0.000 [9.822e-08,9.838e-08]
-alpha[1]       0.1000  4.009e-02      2.494  1.262e-02   [2.142e-02,  0.179]
-beta[1]        0.8800  3.172e-02     27.743 2.106e-169     [  0.818,  0.942]
-============================================================================
+mu         -3.4515e-04  6.867e-03 -5.026e-02      0.960 [-1.380e-02,1.311e-02]
+                               Volatility Model                              
+=============================================================================
+                 coef    std err          t      P>|t|       95.0% Conf. Int.
+-----------------------------------------------------------------------------
+omega      7.6605e-03  9.250e-03      0.828      0.408 [-1.047e-02,2.579e-02]
+alpha[1]   1.8031e-10  3.115e-03  5.789e-08      1.000 [-6.105e-03,6.105e-03]
+beta[1]        0.9326  7.913e-02     11.786  4.593e-32      [  0.778,  1.088]
+=============================================================================
 
 Covariance estimator: robust
-WARNING: The optimizer did not indicate successful convergence. The message was Inequality constraints incompatible.
-See convergence_flag.
