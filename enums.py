@@ -32,3 +32,8 @@ class RiskDriverType(Enum):
 
     PnL = 'PnL'
     Return = 'Return'
+
+class FactorSourceType(Enum):
+
+    Constructed = 'Constructed'
+    Exogenous = 'Exogenous'

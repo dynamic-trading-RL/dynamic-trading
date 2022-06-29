@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 
-from enums import FactorDefinitionType, RiskDriverType
+from enums import FactorDefinitionType, RiskDriverType, FactorSourceType
 
 
 class FinancialTimeSeries:
@@ -47,6 +47,11 @@ class FinancialTimeSeries:
                 raise NameError('financialTimeSeries was instantiated without window, therefore window must be '
                                 + 'written in time-series-info.csv')
 
+        if self.info.loc['factorSourceType'] == FactorSourceType.Exogenous.value:
+
+            if self.info.loc['factor_ticker'] == '':
+                raise NameError('User specified factorSourceType = Exogenous but has not provided a factor_ticker')
+
     def _set_asset_time_series(self, max_len: int, in_sample_proportion: float):
 
         if self.ticker in get_available_futures_tickers():
@@ -59,7 +64,7 @@ class FinancialTimeSeries:
 
             import yfinance as yf
 
-            end_date = '2021-12-31'
+            end_date = '2022-05-23'
             time_series = yf.download(self.ticker, end=end_date)['Adj Close'].to_frame()
 
         time_series.index = pd.to_datetime(time_series.index)
@@ -91,17 +96,26 @@ class FinancialTimeSeries:
 
     def _set_factor(self):
 
-        x = self.time_series['risk-driver']
+        if self.info.loc['factorSourceType'] == FactorSourceType.Constructed.value:
 
-        if self.factorDefinitionType == FactorDefinitionType.MovingAverage:
-            self.time_series['factor'] = x.rolling(self.window).mean()
+            x = self.time_series['risk-driver']
 
-        elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
-            all_stds = x.rolling(self.window).std()
-            lower_bound = all_stds.quantile(0.1)
-            den = x.rolling(self.window).std()
-            den[den < lower_bound] = lower_bound
-            self.time_series['factor'] = x.rolling(self.window).mean() / den
+            if self.factorDefinitionType == FactorDefinitionType.MovingAverage:
+                self.time_series['factor'] = x.rolling(self.window).mean()
+
+            elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
+                all_stds = x.rolling(self.window).std()
+                lower_bound = all_stds.quantile(0.1)
+                den = x.rolling(self.window).std()
+                den[den < lower_bound] = lower_bound
+                self.time_series['factor'] = x.rolling(self.window).mean() / den
+
+        elif self.info.loc['factorSourceType'] == FactorSourceType.Exogenous.value:
+
+            pass
+
+        else:
+            raise NameError('factorSourceType not correctly specified')
 
     def _set_info(self):
 
