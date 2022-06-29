@@ -312,6 +312,8 @@ class BackTester(Tester):
 
 class SimulationTester(Tester):
 
+    # TODO: Finalize implementation of this class
+
     def __init__(self, ticker: str):
 
         super().__init__(ticker)
