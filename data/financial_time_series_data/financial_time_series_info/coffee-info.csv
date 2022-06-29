@@ -1,9 +1,0 @@
-,info
-ticker,coffee
-end_date,2018-01-29 00:00:00
-start_price,1751.0
-len,3667
-out_of_sample_proportion_len,1575
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage

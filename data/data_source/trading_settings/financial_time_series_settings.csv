@@ -4,5 +4,5 @@ riskDriverType,PnL
 factorDefinitionType,StdMovingAverage
 window,5
 in_sample_proportion,0.8
-factorSourceType,Exogenous
-factor_ticker,SP500
+factorSourceType,Constructed
+factor_ticker,

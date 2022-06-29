@@ -1,9 +1,0 @@
-,info
-ticker,gold
-end_date,2018-01-29 00:00:00
-start_price,43.54
-len,3669
-out_of_sample_proportion_len,1576
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage

@@ -1,9 +1,0 @@
-,info
-ticker,copper
-end_date,2019-03-07 00:00:00
-start_price,6442.0
-len,2732
-out_of_sample_proportion_len,1173
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage

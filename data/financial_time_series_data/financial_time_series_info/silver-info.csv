@@ -1,9 +1,0 @@
-,info
-ticker,silver
-end_date,2019-05-19 00:00:00
-start_price,510
-len,2561
-out_of_sample_proportion_len,1101
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage

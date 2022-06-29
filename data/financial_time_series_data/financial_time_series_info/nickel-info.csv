@@ -1,9 +1,0 @@
-,info
-ticker,nickel
-end_date,2020-03-30 00:00:00
-start_price,13036.3733693968
-len,1826
-out_of_sample_proportion_len,785
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage
