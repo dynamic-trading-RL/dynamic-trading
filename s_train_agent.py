@@ -23,7 +23,7 @@ if __name__ == '__main__':
                                 factorType=factorType,
                                 shares_scale=shares_scale)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
-                       n_cores=n_cores, eps_start=0.10)
+                       n_cores=n_cores, eps_start=0.01)
 
     agentTrainer.agent.dump_q_value_models()
 
