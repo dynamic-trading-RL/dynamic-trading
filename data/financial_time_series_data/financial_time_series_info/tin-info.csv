@@ -1,9 +1,0 @@
-,info
-ticker,tin
-end_date,2020-09-23 00:00:00
-start_price,-0.0062
-len,2411
-out_of_sample_proportion_len,604
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage

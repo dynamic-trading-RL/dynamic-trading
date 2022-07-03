@@ -1,9 +1,0 @@
-,info
-ticker,cocoa
-end_date,2018-05-23 00:00:00
-start_price,2511.71108649522
-len,5839
-out_of_sample_proportion_len,1461
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage

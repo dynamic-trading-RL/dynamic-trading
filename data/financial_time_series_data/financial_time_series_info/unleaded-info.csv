@@ -1,9 +1,0 @@
-,info
-ticker,unleaded
-end_date,2019-01-24 00:00:00
-start_price,1.3876
-len,4857
-out_of_sample_proportion_len,1216
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage
