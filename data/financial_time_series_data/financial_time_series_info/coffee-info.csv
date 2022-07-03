@@ -1,9 +1,0 @@
-,info
-ticker,coffee
-end_date,2019-07-08 00:00:00
-start_price,1390.0
-len,4192
-out_of_sample_proportion_len,1050
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage

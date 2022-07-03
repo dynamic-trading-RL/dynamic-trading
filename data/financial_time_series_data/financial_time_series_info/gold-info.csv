@@ -1,9 +1,0 @@
-,info
-ticker,gold
-end_date,2019-07-09 00:00:00
-start_price,45.71
-len,4195
-out_of_sample_proportion_len,1050
-window,5
-riskDriverType,PnL
-factorDefinitionType,StdMovingAverage
