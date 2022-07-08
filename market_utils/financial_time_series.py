@@ -20,7 +20,7 @@ class FinancialTimeSeries:
         self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
         self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
         self.window = int(self.info.loc['window'][0])
-        self._set_asset_time_series(int(self.info.loc['max_len'][0]), float(self.info.loc['in_sample_proportion'][0]))
+        self._set_asset_time_series(self.info.loc['start_date'][0], float(self.info.loc['in_sample_proportion'][0]))
         self._set_risk_driver_time_series()
         self._set_factor()
         self.time_series.dropna(inplace=True)
@@ -52,7 +52,7 @@ class FinancialTimeSeries:
             if self.info.loc['factor_ticker'].item() == '':
                 raise NameError('User specified factorSourceType = Exogenous but has not provided a factor_ticker')
 
-    def _set_asset_time_series(self, max_len: int, in_sample_proportion: float):
+    def _set_asset_time_series(self, start_date: str, in_sample_proportion: float):
 
         if self.ticker in get_available_futures_tickers():
 
@@ -67,22 +67,25 @@ class FinancialTimeSeries:
             end_date = '2022-05-23'
             time_series = yf.download(self.ticker, end=end_date)['Adj Close'].to_frame()
 
+        start_date = pd.to_datetime(start_date)
+        time_series = time_series.loc[time_series.index >= start_date]
+
         time_series.index = pd.to_datetime(time_series.index)
+
         first_valid_loc = time_series.first_valid_index()
         last_valid_loc = time_series.last_valid_index()
         date_range = pd.date_range(first_valid_loc, last_valid_loc)
         time_series = time_series.reindex(date_range, method='pad')
+        self._start_date = time_series.index[0]
 
         time_series.columns = [self.ticker]
 
-        if max_len > len(time_series):
-            max_len = len(time_series)
-
-        self._time_series_len = max_len
+        self._time_series_len = len(time_series)
         self._in_sample_proportion_len = int(self._time_series_len * in_sample_proportion)
-        self._out_of_sample_proportion_len = max_len - self._in_sample_proportion_len
+        self._out_of_sample_proportion_len = self._time_series_len - self._in_sample_proportion_len
 
-        self.time_series = time_series.iloc[-max_len: -max_len + self._in_sample_proportion_len]
+        self.time_series =\
+            time_series.iloc[-self._time_series_len: -self._time_series_len + self._in_sample_proportion_len]
         self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
 
     def _set_risk_driver_time_series(self):
