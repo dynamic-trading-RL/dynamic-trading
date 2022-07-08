@@ -68,7 +68,7 @@ class AgentTrainer:
 
         self._check_n(n)
 
-        self.market.simulate_market_trading(n, self.j_episodes, self.t_)  # should go to dedicated method
+        self.market.simulate_market_trading(n, self.j_episodes, self.t_)  # TODO: should go to dedicated method
 
         self.state_action_grid_dict[n] = {}
         self.q_grid_dict[n] = {}
@@ -82,7 +82,7 @@ class AgentTrainer:
 
             self._create_batch_sequential(eps, n)
 
-        self._fit_supervised_regressor(n)  # should go to dedicated method
+        self._fit_supervised_regressor(n)  # TODO: should go to dedicated method
 
         del self.market.simulations_trading[n]
 
