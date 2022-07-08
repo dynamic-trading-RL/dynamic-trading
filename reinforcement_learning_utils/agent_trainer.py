@@ -99,14 +99,22 @@ class AgentTrainer:
         generate_single_episode = partial(self._generate_single_episode, n=n, eps=eps)
 
         p = mp.Pool(n_cores)
+
+        # TODO: define once and for all which of these three approaches is fastest
+        # 1:
         episodes = list(tqdm(p.imap_unordered(func=generate_single_episode,
                                               iterable=range(self.j_episodes),
                                               chunksize=int(self.j_episodes/n_cores)),
                              total=self.j_episodes))
+
+        # 2:
         # episodes = list(p.imap_unordered(func=generate_single_episode,
         #                                  iterable=range(self.j_episodes),
         #                                  chunksize=int(self.j_episodes/n_cores)))
+
+        # 3:
         # episodes = p.map(generate_single_episode, range(self.j_episodes))
+
         p.close()
         p.join()
 
