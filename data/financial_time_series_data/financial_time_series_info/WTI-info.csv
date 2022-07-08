@@ -1,9 +1,9 @@
 ,info
 ticker,WTI
-end_date,2016-05-22 00:00:00
-start_price,47.75
-len,5108
-out_of_sample_proportion_len,2192
+end_date,2016-11-15 00:00:00
+start_price,45.81
+len,4694
+out_of_sample_proportion_len,2015
 window,5
 riskDriverType,PnL
-factorDefinitionType,StdMovingAverage
+factorDefinitionType,MovingAverage

@@ -9,8 +9,8 @@ in_sample_proportion,0.7
 j_episodes,10000
 kappa,0.001
 lam,0.015
-max_len,8000
-n_batches,3
+start_date,'2004-01-01'
+n_batches,2
 n_cores,20
 parallel_computing,Yes
 riskDriverDynamicsType,Linear
