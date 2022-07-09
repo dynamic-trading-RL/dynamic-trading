@@ -5,12 +5,12 @@ factorDynamicsType,AR
 factorSourceType,Constructed
 factorType,Observable
 gamma,0.9999
-in_sample_proportion,0.7
+in_sample_proportion,0.9
 j_episodes,15000
 kappa,0.001
 lam,0.015
 start_date,'2004-01-01'
-n_batches,7
+n_batches,4
 n_cores,20
 parallel_computing,Yes
 riskDriverDynamicsType,Linear
