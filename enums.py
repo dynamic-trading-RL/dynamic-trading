@@ -37,3 +37,8 @@ class FactorSourceType(Enum):
 
     Constructed = 'Constructed'
     Exogenous = 'Exogenous'
+
+class ModeType(Enum):
+
+    InSample = 'InSample'
+    OutOfSample = 'OutOfSample'

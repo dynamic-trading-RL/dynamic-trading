@@ -2,25 +2,28 @@ import pandas as pd
 import os
 import numpy as np
 
-from enums import FactorDefinitionType, RiskDriverType, FactorSourceType
+from enums import FactorDefinitionType, RiskDriverType, FactorSourceType, ModeType
 
 
 class FinancialTimeSeries:
 
-    def __init__(self, ticker: str, window: int = None):
+    def __init__(self, ticker: str, window: int = None, modeType: ModeType = ModeType.InSample):
 
         self.ticker = ticker
-        self._set_time_series(window)
+        self._set_time_series(window, modeType)
 
-    def _set_time_series(self, window: int):
+    def _set_time_series(self, window: int, modeType: ModeType):
+
+        self.modeType = modeType
+
         # if window is None, then it is taken from financial_time_series_setting.csv
-
         self._set_settings_from_file(window)
 
         self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
         self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
         self.window = int(self.info.loc['window'][0])
-        self._set_asset_time_series(self.info.loc['start_date'][0], float(self.info.loc['in_sample_proportion'][0]))
+        self._set_asset_time_series(start_date=self.info.loc['start_date'][0],
+                                    in_sample_proportion=float(self.info.loc['in_sample_proportion'][0]))
         self._set_risk_driver_time_series()
         self._set_factor()
         self.time_series.dropna(inplace=True)
@@ -84,8 +87,15 @@ class FinancialTimeSeries:
         self._in_sample_proportion_len = int(self._time_series_len * in_sample_proportion)
         self._out_of_sample_proportion_len = self._time_series_len - self._in_sample_proportion_len
 
-        self.time_series =\
-            time_series.iloc[-self._time_series_len: -self._time_series_len + self._in_sample_proportion_len]
+        if self.modeType == ModeType.InSample:
+            self.time_series =\
+                time_series.iloc[-self._time_series_len: -self._time_series_len + self._in_sample_proportion_len]
+        elif self.modeType == ModeType.OutOfSample:
+            self.time_series =\
+                time_series.iloc[-self._out_of_sample_proportion_len:]
+        else:
+            raise NameError(f'Invalid modeType: {self.modeType.value}')
+
         self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
 
     def _set_risk_driver_time_series(self):

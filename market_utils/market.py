@@ -5,7 +5,7 @@ import pandas as pd
 import os
 
 from market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType, ModeType
 from market_utils.financial_time_series import FinancialTimeSeries
 
 
@@ -357,10 +357,11 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
                        factorDynamicsType: FactorDynamicsType,
                        ticker: str,
                        riskDriverType: RiskDriverType,
-                       factorType: FactorType = FactorType.Observable):
+                       factorType: FactorType = FactorType.Observable,
+                       modeType: ModeType = ModeType.InSample):
 
     # Instantiate financialTimeSeries
-    financialTimeSeries = FinancialTimeSeries(ticker)
+    financialTimeSeries = FinancialTimeSeries(ticker, modeType=modeType)
 
     # Instantiate dynamics
     riskDriverDynamics = RiskDriverDynamics(riskDriverDynamicsType)

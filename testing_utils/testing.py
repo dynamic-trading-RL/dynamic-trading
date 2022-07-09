@@ -12,7 +12,7 @@ from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.agent_trainer import read_trading_parameters_training
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType, ModeType
 
 
 class Tester:
@@ -47,7 +47,8 @@ class Tester:
                                               factorDynamicsType=FactorDynamicsType.AR,
                                               ticker=self._ticker,
                                               riskDriverType=RiskDriverType.PnL,
-                                              factorType=FactorType.Observable)
+                                              factorType=FactorType.Observable,
+                                              modeType=ModeType.OutOfSample)
 
         agentMarkowitz = AgentMarkowitz(market_benchmark)
         agentGP = AgentGP(market_benchmark)
@@ -57,7 +58,8 @@ class Tester:
                                     factorDynamicsType=self._factorDynamicsType,
                                     ticker=self._ticker,
                                     riskDriverType=self._riskDriverType,
-                                    factorType=self._factorType)
+                                    factorType=self._factorType,
+                                    modeType=ModeType.OutOfSample)
         environment = Environment(market)
         agentRL = Agent(environment)
         agentRL.load_q_value_models(self._n_batches)
