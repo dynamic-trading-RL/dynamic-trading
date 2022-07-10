@@ -7,7 +7,7 @@ Distribution:                  Normal   AIC:                           3207.41
 Method:            Maximum Likelihood   BIC:                           3240.94
                                         No. Observations:                 6036
 Date:                Sun, Jul 10 2022   Df Residuals:                     6035
-Time:                        10:10:36   Df Model:                            1
+Time:                        10:20:15   Df Model:                            1
                                   Mean Model                                  
 ==============================================================================
                   coef    std err          t      P>|t|       95.0% Conf. Int.
