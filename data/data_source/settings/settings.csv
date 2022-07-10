@@ -1,6 +1,6 @@
 field,value
 factor_ticker,
-factorDefinitionType,StdMovingAverage
+factorDefinitionType,MovingAverage
 factorDynamicsType,AR
 factorSourceType,Constructed
 factorType,Observable
