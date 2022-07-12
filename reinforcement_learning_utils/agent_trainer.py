@@ -134,6 +134,7 @@ class AgentTrainer:
 
         self._check_j(j)
         reward_RL_j = 0.
+        reward_GP_j = 0.
 
         # Initialize grid for supervised regressor interpolation
         state_action_grid = []
@@ -148,14 +149,14 @@ class AgentTrainer:
         for t in range(1, self.t_):
 
             # Observe reward_RL and state at time t
-            reward, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
-            reward_RL_j += reward
+            reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
+            reward_RL_j += reward_RL
 
             # Choose action at time t
             next_action = self.agent.policy(state=next_state, eps=eps)
 
             # Observe next point on value function grid
-            q = self._sarsa_updating_formula(next_state=next_state, next_action=next_action, reward=reward)
+            q = self._sarsa_updating_formula(next_state=next_state, next_action=next_action, reward=reward_RL)
 
             # Store point estimate
             state_action_grid.append([state, action])
@@ -169,9 +170,9 @@ class AgentTrainer:
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        reward, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
+        reward_RL, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
 
-        return reward, next_state
+        return reward_RL, next_state
 
     def _sarsa_updating_formula(self, next_state: State, next_action: Action, reward: float):
 
