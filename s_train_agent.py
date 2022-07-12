@@ -13,6 +13,7 @@ if __name__ == '__main__':
     np.random.seed(789)
 
     # -------------------- Input parameters
+    train_using_GP = True
     # Market parameters
     ticker = 'WTI'
     riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = read_trading_parameters_market(ticker)
@@ -26,7 +27,8 @@ if __name__ == '__main__':
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
                                 factorType=factorType,
-                                shares_scale=shares_scale)
+                                shares_scale=shares_scale,
+                                train_using_GP=train_using_GP)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=0.01)
 
