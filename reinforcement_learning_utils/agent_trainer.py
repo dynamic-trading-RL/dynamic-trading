@@ -173,6 +173,9 @@ class AgentTrainer:
 
             if self._train_using_GP:  # if reward_GP > reward_RL, choose GP action
 
+                # TODO: think about this: if the agent always chooses the action that is at least optimal (in GP sense)
+                # then it is likely that it will never learn by making mistakes
+
                 if reward_GP > reward_RL:
                     action = action_GP
                     reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j,
