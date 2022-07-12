@@ -54,7 +54,7 @@ class AgentTrainer:
 
         self.state_action_grid_dict = {}
         self.q_grid_dict = {}
-        self.reward = {}
+        self.reward_RL = {}
 
         eps = eps_start
 
@@ -72,7 +72,7 @@ class AgentTrainer:
 
         self.state_action_grid_dict[n] = {}
         self.q_grid_dict[n] = {}
-        self.reward[n] = 0.
+        self.reward_RL[n] = 0.
 
         if parallel_computing:
 
@@ -86,13 +86,13 @@ class AgentTrainer:
 
         del self.market.simulations_trading[n]
 
-        print(f'Reward for batch {n+1}: {self.reward[n]} \n')
+        print(f'Reward for batch {n+1}: {self.reward_RL[n]} \n')
 
     def _create_batch_sequential(self, eps, n):
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
-            state_action_grid, q_grid, reward_j = self._generate_single_episode(j, n, eps)
+            state_action_grid, q_grid, reward_RL_j = self._generate_single_episode(j, n, eps)
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
-            self.reward[n] += reward_j
+            self.reward_RL[n] += reward_RL_j
 
     def _create_batch_parallel(self, eps, n, n_cores):
         print('Creating batch %d of %d.' % (n + 1, self.n_batches))
@@ -121,9 +121,9 @@ class AgentTrainer:
         for j in range(len(episodes)):
             state_action_grid_j = episodes[j][0]
             q_grid_j = episodes[j][1]
-            reward_j = episodes[j][2]
+            reward_RL_j = episodes[j][2]
             self._store_grids_in_dict(j, n, q_grid_j, state_action_grid_j)
-            self.reward[n] += reward_j
+            self.reward_RL[n] += reward_RL_j
 
     def _store_grids_in_dict(self, j, n, q_grid, state_action_grid):
 
@@ -133,7 +133,7 @@ class AgentTrainer:
     def _generate_single_episode(self, j: int, n: int, eps: float):
 
         self._check_j(j)
-        reward_j = 0.
+        reward_RL_j = 0.
 
         # Initialize grid for supervised regressor interpolation
         state_action_grid = []
@@ -147,9 +147,9 @@ class AgentTrainer:
 
         for t in range(1, self.t_):
 
-            # Observe reward and state at time t
+            # Observe reward_RL and state at time t
             reward, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
-            reward_j += reward
+            reward_RL_j += reward
 
             # Choose action at time t
             next_action = self.agent.policy(state=next_state, eps=eps)
@@ -165,7 +165,7 @@ class AgentTrainer:
             state = next_state
             action = next_action
 
-        return state_action_grid, q_grid, reward_j
+        return state_action_grid, q_grid, reward_RL_j
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
