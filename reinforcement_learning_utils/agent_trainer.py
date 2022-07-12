@@ -55,6 +55,7 @@ class AgentTrainer:
         self.state_action_grid_dict = {}
         self.q_grid_dict = {}
         self.reward_RL = {}
+        # TODO: initialize also self.reward_GP = {}
 
         eps = eps_start
 
@@ -73,6 +74,7 @@ class AgentTrainer:
         self.state_action_grid_dict[n] = {}
         self.q_grid_dict[n] = {}
         self.reward_RL[n] = 0.
+        # TODO: compute also self.reward_GP[n] = 0.
 
         if parallel_computing:
 
@@ -87,12 +89,14 @@ class AgentTrainer:
         del self.market.simulations_trading[n]
 
         print(f'Reward for batch {n+1}: {self.reward_RL[n]} \n')
+        # TODO: print(f'GP reward for batch {n+1}: {self.reward_GP[n]} \n')
 
     def _create_batch_sequential(self, eps, n):
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
-            state_action_grid, q_grid, reward_RL_j = self._generate_single_episode(j, n, eps)
+            state_action_grid, q_grid, reward_RL_j = self._generate_single_episode(j, n, eps)  # TODO: return also reward_GP_j
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
             self.reward_RL[n] += reward_RL_j
+            # TODO: self.reward_GP[n] += reward_GP_j
 
     def _create_batch_parallel(self, eps, n, n_cores):
         print('Creating batch %d of %d.' % (n + 1, self.n_batches))
@@ -122,8 +126,10 @@ class AgentTrainer:
             state_action_grid_j = episodes[j][0]
             q_grid_j = episodes[j][1]
             reward_RL_j = episodes[j][2]
+            # TODO: unpack also reward_GP_j = episodes[j][3]
             self._store_grids_in_dict(j, n, q_grid_j, state_action_grid_j)
             self.reward_RL[n] += reward_RL_j
+            # TODO: add self.reward_GP[n] += reward_GP_j
 
     def _store_grids_in_dict(self, j, n, q_grid, state_action_grid):
 
@@ -150,7 +156,16 @@ class AgentTrainer:
 
             # Observe reward_RL and state at time t
             reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
+
+            # TODO:
+            # 1. compute action_GP for state
+            # 2. compute reward_GP for state and action_GP
+            # 3. if reward_GP > reward_RL, then
+            #    a. action = action_GP
+            #    b. reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
+
             reward_RL_j += reward_RL
+            # TODO: add reward_GP_j += reward_GP
 
             # Choose action at time t
             next_action = self.agent.policy(state=next_state, eps=eps)
@@ -166,13 +181,13 @@ class AgentTrainer:
             state = next_state
             action = next_action
 
-        return state_action_grid, q_grid, reward_RL_j
+        return state_action_grid, q_grid, reward_RL_j  # TODO: return also reward_GP_j
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        reward_RL, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
+        reward, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
 
-        return reward_RL, next_state
+        return reward, next_state
 
     def _sarsa_updating_formula(self, next_state: State, next_action: Action, reward: float):
 
