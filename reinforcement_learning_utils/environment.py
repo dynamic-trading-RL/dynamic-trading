@@ -14,10 +14,10 @@ class Environment:
 
     def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int):
 
-        reward = self._compute_reward(state=state, action=action)
+        reward_RL = self._compute_reward(state=state, action=action)
         next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
 
-        return reward, next_state
+        return reward_RL, next_state
 
     def instantiate_initial_state_trading(self, n: int, j: int, shares_scale: float = 1):
 
