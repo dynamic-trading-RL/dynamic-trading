@@ -13,8 +13,8 @@ if __name__ == '__main__':
     np.random.seed(789)
 
     # -------------------- Input parameters
-    compare_to_GP = False
-    train_using_GP = False
+    compare_to_GP = True
+    train_using_GP = True
     plot_regressor = True
     # Market parameters
     ticker = 'WTI'
