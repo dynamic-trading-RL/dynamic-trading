@@ -1,0 +1,9 @@
+,info
+ticker,zinc
+end_date,2020-11-16 00:00:00
+start_price,3076.86465137476
+len,4980
+out_of_sample_proportion_len,554
+window,5
+riskDriverType,PnL
+factorDefinitionType,StdMovingAverage

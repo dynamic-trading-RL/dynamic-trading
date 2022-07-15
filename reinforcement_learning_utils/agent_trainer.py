@@ -1,4 +1,6 @@
 import os
+
+import matplotlib.pyplot as plt
 import pandas as pd
 
 import numpy as np
@@ -22,9 +24,17 @@ class AgentTrainer:
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
                  factorType: FactorType = FactorType.Observable,
-                 train_using_GP: bool = True):
+                 compare_to_GP: bool = True,
+                 train_using_GP: bool = True,
+                 plot_regressor: bool = True):
 
+        if train_using_GP and not compare_to_GP:
+            print('Warning! You set train_using_GP = True but compare_to_GP = False. Forcing compare_to_GP = True.')
+            compare_to_GP = True
+
+        self._compare_to_GP = compare_to_GP
         self._train_using_GP = train_using_GP
+        self._plot_regressor = plot_regressor
 
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
@@ -171,12 +181,13 @@ class AgentTrainer:
 
             action_GP, reward_GP = self._get_reward_action_GP(j, n, state, t)
 
-            if self._train_using_GP:  # if reward_GP > reward_RL, choose GP action
+            if self._train_using_GP:
 
-                # TODO: think about this: if the agent always chooses the action that is at least optimal (in GP sense)
-                # then it is likely that it will never learn by making mistakes
+                if reward_GP > reward_RL: # if reward_GP > reward_RL, choose GP action
 
-                if reward_GP > reward_RL:
+                    # TODO: think about this: if the agent always chooses the action that is at least optimal (in GP sense)
+                    #  then it is likely that it will never learn by making mistakes
+
                     action = action_GP
                     reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j,
                                                                                 t=t)
@@ -201,16 +212,22 @@ class AgentTrainer:
         return state_action_grid, q_grid, reward_RL_j, reward_GP_j
 
     def _get_reward_action_GP(self, j, n, state, t):
-        # compute action_GP for state
-        rescaled_trade_GP = self.agent_GP.policy(current_factor=state.current_factor,
-                                                 current_rescaled_shares=state.current_rescaled_shares,
-                                                 shares_scale=self.shares_scale,
-                                                 price=state.current_price)
-        action_GP = Action()
-        action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
-                                         shares_scale=self.shares_scale)
-        # compute reward_GP for state and action_GP
-        reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
+
+        if self._compare_to_GP:
+            # compute action_GP for state
+            rescaled_trade_GP = self.agent_GP.policy(current_factor=state.current_factor,
+                                                     current_rescaled_shares=state.current_rescaled_shares,
+                                                     shares_scale=self.shares_scale,
+                                                     price=state.current_price)
+            action_GP = Action()
+            action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
+                                             shares_scale=self.shares_scale)
+            # compute reward_GP for state and action_GP
+            reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
+
+        else:
+            action_GP, reward_GP = None, np.nan
+
         return action_GP, reward_GP
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
@@ -231,32 +248,119 @@ class AgentTrainer:
 
         x_array, y_array = self._prepare_data_for_supervised_regressor_fit(n)
 
-        model = self._set_and_fit_supervised_regressor_model(x_array, y_array)
+        model = self._set_and_fit_supervised_regressor_model(x_array, y_array, n)
 
         self.agent.update_q_value_models(q_value_model=model)
 
-    def _set_and_fit_supervised_regressor_model(self, x_array, y_array):
-        alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change = self._set_supervised_regressor_parameters()
-        model = self._fit_supervised_regressor_model(alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, x_array,
-                                                     y_array)
+    def _set_and_fit_supervised_regressor_model(self, x_array, y_array, n):
+        alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction =\
+            self._set_supervised_regressor_parameters()
+        model = self._fit_supervised_regressor_model(alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change,
+                                                     early_stopping, validation_fraction, x_array, y_array, n)
         return model
 
-    def _fit_supervised_regressor_model(self, alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, x_array,
-                                        y_array):
+    def _fit_supervised_regressor_model(self, alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping,
+                                        validation_fraction, x_array, y_array, n):
         model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
                              alpha=alpha_ann,
                              max_iter=max_iter,
                              n_iter_no_change=n_iter_no_change,
+                             early_stopping=early_stopping,
+                             validation_fraction=validation_fraction,
                              activation='relu',
                              verbose=1).fit(x_array, y_array)
+
+        if self._plot_regressor:
+
+            self._make_regressor_plots(model, n, x_array, y_array)
+
         return model
 
+    def _make_regressor_plots(self, model, n, x_array, y_array):
+
+        low_quant = 0.01
+        high_quant = 0.99
+
+        # TODO: generalize to non-observable factors
+        q_predicted = model.predict(x_array)
+        current_factor_array = x_array[:, 0]
+        current_rescaled_shares_array = x_array[:, 1]
+        rescaled_trade_array = x_array[:, 2]
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+
+        ax1 = plt.subplot2grid((2, 2), (0, 0))
+        xlim = [np.quantile(y_array, low_quant), np.quantile(y_array, 0.95)]
+        ylim = [np.quantile(q_predicted, low_quant), np.quantile(q_predicted, 0.95)]
+        plt.scatter(y_array, q_predicted, s=1)
+        plt.plot(xlim, ylim, label='45° line', color='r')
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.xlabel('Realized q')
+        plt.ylabel('Predicted q')
+        plt.legend()
+        plt.title('Realized vs predicted q')
+
+        ax2 = plt.subplot2grid((2, 2), (0, 1))
+        plt.plot(current_factor_array, y_array, '.', markersize=5, alpha=0.5, color='b')
+        plt.plot(current_factor_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+        xlim = [np.quantile(current_factor_array, low_quant), np.quantile(current_factor_array, high_quant)]
+        ylim = [min(np.quantile(y_array, low_quant), np.quantile(q_predicted, low_quant)),
+                max(np.quantile(y_array, high_quant), np.quantile(q_predicted, high_quant))]
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.xlabel('Current factor')
+        plt.ylabel('q')
+        plt.title('Realized (blue) / predicted (red) q')
+
+        ax3 = plt.subplot2grid((2, 2), (1, 0))
+        plt.plot(current_rescaled_shares_array, y_array, '.', markersize=5, alpha=0.5, color='b')
+        plt.plot(current_rescaled_shares_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+        xlim = [np.quantile(current_rescaled_shares_array, low_quant),
+                np.quantile(current_rescaled_shares_array, high_quant)]
+        ylim = [min(np.quantile(y_array, low_quant), np.quantile(q_predicted, low_quant)),
+                max(np.quantile(y_array, high_quant), np.quantile(q_predicted, high_quant))]
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.xlabel('Current rescaled shares')
+        plt.ylabel('q')
+        plt.title('Realized (blue) / predicted (red) q')
+
+        ax4 = plt.subplot2grid((2, 2), (1, 1))
+        plt.plot(rescaled_trade_array, y_array, '.', markersize=5, alpha=0.5, color='b')
+        plt.plot(rescaled_trade_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+        xlim = [np.quantile(rescaled_trade_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
+        ylim = [min(np.quantile(y_array, low_quant), np.quantile(q_predicted, low_quant)),
+                max(np.quantile(y_array, high_quant), np.quantile(q_predicted, high_quant))]
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.xlabel('Rescaled trade')
+        plt.ylabel('q')
+        plt.title('Realized (blue) / predicted (red) q')
+
+        plt.tight_layout()
+
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/figures/training/training_batch_%d.png' % n
+        plt.savefig(filename)
+
     def _set_supervised_regressor_parameters(self):
-        hidden_layer_sizes = (64, 32, 8)
-        max_iter = 10
-        n_iter_no_change = 5
+
+        # hidden_layer_sizes = (64, 32, 8)
+        # max_iter = 10
+        # n_iter_no_change = 5
+        # alpha_ann = 0.0001
+        # early_stopping = False
+        # validation_fraction = 0.1
+
+        hidden_layer_sizes = (100,)
+        max_iter = 200
+        n_iter_no_change = 10
         alpha_ann = 0.0001
-        return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change
+        early_stopping = True
+        validation_fraction = 0.1
+
+        return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction
 
     def _prepare_data_for_supervised_regressor_fit(self, n):
         x_grid = []

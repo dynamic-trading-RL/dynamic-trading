@@ -153,7 +153,7 @@ class BackTester(Tester):
 
             current_rescaled_shares = 0.
 
-            for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy.'):
+            for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy'):
 
                 i_loc = dates.get_loc(date)
                 next_date = dates[i_loc + 1]
@@ -210,7 +210,9 @@ class BackTester(Tester):
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
 
     def _plot_shares(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
             plt.plot(self._factor_pnl_and_price.index[:-1], self._strategy_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
@@ -222,7 +224,9 @@ class BackTester(Tester):
                     + '-backtesting-shares.png')
 
     def _plot_value(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
             plt.plot(self._factor_pnl_and_price.index[:-1], self._cum_value_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
@@ -234,7 +238,9 @@ class BackTester(Tester):
                     + '-backtesting-value.png')
 
     def _plot_cost(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
             plt.plot(self._factor_pnl_and_price.index[:-1], self._cum_cost_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
@@ -246,7 +252,9 @@ class BackTester(Tester):
                     + '-backtesting-cost.png')
 
     def _plot_risk(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
             plt.plot(self._factor_pnl_and_price.index[:-1], self._cum_risk_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
@@ -258,7 +266,9 @@ class BackTester(Tester):
                     + '-backtesting-risk.png')
 
     def _plot_wealth(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
             plt.plot(self._factor_pnl_and_price.index[:-1],
                      self._cum_wealth_all[agent_type],
@@ -271,20 +281,24 @@ class BackTester(Tester):
                     + '-backtesting-wealth.png')
 
     def _plot_wealth_net_risk(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
             plt.plot(self._factor_pnl_and_price.index[:-1],
                      self._cum_wealth_net_risk_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
         plt.title('Wealth net Risk')
         plt.xlabel('Date')
-        plt.ylabel('Wealth net Risk = Value - Cost - Risk [$]')
+        plt.ylabel('Wealth net Risk = Value - Cost - Risk')
         plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
                     + '-backtesting-wealth-net-risk.png')
 
     def _plot_trades_scatter(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         plt.scatter(self._trade_all['GP'], self._trade_all['RL'], s=2, alpha=0.5)
         plt.title('GP vs RL trades')
         plt.xlabel('GP trades [#]')
@@ -300,7 +314,9 @@ class BackTester(Tester):
                     + '-backtesting-trades-scatter.png')
 
     def _plot_sharpe_ratio(self):
-        plt.figure()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         plt.bar(self._sharpe_ratio_all.keys(), self._sharpe_ratio_all.values()),
         plt.xlabel('Agent')
         plt.ylabel('Realized Sharpe ratio (annualized)')
@@ -414,7 +430,7 @@ class SimulationTester(Tester):
             self._cum_wealth_net_risk_all[agent_type] = {}
             self._sharpe_ratio_all[agent_type] = {}
 
-            for j in tqdm(j_index, desc='Computing simulations of ' + agent_type + ' strategy.'):
+            for j in tqdm(j_index, desc='Computing simulations of ' + agent_type + ' strategy'):
 
                 strategy[j] = []
                 trades[j] = []

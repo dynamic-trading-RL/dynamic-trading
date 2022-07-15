@@ -1,0 +1,9 @@
+,info
+ticker,silver
+end_date,2021-05-22 00:00:00
+start_price,891
+len,3295
+out_of_sample_proportion_len,367
+window,5
+riskDriverType,PnL
+factorDefinitionType,StdMovingAverage
