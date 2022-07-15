@@ -1,0 +1,9 @@
+,info
+ticker,lead
+end_date,2021-04-11 00:00:00
+start_price,2260.30951436159
+len,3667
+out_of_sample_proportion_len,408
+window,5
+riskDriverType,PnL
+factorDefinitionType,StdMovingAverage

@@ -434,7 +434,8 @@ class AllSeriesDynamicsCalibrator:
             financialTimeSeries = dynamicsCalibrator.financialTimeSeries
             time_series = financialTimeSeries.time_series[ticker]
 
-            fig = plt.figure()
+            dpi = plt.rcParams['figure.dpi']
+            fig = plt.figure(figsize=(800/dpi, 600/dpi), dpi=dpi)
             plt.plot(time_series, label=ticker)
             plt.title(ticker + ' time series')
             plt.xlabel('Date')
@@ -484,7 +485,9 @@ class AllSeriesDynamicsCalibrator:
 
             s = ticker + ', ' + factorDynamicsType.value
 
-            fig = plt.figure()
+
+            dpi = plt.rcParams['figure.dpi']
+            fig = plt.figure(figsize=(800/dpi, 600/dpi), dpi=dpi)
             ax1 = plt.subplot2grid((2, 1), (0, 0))
             plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
             plt.legend()
@@ -519,7 +522,8 @@ class AllSeriesDynamicsCalibrator:
 
                 s = ticker + ', ' + factorDynamicsType.value
 
-                fig = plt.figure()
+                dpi = plt.rcParams['figure.dpi']
+                fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
                 ax1 = plt.subplot2grid((2, 1), (0, 0))
                 plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
                 plt.legend()

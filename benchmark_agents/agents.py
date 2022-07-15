@@ -196,7 +196,8 @@ if __name__ == '__main__':
         gp_action_list.append(agentGP.policy(current_factor=current_factor,
                                              current_rescaled_shares=current_rescaled_shares))
 
-    fig = plt.figure()
+    dpi = plt.rcParams['figure.dpi']
+    fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
     plt.plot(factor_array, markowitz_action_list, label='Markowitz')
     plt.plot(factor_array, gp_action_list, label='GP')
     plt.legend()
