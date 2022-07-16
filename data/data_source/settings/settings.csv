@@ -6,13 +6,13 @@ factorSourceType,Constructed
 factorType,Observable
 gamma,0.9999
 in_sample_proportion,0.9
-j_episodes,15000
+j_episodes,25000
 kappa,0.001
 lam,0.015
 start_date,'2004-01-01'
-n_batches,4
+n_batches,2
 n_cores,40
-parallel_computing,Yes
+parallel_computing,No
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
 shares_scale,60
