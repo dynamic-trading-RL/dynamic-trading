@@ -111,8 +111,8 @@ class AgentTrainer:
 
         del self.market.simulations_trading[n]
 
-        print(f'Reward for batch {n+1}: {self.reward_RL[n]}')
-        print(f'GP reward for batch {n+1}: {self.reward_GP[n]} \n')
+        print(f'Average RL reward for batch {n+1}: {self.reward_RL[n]}')
+        print(f'Average GP reward for batch {n+1}: {self.reward_GP[n]} \n')
 
     def _create_batch_sequential(self, eps, n):
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
@@ -121,6 +121,9 @@ class AgentTrainer:
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
             self.reward_RL[n] += reward_RL_j
             self.reward_GP[n] += reward_GP_j
+
+        self.reward_RL[n] /= self.j_episodes
+        self.reward_GP[n] /= self.j_episodes
 
     def _create_batch_parallel(self, eps, n, n_cores):
         print('Creating batch %d of %d.' % (n + 1, self.n_batches))
@@ -175,20 +178,18 @@ class AgentTrainer:
 
         # Choose action at t = 0
         action = self.agent.policy(state=state, eps=eps)
+        action_GP = self._get_action_GP(state=state)
 
         for t in range(1, self.t_):
 
             # Observe reward_RL and state at time t
             reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
 
-            action_GP, reward_GP = self._get_reward_action_GP(j, n, state, t)
+            reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=action_GP, t=t)
 
             if self._train_using_GP_reward:
 
-                if reward_GP > reward_RL: # if reward_GP > reward_RL, choose GP action
-
-                    # TODO: think about this: if the agent always chooses the action that is at least optimal (in GP sense)
-                    #  then it is likely that it will never learn by making mistakes
+                if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
                     action = action_GP
                     reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j,
@@ -213,10 +214,10 @@ class AgentTrainer:
 
         return state_action_grid, q_grid, reward_RL_j, reward_GP_j
 
-    def _get_reward_action_GP(self, j, n, state, t):
+    def _get_action_GP(self, state):
 
         if self._compare_to_GP:
-            # compute action_GP for state
+
             rescaled_trade_GP = self.agent_GP.policy(current_factor=state.current_factor,
                                                      current_rescaled_shares=state.current_rescaled_shares,
                                                      shares_scale=self.shares_scale,
@@ -224,13 +225,22 @@ class AgentTrainer:
             action_GP = Action()
             action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
                                              shares_scale=self.shares_scale)
-            # compute reward_GP for state and action_GP
+
+        else:
+            action_GP = None
+
+        return action_GP
+
+    def _get_reward_GP(self, j, n, state, action_GP, t):
+
+        if self._compare_to_GP:
+
             reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
 
         else:
-            action_GP, reward_GP = None, np.nan
+            reward_GP = np.nan
 
-        return action_GP, reward_GP
+        return reward_GP
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
@@ -255,21 +265,22 @@ class AgentTrainer:
         self.agent.update_q_value_models(q_value_model=model)
 
     def _set_and_fit_supervised_regressor_model(self, x_array, y_array, n):
-        alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction =\
+        alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation =\
             self._set_supervised_regressor_parameters()
         model = self._fit_supervised_regressor_model(alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change,
-                                                     early_stopping, validation_fraction, x_array, y_array, n)
+                                                     early_stopping, validation_fraction, activation, x_array, y_array,
+                                                     n)
         return model
 
     def _fit_supervised_regressor_model(self, alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping,
-                                        validation_fraction, x_array, y_array, n):
+                                        validation_fraction, activation, x_array, y_array, n):
         model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
                              alpha=alpha_ann,
                              max_iter=max_iter,
                              n_iter_no_change=n_iter_no_change,
                              early_stopping=early_stopping,
                              validation_fraction=validation_fraction,
-                             activation='relu',
+                             activation=activation,
                              verbose=1).fit(x_array, y_array)
 
         if self._plot_regressor:
@@ -358,7 +369,7 @@ class AgentTrainer:
 
         else:
 
-            hidden_layer_sizes = (32,)
+            hidden_layer_sizes = (64, )
 
         # max_iter = 10
         max_iter = 200
@@ -373,7 +384,9 @@ class AgentTrainer:
 
         validation_fraction = 0.1
 
-        return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction
+        activation = 'relu'
+
+        return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation
 
     def _prepare_data_for_supervised_regressor_fit(self, n):
         x_grid = []
