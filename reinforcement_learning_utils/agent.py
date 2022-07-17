@@ -11,11 +11,12 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 
 class Agent:
 
-    def __init__(self, environment: Environment):
+    def __init__(self, environment: Environment, observe_GP: bool = True):
 
         self.environment = environment
         self._q_value_models = []
         self._set_agent_attributes()
+        self.observe_GP = observe_GP
 
     def policy(self, state: State, eps: float = None):
 
@@ -145,14 +146,33 @@ class Agent:
     def _extract_state_lst_trading(self, state):
 
         if self.environment.factorType == FactorType.Observable:
+
             current_factor = state.current_factor
             current_rescaled_shares = state.current_rescaled_shares
-            state_lst = [current_factor, current_rescaled_shares]
+
+            if self.observe_GP:
+
+                current_action_GP = state.current_action_GP
+                current_rescaled_trade_GP = current_action_GP.rescaled_trade
+                state_lst = [current_factor, current_rescaled_shares, current_rescaled_trade_GP]
+
+            else:
+
+                state_lst = [current_factor, current_rescaled_shares]
 
         elif self.environment.factorType == FactorType.Latent:
+
             current_other_observable = state.current_other_observable
             current_rescaled_shares = state.current_rescaled_shares
-            state_lst = [current_other_observable, current_rescaled_shares]
+
+            if self.observe_GP:
+
+                current_action_GP = state.current_action_GP
+                current_rescaled_trade_GP = current_action_GP.rescaled_trade
+                state_lst = [current_other_observable, current_rescaled_shares, current_rescaled_trade_GP]
+
+            else:
+                state_lst = [current_other_observable, current_rescaled_shares]
 
         else:
             raise NameError('Invalid factorType: ' + self.environment.factorType.value)

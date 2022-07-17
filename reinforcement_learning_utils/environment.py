@@ -1,8 +1,10 @@
 import pandas as pd
 import os
 
+from benchmark_agents.agents import AgentGP
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
 from reinforcement_learning_utils.state_action_utils import Action, State
-from market_utils.market import Market
+from market_utils.market import Market, instantiate_market
 
 
 class Environment:
@@ -12,7 +14,7 @@ class Environment:
         self.market = market
         self._set_attributes()
 
-    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int):
+    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int):  # TODO: add action_GP
 
         reward = self._compute_reward(state=state, action=action)
         next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
@@ -24,13 +26,23 @@ class Environment:
         current_rescaled_shares = 0.
         current_other_observable = 0.
 
-        state = State()
         pnl, factor, price = self._get_market_simulation_trading(n=n, j=j, t=0)
+
+        rescaled_trade_GP = self.agent_GP.policy(current_factor=factor,
+                                                 current_rescaled_shares=current_rescaled_shares,
+                                                 shares_scale=shares_scale,
+                                                 price=price)
+        action_GP = Action()
+        action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
+                                         shares_scale=shares_scale)
+
+        state = State()
         state.set_trading_attributes(current_factor=factor,
                                      current_rescaled_shares=current_rescaled_shares,
                                      current_other_observable=current_other_observable,
                                      shares_scale=shares_scale,
-                                     current_price=price)
+                                     current_price=price,
+                                     action_GP=action_GP)
 
         return state
 
@@ -73,12 +85,21 @@ class Environment:
         next_other_observable = 0.
         next_price = price
 
+        next_rescaled_shares_GP = self.agent_GP.policy(current_factor=factor,
+                                                       current_rescaled_shares=current_rescaled_shares,
+                                                       shares_scale=shares_scale,
+                                                       price=price)
+        next_action_GP = Action()
+        next_action_GP.set_trading_attributes(rescaled_trade=next_rescaled_shares_GP,
+                                              shares_scale=shares_scale)
+
         next_state = State()
         next_state.set_trading_attributes(current_factor=next_factor,
                                           current_rescaled_shares=next_rescaled_shares,
                                           current_other_observable=next_other_observable,
                                           shares_scale=shares_scale,
-                                          current_price=next_price)
+                                          current_price=next_price,
+                                          action_GP=next_action_GP)
 
         return next_state
 
@@ -115,6 +136,13 @@ class Environment:
         self.lam = lam
 
         self.factorType = self.market.factorType
+
+        self.market_benchmark = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
+                                                   factorDynamicsType=FactorDynamicsType.AR,
+                                                   ticker=ticker,
+                                                   riskDriverType=RiskDriverType.PnL,
+                                                   factorType=FactorType.Observable)
+        self.agent_GP = AgentGP(market=self.market_benchmark)
 
     def _get_trading_parameters_from_agent(self, gamma: float, kappa: float):
 
