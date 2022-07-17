@@ -12,7 +12,7 @@ if __name__ == '__main__':
     np.random.seed(789)
 
     # -------------------- Input parameters
-    observe_GP = True
+    observe_GP = True  # TODO: at the moment the code works only if observe_GP = True
     train_using_GP_reward = False
     plot_regressor = True
     large_regressor = False
