@@ -11,7 +11,7 @@ from market_utils.market import read_trading_parameters_market, instantiate_mark
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.agent_trainer import read_trading_parameters_training
 from reinforcement_learning_utils.environment import Environment
-from reinforcement_learning_utils.state_action_utils import State
+from reinforcement_learning_utils.state_action_utils import State, Action
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType, ModeType
 
 
@@ -164,11 +164,19 @@ class BackTester(Tester):
 
                 if agent_type == 'RL':
                     state = State()
+
+                    rescaled_trade_GP = self._agents['GP'].policy(current_factor=factor,
+                                                                  current_rescaled_shares=current_rescaled_shares,
+                                                                  shares_scale=self._shares_scale)
+                    action_GP = Action()
+                    action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP, shares_scale=self._shares_scale)
+
                     state.set_trading_attributes(current_factor=factor,
                                                  current_rescaled_shares=current_rescaled_shares,
                                                  current_other_observable=None,
                                                  shares_scale=self._shares_scale,
-                                                 current_price=None)
+                                                 current_price=price,
+                                                 action_GP=action_GP)
                     action = self._agents[agent_type].policy(state=state)
                     rescaled_trade = action.rescaled_trade
 
@@ -451,11 +459,13 @@ class SimulationTester(Tester):
 
                     if agent_type == 'RL':
                         state = State()
+                        action_GP = None  # TODO: implement
                         state.set_trading_attributes(current_factor=factor,
                                                      current_rescaled_shares=current_rescaled_shares,
                                                      current_other_observable=None,
                                                      shares_scale=self._shares_scale,
-                                                     current_price=None)
+                                                     current_price=price,
+                                                     action_GP=action_GP)
                         action = self._agents[agent_type].policy(state=state)
                         rescaled_trade = action.rescaled_trade
 

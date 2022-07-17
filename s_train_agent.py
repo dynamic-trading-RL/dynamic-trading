@@ -13,7 +13,7 @@ if __name__ == '__main__':
     np.random.seed(789)
 
     # -------------------- Input parameters
-    compute_GP = False
+    observe_GP = True
     train_using_GP_reward = False
     plot_regressor = True
     large_regressor = False
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                                 riskDriverType=riskDriverType,
                                 factorType=factorType,
                                 shares_scale=shares_scale,
-                                compute_GP=compute_GP,
+                                observe_GP=observe_GP,
                                 train_using_GP_reward=train_using_GP_reward,
                                 plot_regressor=plot_regressor,
                                 large_regressor=large_regressor)

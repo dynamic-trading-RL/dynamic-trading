@@ -24,16 +24,15 @@ class AgentTrainer:
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
                  factorType: FactorType = FactorType.Observable,
-                 compute_GP: bool = True,
+                 observe_GP: bool = True,
                  train_using_GP_reward: bool = True,
                  plot_regressor: bool = True,
                  large_regressor: bool = True):
 
-        if train_using_GP_reward and not compute_GP:
-            print('Warning! You set train_using_GP_reward = True but compute_GP = False. Forcing compute_GP = True.')
-            compute_GP = True
+        if train_using_GP_reward and not observe_GP:
+            raise NameError('Cannot train_using_GP_reward if not observe_GP')
 
-        self._compute_GP = compute_GP
+        self.observe_GP = observe_GP
         self._train_using_GP_reward = train_using_GP_reward
         self._plot_regressor = plot_regressor
         self._large_regressor = large_regressor
@@ -43,14 +42,7 @@ class AgentTrainer:
                                          ticker=ticker, riskDriverType=riskDriverType, factorType=factorType)
         self.shares_scale = shares_scale
         self.environment = Environment(market=self.market)
-        self.agent = Agent(self.environment)
-
-        self.market_benchmark = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
-                                                   factorDynamicsType=FactorDynamicsType.AR,
-                                                   ticker=ticker,
-                                                   riskDriverType=RiskDriverType.PnL,
-                                                   factorType=FactorType.Observable)
-        self.agent_GP = AgentGP(market=self.market_benchmark)
+        self.agent = Agent(self.environment, observe_GP=self.observe_GP)
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
               n_cores: int = None):
@@ -115,9 +107,10 @@ class AgentTrainer:
         print(f'Average GP reward for batch {n+1}: {self.reward_GP[n]} \n')
 
     def _create_batch_sequential(self, eps, n):
+
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
-            state_action_grid, q_grid, reward_RL_j, reward_GP_j =\
-                self._generate_single_episode(j, n, eps)
+
+            state_action_grid, q_grid, reward_RL_j, reward_GP_j = self._generate_single_episode(j, n, eps)
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
             self.reward_RL[n] += reward_RL_j
             self.reward_GP[n] += reward_GP_j
@@ -126,6 +119,7 @@ class AgentTrainer:
         self.reward_GP[n] /= self.j_episodes
 
     def _create_batch_parallel(self, eps, n, n_cores):
+
         print('Creating batch %d of %d.' % (n + 1, self.n_batches))
         generate_single_episode = partial(self._generate_single_episode, n=n, eps=eps)
 
@@ -178,20 +172,19 @@ class AgentTrainer:
 
         # Choose action at t = 0
         action = self.agent.policy(state=state, eps=eps)
-        action_GP = self._get_action_GP(state=state)
 
         for t in range(1, self.t_):
 
             # Observe reward_RL and state at time t
             reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
 
-            reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=action_GP, t=t)
+            reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=state.current_action_GP, t=t)
 
             if self._train_using_GP_reward:
 
                 if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
-                    action = action_GP
+                    action = state.current_action_GP
                     reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j,
                                                                                 t=t)
 
@@ -214,31 +207,9 @@ class AgentTrainer:
 
         return state_action_grid, q_grid, reward_RL_j, reward_GP_j
 
-    def _get_action_GP(self, state):
-
-        if self._compute_GP:
-
-            rescaled_trade_GP = self.agent_GP.policy(current_factor=state.current_factor,
-                                                     current_rescaled_shares=state.current_rescaled_shares,
-                                                     shares_scale=self.shares_scale,
-                                                     price=state.current_price)
-            action_GP = Action()
-            action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
-                                             shares_scale=self.shares_scale)
-
-        else:
-            action_GP = None
-
-        return action_GP
-
     def _get_reward_GP(self, j, n, state, action_GP, t):
 
-        if self._compute_GP:
-
-            reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
-
-        else:
-            reward_GP = np.nan
+        reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
 
         return reward_GP
 
@@ -301,12 +272,13 @@ class AgentTrainer:
         q_predicted = model.predict(x_plot)
         current_factor_array = x_plot[:, 0]
         current_rescaled_shares_array = x_plot[:, 1]
-        rescaled_trade_array = x_plot[:, 2]
+        rescaled_trade_GP_array = x_plot[:, 2]
+        rescaled_trade_array = x_plot[:, 3]
 
         dpi = plt.rcParams['figure.dpi']
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+        fig = plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
 
-        ax1 = plt.subplot2grid((2, 2), (0, 0))
+        ax1 = plt.subplot2grid((2, 3), (0, 0), rowspan=2)
         xlim = [np.quantile(y_plot, low_quant), np.quantile(y_plot, 0.95)]
         ylim = [np.quantile(q_predicted, low_quant), np.quantile(q_predicted, 0.95)]
         plt.scatter(y_plot, q_predicted, s=1)
@@ -317,8 +289,9 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
+        plt.axis('equal')
 
-        ax2 = plt.subplot2grid((2, 2), (0, 1))
+        ax2 = plt.subplot2grid((2, 3), (0, 1))
         plt.plot(current_factor_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
         plt.plot(current_factor_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
         xlim = [np.quantile(current_factor_array, low_quant), np.quantile(current_factor_array, high_quant)]
@@ -330,7 +303,7 @@ class AgentTrainer:
         plt.ylabel('q')
         plt.title('Realized (blue) / predicted (red) q')
 
-        ax3 = plt.subplot2grid((2, 2), (1, 0))
+        ax3 = plt.subplot2grid((2, 3), (0, 2))
         plt.plot(current_rescaled_shares_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
         plt.plot(current_rescaled_shares_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
         xlim = [np.quantile(current_rescaled_shares_array, low_quant),
@@ -343,7 +316,19 @@ class AgentTrainer:
         plt.ylabel('q')
         plt.title('Realized (blue) / predicted (red) q')
 
-        ax4 = plt.subplot2grid((2, 2), (1, 1))
+        ax4 = plt.subplot2grid((2, 3), (1, 1))
+        plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
+        plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+        xlim = [np.quantile(rescaled_trade_GP_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
+        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
+                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.xlabel('Rescaled trade GP')
+        plt.ylabel('q')
+        plt.title('Realized (blue) / predicted (red) q')
+
+        ax5 = plt.subplot2grid((2, 3), (1, 2))
         plt.plot(rescaled_trade_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
         plt.plot(rescaled_trade_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
         xlim = [np.quantile(rescaled_trade_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
