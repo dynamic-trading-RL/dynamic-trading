@@ -284,6 +284,7 @@ class AgentTrainer:
         high_quant = 0.999
         j_plot = np.random.randint(low=0, high=self.j_episodes, size=min(self.j_episodes, 10**5))
         x_plot = x_array[j_plot, :]
+        y_plot = y_array[j_plot, :]
 
         # TODO: generalize to non-observable factors
         q_predicted = model.predict(x_plot)
@@ -295,9 +296,9 @@ class AgentTrainer:
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
 
         ax1 = plt.subplot2grid((2, 2), (0, 0))
-        xlim = [np.quantile(y_array, low_quant), np.quantile(y_array, 0.95)]
+        xlim = [np.quantile(y_plot, low_quant), np.quantile(y_plot, 0.95)]
         ylim = [np.quantile(q_predicted, low_quant), np.quantile(q_predicted, 0.95)]
-        plt.scatter(y_array, q_predicted, s=1)
+        plt.scatter(y_plot, q_predicted, s=1)
         plt.plot(xlim, ylim, label='45° line', color='r')
         plt.xlim(xlim)
         plt.ylim(ylim)
@@ -307,11 +308,11 @@ class AgentTrainer:
         plt.title('Realized vs predicted q')
 
         ax2 = plt.subplot2grid((2, 2), (0, 1))
-        plt.plot(current_factor_array, y_array, '.', markersize=5, alpha=0.5, color='b')
+        plt.plot(current_factor_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
         plt.plot(current_factor_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
         xlim = [np.quantile(current_factor_array, low_quant), np.quantile(current_factor_array, high_quant)]
-        ylim = [min(np.quantile(y_array, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_array, high_quant), np.quantile(q_predicted, high_quant))]
+        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
+                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
         plt.xlim(xlim)
         plt.ylim(ylim)
         plt.xlabel('Current factor')
@@ -319,12 +320,12 @@ class AgentTrainer:
         plt.title('Realized (blue) / predicted (red) q')
 
         ax3 = plt.subplot2grid((2, 2), (1, 0))
-        plt.plot(current_rescaled_shares_array, y_array, '.', markersize=5, alpha=0.5, color='b')
+        plt.plot(current_rescaled_shares_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
         plt.plot(current_rescaled_shares_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
         xlim = [np.quantile(current_rescaled_shares_array, low_quant),
                 np.quantile(current_rescaled_shares_array, high_quant)]
-        ylim = [min(np.quantile(y_array, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_array, high_quant), np.quantile(q_predicted, high_quant))]
+        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
+                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
         plt.xlim(xlim)
         plt.ylim(ylim)
         plt.xlabel('Current rescaled shares')
@@ -332,11 +333,11 @@ class AgentTrainer:
         plt.title('Realized (blue) / predicted (red) q')
 
         ax4 = plt.subplot2grid((2, 2), (1, 1))
-        plt.plot(rescaled_trade_array, y_array, '.', markersize=5, alpha=0.5, color='b')
+        plt.plot(rescaled_trade_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
         plt.plot(rescaled_trade_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
         xlim = [np.quantile(rescaled_trade_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
-        ylim = [min(np.quantile(y_array, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_array, high_quant), np.quantile(q_predicted, high_quant))]
+        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
+                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
         plt.xlim(xlim)
         plt.ylim(ylim)
         plt.xlabel('Rescaled trade')
