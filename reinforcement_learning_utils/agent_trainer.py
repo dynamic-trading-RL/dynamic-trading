@@ -24,16 +24,16 @@ class AgentTrainer:
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
                  factorType: FactorType = FactorType.Observable,
-                 compare_to_GP: bool = True,
+                 compute_GP: bool = True,
                  train_using_GP_reward: bool = True,
                  plot_regressor: bool = True,
                  large_regressor: bool = True):
 
-        if train_using_GP_reward and not compare_to_GP:
-            print('Warning! You set train_using_GP_reward = True but compare_to_GP = False. Forcing compare_to_GP = True.')
-            compare_to_GP = True
+        if train_using_GP_reward and not compute_GP:
+            print('Warning! You set train_using_GP_reward = True but compute_GP = False. Forcing compute_GP = True.')
+            compute_GP = True
 
-        self._compare_to_GP = compare_to_GP
+        self._compute_GP = compute_GP
         self._train_using_GP_reward = train_using_GP_reward
         self._plot_regressor = plot_regressor
         self._large_regressor = large_regressor
@@ -216,7 +216,7 @@ class AgentTrainer:
 
     def _get_action_GP(self, state):
 
-        if self._compare_to_GP:
+        if self._compute_GP:
 
             rescaled_trade_GP = self.agent_GP.policy(current_factor=state.current_factor,
                                                      current_rescaled_shares=state.current_rescaled_shares,
@@ -233,7 +233,7 @@ class AgentTrainer:
 
     def _get_reward_GP(self, j, n, state, action_GP, t):
 
-        if self._compare_to_GP:
+        if self._compute_GP:
 
             reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
 
