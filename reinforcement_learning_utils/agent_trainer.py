@@ -26,7 +26,8 @@ class AgentTrainer:
                  factorType: FactorType = FactorType.Observable,
                  compare_to_GP: bool = True,
                  train_using_GP_reward: bool = True,
-                 plot_regressor: bool = True):
+                 plot_regressor: bool = True,
+                 large_regressor: bool = True):
 
         if train_using_GP_reward and not compare_to_GP:
             print('Warning! You set train_using_GP_reward = True but compare_to_GP = False. Forcing compare_to_GP = True.')
@@ -35,6 +36,7 @@ class AgentTrainer:
         self._compare_to_GP = compare_to_GP
         self._train_using_GP_reward = train_using_GP_reward
         self._plot_regressor = plot_regressor
+        self._large_regressor = large_regressor
 
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
@@ -278,8 +280,8 @@ class AgentTrainer:
 
     def _make_regressor_plots(self, model, n, x_array, y_array):
 
-        low_quant = 0.01
-        high_quant = 0.99
+        low_quant = 0.001
+        high_quant = 0.999
 
         # TODO: generalize to non-observable factors
         q_predicted = model.predict(x_array)
@@ -346,18 +348,26 @@ class AgentTrainer:
 
     def _set_supervised_regressor_parameters(self):
 
-        # hidden_layer_sizes = (64, 32, 8)
-        # max_iter = 10
-        # n_iter_no_change = 5
-        # alpha_ann = 0.0001
-        # early_stopping = False
-        # validation_fraction = 0.1
+        if self._large_regressor:
 
-        hidden_layer_sizes = (100,)
+            # hidden_layer_sizes = (64, 32, 8)
+            hidden_layer_sizes = (100,)
+
+        else:
+
+            hidden_layer_sizes = (32,)
+
+        # max_iter = 10
         max_iter = 200
+
+        # n_iter_no_change = 5
         n_iter_no_change = 10
+
         alpha_ann = 0.0001
+
+        # early_stopping = False
         early_stopping = True
+
         validation_fraction = 0.1
 
         return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction
