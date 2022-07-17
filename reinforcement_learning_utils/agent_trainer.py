@@ -284,7 +284,7 @@ class AgentTrainer:
         high_quant = 0.999
         j_plot = np.random.randint(low=0, high=self.j_episodes, size=min(self.j_episodes, 10**5))
         x_plot = x_array[j_plot, :]
-        y_plot = y_array[j_plot, :]
+        y_plot = y_array[j_plot]
 
         # TODO: generalize to non-observable factors
         q_predicted = model.predict(x_plot)
