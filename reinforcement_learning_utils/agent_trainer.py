@@ -268,12 +268,13 @@ class AgentTrainer:
         x_plot = x_array[j_plot, :]
         y_plot = y_array[j_plot]
 
-        # TODO: generalize to non-observable factors
+        # TODO: generalize to non-observable factors and to the case where GP is not in state
         q_predicted = model.predict(x_plot)
         current_factor_array = x_plot[:, 0]
         current_rescaled_shares_array = x_plot[:, 1]
         rescaled_trade_GP_array = x_plot[:, 2]
-        rescaled_trade_array = x_plot[:, 3]
+
+        rescaled_trade_array = x_plot[:, -1]
 
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
