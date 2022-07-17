@@ -115,8 +115,8 @@ class AgentTrainer:
             self.reward_RL[n] += reward_RL_j
             self.reward_GP[n] += reward_GP_j
 
-        self.reward_RL[n] /= self.j_episodes
-        self.reward_GP[n] /= self.j_episodes
+        self.reward_RL[n] /= (self.j_episodes * self.t_)
+        self.reward_GP[n] /= (self.j_episodes * self.t_)
 
     def _create_batch_parallel(self, eps, n, n_cores):
 
