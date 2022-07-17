@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     # -------------------- Input parameters
     compare_to_GP = True
-    train_using_GP = True
+    train_using_GP_reward = True
     plot_regressor = True
     # Market parameters
     ticker = 'WTI'
@@ -31,7 +31,7 @@ if __name__ == '__main__':
                                 factorType=factorType,
                                 shares_scale=shares_scale,
                                 compare_to_GP=compare_to_GP,
-                                train_using_GP=train_using_GP,
+                                train_using_GP_reward=train_using_GP_reward,
                                 plot_regressor=plot_regressor)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=0.01)

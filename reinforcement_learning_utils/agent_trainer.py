@@ -25,15 +25,15 @@ class AgentTrainer:
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
                  factorType: FactorType = FactorType.Observable,
                  compare_to_GP: bool = True,
-                 train_using_GP: bool = True,
+                 train_using_GP_reward: bool = True,
                  plot_regressor: bool = True):
 
-        if train_using_GP and not compare_to_GP:
-            print('Warning! You set train_using_GP = True but compare_to_GP = False. Forcing compare_to_GP = True.')
+        if train_using_GP_reward and not compare_to_GP:
+            print('Warning! You set train_using_GP_reward = True but compare_to_GP = False. Forcing compare_to_GP = True.')
             compare_to_GP = True
 
         self._compare_to_GP = compare_to_GP
-        self._train_using_GP = train_using_GP
+        self._train_using_GP_reward = train_using_GP_reward
         self._plot_regressor = plot_regressor
 
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
@@ -181,7 +181,7 @@ class AgentTrainer:
 
             action_GP, reward_GP = self._get_reward_action_GP(j, n, state, t)
 
-            if self._train_using_GP:
+            if self._train_using_GP_reward:
 
                 if reward_GP > reward_RL: # if reward_GP > reward_RL, choose GP action
 
