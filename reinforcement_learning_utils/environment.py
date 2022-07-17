@@ -14,7 +14,7 @@ class Environment:
         self.market = market
         self._set_attributes()
 
-    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int):  # TODO: add action_GP
+    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int):
 
         reward = self._compute_reward(state=state, action=action)
         next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
