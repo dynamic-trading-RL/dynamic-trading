@@ -282,12 +282,14 @@ class AgentTrainer:
 
         low_quant = 0.001
         high_quant = 0.999
+        j_plot = np.random.randint(low=0, high=self.j_episodes, size=min(self.j_episodes, 10**5))
+        x_plot = x_array[j_plot, :]
 
         # TODO: generalize to non-observable factors
-        q_predicted = model.predict(x_array)
-        current_factor_array = x_array[:, 0]
-        current_rescaled_shares_array = x_array[:, 1]
-        rescaled_trade_array = x_array[:, 2]
+        q_predicted = model.predict(x_plot)
+        current_factor_array = x_plot[:, 0]
+        current_rescaled_shares_array = x_plot[:, 1]
+        rescaled_trade_array = x_plot[:, 2]
 
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
