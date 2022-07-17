@@ -3,9 +3,8 @@ import numpy as np
 from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
 
-# TODO: understand why with the use_GP_to_train I get all this warnings on optimize
-import warnings
-warnings.filterwarnings("ignore")
+# import warnings
+# warnings.filterwarnings("ignore")
 
 
 if __name__ == '__main__':
