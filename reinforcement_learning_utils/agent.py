@@ -129,8 +129,8 @@ class Agent:
             return - qvl
 
         bounds = [(lower_bound, upper_bound)]
-        res = shgo(func=func, bounds=bounds)
-        # res = minimize(fun=func, bounds=bounds, x0=0.)
+        # res = shgo(func=func, bounds=bounds)
+        res = minimize(fun=func, bounds=bounds, x0=0.)
 
         return res.x[0]
 
