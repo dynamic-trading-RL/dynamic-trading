@@ -1,7 +1,7 @@
 field,value
 factor_ticker,
 factorDefinitionType,StdMovingAverage
-factorDynamicsType,AR
+factorDynamicsType,TARCH
 factorSourceType,Constructed
 factorType,Observable
 gamma,0.9999
@@ -13,7 +13,7 @@ start_date,'2004-01-01'
 n_batches,6
 n_cores,40
 parallel_computing,Yes
-riskDriverDynamicsType,Linear
+riskDriverDynamicsType,NonLinear
 riskDriverType,PnL
 shares_scale,60
 t_,50
