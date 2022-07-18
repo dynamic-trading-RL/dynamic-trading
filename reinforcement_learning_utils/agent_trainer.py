@@ -290,7 +290,6 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
-        plt.axis('equal')
 
         ax2 = plt.subplot2grid((2, 3), (0, 1))
         plt.plot(current_factor_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
