@@ -11,12 +11,11 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 
 class Agent:
 
-    def __init__(self, environment: Environment, observe_GP: bool = True):
+    def __init__(self, environment: Environment):
 
         self.environment = environment
         self._q_value_models = []
         self._set_agent_attributes()
-        self.observe_GP = observe_GP
 
     def policy(self, state: State, eps: float = None):
 
@@ -188,7 +187,15 @@ class Agent:
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_trad_params.loc['kappa'][0])
 
+        if str(df_trad_params.loc['observe_GP'][0]) == 'Yes':
+            observe_GP = True
+        elif str(df_trad_params.loc['observe_GP'][0]) == 'No':
+            observe_GP = False
+        else:
+            raise NameError('observe_GP in settings file must be either Yes or No')
+
         self.gamma = gamma
         self.kappa = kappa
+        self.observe_GP = observe_GP
 
         self.environment._get_trading_parameters_from_agent(self.gamma, self.kappa)

@@ -12,6 +12,7 @@ lam,0.015
 start_date,'2004-01-01'
 n_batches,6
 n_cores,40
+observe_GP,No
 parallel_computing,Yes
 riskDriverDynamicsType,NonLinear
 riskDriverType,PnL
