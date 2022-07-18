@@ -24,16 +24,10 @@ class AgentTrainer:
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
                  factorType: FactorType = FactorType.Observable,
-                 observe_GP: bool = True,
                  train_using_GP_reward: bool = True,
                  plot_regressor: bool = True,
                  large_regressor: bool = True):
 
-        if train_using_GP_reward and not observe_GP:
-            raise NameError('Cannot train_using_GP_reward if not observe_GP')
-
-        self.observe_GP = observe_GP
-        self._train_using_GP_reward = train_using_GP_reward
         self._plot_regressor = plot_regressor
         self._large_regressor = large_regressor
 
@@ -42,7 +36,12 @@ class AgentTrainer:
                                          ticker=ticker, riskDriverType=riskDriverType, factorType=factorType)
         self.shares_scale = shares_scale
         self.environment = Environment(market=self.market)
-        self.agent = Agent(self.environment, observe_GP=self.observe_GP)
+        self.agent = Agent(self.environment)
+        self.observe_GP = self.agent.observe_GP
+
+        if train_using_GP_reward and not self.observe_GP:
+            raise NameError('Cannot train_using_GP_reward if not observe_GP')
+        self._train_using_GP_reward = train_using_GP_reward
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
               n_cores: int = None):
@@ -264,15 +263,14 @@ class AgentTrainer:
 
         low_quant = 0.001
         high_quant = 0.999
-        j_plot = np.random.randint(low=0, high=self.j_episodes, size=min(self.j_episodes, 10**5))
+        j_plot = np.random.randint(low=0, high=self.j_episodes, size=min((self.j_episodes * self.t_), 10**5))
         x_plot = x_array[j_plot, :]
         y_plot = y_array[j_plot]
 
-        # TODO: generalize to non-observable factors and to the case where GP is not in state
+        # TODO: generalize to non-observable factors
         q_predicted = model.predict(x_plot)
         current_factor_array = x_plot[:, 0]
         current_rescaled_shares_array = x_plot[:, 1]
-        rescaled_trade_GP_array = x_plot[:, 2]
 
         rescaled_trade_array = x_plot[:, -1]
 
@@ -317,16 +315,26 @@ class AgentTrainer:
         plt.title('Realized (blue) / predicted (red) q')
 
         ax4 = plt.subplot2grid((2, 3), (1, 1))
-        plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
-        plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
-        xlim = [np.quantile(rescaled_trade_GP_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
-        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
-        plt.xlim(xlim)
-        plt.ylim(ylim)
-        plt.xlabel('Rescaled trade GP')
-        plt.ylabel('q')
-        plt.title('Realized (blue) / predicted (red) q')
+        if self.observe_GP:
+            rescaled_trade_GP_array = x_plot[:, 2]
+            plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
+            plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+            xlim = [np.quantile(rescaled_trade_GP_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
+            ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
+                    max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
+            plt.xlim(xlim)
+            plt.ylim(ylim)
+            plt.xlabel('Rescaled trade GP')
+            plt.ylabel('q')
+            plt.title('Realized (blue) / predicted (red) q')
+        else:
+            plt.text(x=0, y=0, s='NA')
+            plt.xlim([-1, 1])
+            plt.ylim([-1, 1])
+            plt.xlabel('Rescaled trade GP')
+            plt.ylabel('q')
+            plt.title('Realized (blue) / predicted (red) q')
+
 
         ax5 = plt.subplot2grid((2, 3), (1, 2))
         plt.plot(rescaled_trade_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
