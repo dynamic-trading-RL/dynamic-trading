@@ -26,10 +26,16 @@ class AgentTrainer:
                  factorType: FactorType = FactorType.Observable,
                  train_using_GP_reward: bool = False,
                  plot_regressor: bool = True,
-                 ann_hidden_nodes: int = 100):
+                 ann_hidden_nodes: int = 100,
+                 early_stopping: bool = True,
+                 max_iter: int = 200,
+                 activation: str = 'relu'):
 
         self._plot_regressor = plot_regressor
         self._ann_hidden_nodes = ann_hidden_nodes
+        self._early_stopping = early_stopping
+        self._max_iter = max_iter
+        self._activation = activation
 
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
@@ -294,8 +300,8 @@ class AgentTrainer:
         plt.title('Realized vs predicted q')
 
         ax2 = plt.subplot2grid((2, 3), (0, 1))
-        plt.plot(current_factor_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
-        plt.plot(current_factor_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+        plt.plot(current_factor_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
+        plt.plot(current_factor_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
         xlim = [np.quantile(current_factor_array, low_quant), np.quantile(current_factor_array, high_quant)]
         ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                 max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
@@ -306,8 +312,8 @@ class AgentTrainer:
         plt.title('Realized (blue) / predicted (red) q')
 
         ax3 = plt.subplot2grid((2, 3), (0, 2))
-        plt.plot(current_rescaled_shares_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
-        plt.plot(current_rescaled_shares_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+        plt.plot(current_rescaled_shares_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
+        plt.plot(current_rescaled_shares_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
         xlim = [np.quantile(current_rescaled_shares_array, low_quant),
                 np.quantile(current_rescaled_shares_array, high_quant)]
         ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
@@ -321,8 +327,8 @@ class AgentTrainer:
         ax4 = plt.subplot2grid((2, 3), (1, 1))
         if self.observe_GP:
             rescaled_trade_GP_array = x_plot[:, 2]
-            plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
-            plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+            plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
+            plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
             xlim = [np.quantile(rescaled_trade_GP_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
             ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                     max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
@@ -341,8 +347,8 @@ class AgentTrainer:
 
 
         ax5 = plt.subplot2grid((2, 3), (1, 2))
-        plt.plot(rescaled_trade_array, y_plot, '.', markersize=5, alpha=0.5, color='b')
-        plt.plot(rescaled_trade_array, q_predicted, '.', markersize=5, alpha=0.5, color='r')
+        plt.plot(rescaled_trade_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
+        plt.plot(rescaled_trade_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
         xlim = [np.quantile(rescaled_trade_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
         ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                 max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
@@ -360,12 +366,12 @@ class AgentTrainer:
     def _set_supervised_regressor_parameters(self):
 
         hidden_layer_sizes = (self._ann_hidden_nodes,)
-        max_iter = 200
+        max_iter = self._max_iter
         n_iter_no_change = 10
-        alpha_ann = 0.0001
-        early_stopping = True
+        alpha_ann = 0.001
+        early_stopping = self._early_stopping
         validation_fraction = 0.1
-        activation = 'relu'
+        activation = self._activation
 
         return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation
 

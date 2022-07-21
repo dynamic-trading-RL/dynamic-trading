@@ -3,8 +3,8 @@ import numpy as np
 from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
 
-# import warnings
-# warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 
 if __name__ == '__main__':
@@ -15,6 +15,9 @@ if __name__ == '__main__':
     train_using_GP_reward = False
     plot_regressor = True
     ann_hidden_nodes = 64
+    early_stopping = True
+    max_iter = 200
+    activation = 'relu'
 
     # Market parameters
     ticker = 'WTI'
@@ -32,7 +35,10 @@ if __name__ == '__main__':
                                 shares_scale=shares_scale,
                                 train_using_GP_reward=train_using_GP_reward,
                                 plot_regressor=plot_regressor,
-                                ann_hidden_nodes=ann_hidden_nodes)
+                                ann_hidden_nodes=ann_hidden_nodes,
+                                early_stopping=early_stopping,
+                                max_iter=max_iter,
+                                activation=activation)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=0.01)
 
