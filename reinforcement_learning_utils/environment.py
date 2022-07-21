@@ -28,13 +28,16 @@ class Environment:
 
         pnl, factor, price = self._get_market_simulation_trading(n=n, j=j, t=0)
 
-        rescaled_trade_GP = self.agent_GP.policy(current_factor=factor,
-                                                 current_rescaled_shares=current_rescaled_shares,
-                                                 shares_scale=shares_scale,
-                                                 price=price)
-        action_GP = Action()
-        action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
-                                         shares_scale=shares_scale)
+        if self.observe_GP:
+            rescaled_trade_GP = self.agent_GP.policy(current_factor=factor,
+                                                     current_rescaled_shares=current_rescaled_shares,
+                                                     shares_scale=shares_scale,
+                                                     price=price)
+            action_GP = Action()
+            action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
+                                             shares_scale=shares_scale)
+        else:
+            action_GP = None
 
         state = State()
         state.set_trading_attributes(current_factor=factor,
@@ -85,13 +88,16 @@ class Environment:
         next_other_observable = 0.
         next_price = price
 
-        next_rescaled_shares_GP = self.agent_GP.policy(current_factor=factor,
-                                                       current_rescaled_shares=current_rescaled_shares,
-                                                       shares_scale=shares_scale,
-                                                       price=price)
-        next_action_GP = Action()
-        next_action_GP.set_trading_attributes(rescaled_trade=next_rescaled_shares_GP,
-                                              shares_scale=shares_scale)
+        if self.observe_GP:
+            next_rescaled_shares_GP = self.agent_GP.policy(current_factor=factor,
+                                                           current_rescaled_shares=current_rescaled_shares,
+                                                           shares_scale=shares_scale,
+                                                           price=price)
+            next_action_GP = Action()
+            next_action_GP.set_trading_attributes(rescaled_trade=next_rescaled_shares_GP,
+                                                  shares_scale=shares_scale)
+        else:
+            next_action_GP = None
 
         next_state = State()
         next_state.set_trading_attributes(current_factor=next_factor,
@@ -131,18 +137,29 @@ class Environment:
         filename = os.path.dirname(os.path.dirname(__file__)) +\
                    '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
-        lam = float(df_trad_params.loc['lam'][0])
 
+        lam = float(df_trad_params.loc['lam'][0])
         self.lam = lam
+
+        if str(df_trad_params.loc['observe_GP'][0]) == 'Yes':
+            observe_GP = True
+        elif str(df_trad_params.loc['observe_GP'][0]) == 'No':
+            observe_GP = False
+        else:
+            raise NameError('observe_GP in settings file must be either Yes or No')
+        self.observe_GP = observe_GP
+
+        if self.observe_GP:
+            self.market_benchmark = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear ,
+                                                       factorDynamicsType=FactorDynamicsType.AR ,
+                                                       ticker=ticker ,
+                                                       riskDriverType=RiskDriverType.PnL ,
+                                                       factorType=FactorType.Observable)
+
+            self.agent_GP = AgentGP(market=self.market_benchmark)
 
         self.factorType = self.market.factorType
 
-        self.market_benchmark = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
-                                                   factorDynamicsType=FactorDynamicsType.AR,
-                                                   ticker=ticker,
-                                                   riskDriverType=RiskDriverType.PnL,
-                                                   factorType=FactorType.Observable)
-        self.agent_GP = AgentGP(market=self.market_benchmark)
 
     def _get_trading_parameters_from_agent(self, gamma: float, kappa: float):
 

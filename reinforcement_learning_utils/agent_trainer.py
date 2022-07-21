@@ -24,12 +24,12 @@ class AgentTrainer:
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
                  factorType: FactorType = FactorType.Observable,
-                 train_using_GP_reward: bool = True,
+                 train_using_GP_reward: bool = False,
                  plot_regressor: bool = True,
-                 large_regressor: bool = True):
+                 ann_hidden_notes: int = 100):
 
         self._plot_regressor = plot_regressor
-        self._large_regressor = large_regressor
+        self._ann_hidden_notes = ann_hidden_notes
 
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
@@ -37,7 +37,7 @@ class AgentTrainer:
         self.shares_scale = shares_scale
         self.environment = Environment(market=self.market)
         self.agent = Agent(self.environment)
-        self.observe_GP = self.agent.observe_GP
+        self.observe_GP = self.environment.observe_GP
 
         if train_using_GP_reward and not self.observe_GP:
             raise NameError('Cannot train_using_GP_reward if not observe_GP')
@@ -208,13 +208,17 @@ class AgentTrainer:
 
     def _get_reward_GP(self, j, n, state, action_GP, t):
 
-        reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
+        if self.observe_GP:
+            reward_GP, _ = self._get_reward_next_state_trading(state=state, action=action_GP, n=n, j=j, t=t)
+
+        else:
+            reward_GP = 0.
 
         return reward_GP
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        reward, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
+        reward , next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j,t=t)
 
         return reward, next_state
 
@@ -355,28 +359,12 @@ class AgentTrainer:
 
     def _set_supervised_regressor_parameters(self):
 
-        if self._large_regressor:
-
-            # hidden_layer_sizes = (64, 32, 8)
-            hidden_layer_sizes = (100,)
-
-        else:
-
-            hidden_layer_sizes = (64, )
-
-        # max_iter = 10
+        hidden_layer_sizes = (self._ann_hidden_notes,)
         max_iter = 200
-
-        # n_iter_no_change = 5
         n_iter_no_change = 10
-
         alpha_ann = 0.0001
-
-        # early_stopping = False
         early_stopping = True
-
         validation_fraction = 0.1
-
         activation = 'relu'
 
         return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation
