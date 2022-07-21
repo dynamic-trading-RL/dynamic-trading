@@ -26,10 +26,10 @@ class AgentTrainer:
                  factorType: FactorType = FactorType.Observable,
                  train_using_GP_reward: bool = False,
                  plot_regressor: bool = True,
-                 ann_hidden_notes: int = 100):
+                 ann_hidden_nodes: int = 100):
 
         self._plot_regressor = plot_regressor
-        self._ann_hidden_notes = ann_hidden_notes
+        self._ann_hidden_nodes = ann_hidden_nodes
 
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
@@ -359,7 +359,7 @@ class AgentTrainer:
 
     def _set_supervised_regressor_parameters(self):
 
-        hidden_layer_sizes = (self._ann_hidden_notes,)
+        hidden_layer_sizes = (self._ann_hidden_nodes,)
         max_iter = 200
         n_iter_no_change = 10
         alpha_ann = 0.0001
