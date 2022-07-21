@@ -149,7 +149,7 @@ class Agent:
             current_factor = state.current_factor
             current_rescaled_shares = state.current_rescaled_shares
 
-            if self.observe_GP:
+            if self.environment.observe_GP:
 
                 current_action_GP = state.current_action_GP
                 current_rescaled_trade_GP = current_action_GP.rescaled_trade
@@ -164,7 +164,7 @@ class Agent:
             current_other_observable = state.current_other_observable
             current_rescaled_shares = state.current_rescaled_shares
 
-            if self.observe_GP:
+            if self.environment.observe_GP:
 
                 current_action_GP = state.current_action_GP
                 current_rescaled_trade_GP = current_action_GP.rescaled_trade
@@ -187,15 +187,7 @@ class Agent:
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_trad_params.loc['kappa'][0])
 
-        if str(df_trad_params.loc['observe_GP'][0]) == 'Yes':
-            observe_GP = True
-        elif str(df_trad_params.loc['observe_GP'][0]) == 'No':
-            observe_GP = False
-        else:
-            raise NameError('observe_GP in settings file must be either Yes or No')
-
         self.gamma = gamma
         self.kappa = kappa
-        self.observe_GP = observe_GP
 
         self.environment._get_trading_parameters_from_agent(self.gamma, self.kappa)
