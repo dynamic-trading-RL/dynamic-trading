@@ -3,8 +3,9 @@ import pandas as pd
 import os
 from scipy.optimize import shgo, minimize
 from joblib import dump, load
+from scipy.stats import truncnorm
 
-from enums import FactorType
+from enums import FactorType, EstimateInitializationType
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -77,8 +78,24 @@ class Agent:
 
         lower_bound, upper_bound = self._get_action_bounds_trading(state)
 
-        if len(self._q_value_models) == 0:
-            action = self._random_action(state)
+        if len(self._q_value_models) == 0:  # We are at batch 0: use initialization
+
+            if self.estimateInitializationType in (EstimateInitializationType.RandomUniform,
+                                                   EstimateInitializationType.RandomTruncNorm):
+
+                action = self._random_action(state)
+
+            elif self.estimateInitializationType == EstimateInitializationType.GP:
+
+                rescaled_trade = self.environment.agent_GP.policy(current_factor=state.current_factor,
+                                                                  current_rescaled_shares=state.current_rescaled_shares,
+                                                                  shares_scale=state.shares_scale,
+                                                                  price=state.current_price)
+                action = Action()
+                action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
+
+            else:
+                raise NameError('Invalid estimateInitializationType: ' + self.estimateInitializationType.value)
 
         else:
             rescaled_trade = self._optimize_q_value_trading(state, lower_bound, upper_bound)
@@ -89,8 +106,21 @@ class Agent:
 
     def _random_action_trading(self, state):
 
-        lower_bound, upper_bound = self._get_action_bounds_trading(state)
-        rescaled_trade = lower_bound + (upper_bound - lower_bound) * np.random.rand()
+        lower_bound , upper_bound = self._get_action_bounds_trading(state)
+
+        # TODO: We are implying a preference for EstimateInitializationType.RandomTruncNorm, in that this is chosen by
+        #  default even if the initialization is set to GP. Make a better structuring of this part.
+
+        if self.estimateInitializationType == EstimateInitializationType.RandomUniform:
+
+            rescaled_trade = lower_bound + (upper_bound - lower_bound) * np.random.rand()
+
+        else:
+
+            rescaled_trade = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=0.5*(upper_bound+lower_bound),
+                                           scale=0.5*(upper_bound-lower_bound))
+
+
         action = Action()
         action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
@@ -186,8 +216,15 @@ class Agent:
         df_trad_params = pd.read_csv(filename, index_col=0)
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_trad_params.loc['kappa'][0])
+        estimateInitializationType =\
+            EstimateInitializationType(str(df_trad_params.loc['estimateInitializationType'][0]))
 
         self.gamma = gamma
         self.kappa = kappa
+        self.estimateInitializationType = estimateInitializationType
 
         self.environment._get_trading_parameters_from_agent(self.gamma, self.kappa)
+
+        if self.estimateInitializationType == EstimateInitializationType.GP:
+            self.environment.observe_GP = True
+            self.environment.instantiate_market_benchmark_and_agent_GP()
