@@ -26,16 +26,10 @@ class AgentTrainer:
                  factorType: FactorType = FactorType.Observable,
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
-                 ann_hidden_nodes: int = 100,
+                 ann_hidden_nodes: int = None,
                  early_stopping: bool = True,
                  max_iter: int = 200,
                  activation: str = 'relu'):
-
-        self._plot_regressor = plot_regressor
-        self._ann_hidden_nodes = ann_hidden_nodes
-        self._early_stopping = early_stopping
-        self._max_iter = max_iter
-        self._activation = activation
 
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
@@ -51,6 +45,12 @@ class AgentTrainer:
         self.observe_GP = self.environment.observe_GP
         self.GP_action_in_state = self.environment.GP_action_in_state
         self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
+
+        self._plot_regressor = plot_regressor
+        self._ann_hidden_nodes = ann_hidden_nodes
+        self._early_stopping = early_stopping
+        self._max_iter = max_iter
+        self._activation = activation
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
               n_cores: int = None):
@@ -367,6 +367,9 @@ class AgentTrainer:
         plt.savefig(filename)
 
     def _set_supervised_regressor_parameters(self):
+
+        if self._ann_hidden_nodes is None:
+            self._ann_hidden_nodes = int(5 * 10**(-4) * self.j_episodes * self.t_)
 
         hidden_layer_sizes = (self._ann_hidden_nodes,)
         max_iter = self._max_iter
