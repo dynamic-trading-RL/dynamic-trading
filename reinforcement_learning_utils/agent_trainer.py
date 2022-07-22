@@ -43,11 +43,14 @@ class AgentTrainer:
         self.shares_scale = shares_scale
         self.environment = Environment(market=self.market)
         self.agent = Agent(self.environment)
-        self.observe_GP = self.environment.observe_GP
 
-        if train_benchmarking_GP_reward and not self.observe_GP:
-            raise NameError('Cannot train_benchmarking_GP_reward if not observe_GP')
-        self._train_benchmarking_GP_reward = train_benchmarking_GP_reward
+        if train_benchmarking_GP_reward and not self.environment.observe_GP:
+            self.environment.observe_GP = True
+            self.environment.instantiate_market_benchmark_and_agent_GP()
+
+        self.observe_GP = self.environment.observe_GP
+        self.GP_action_in_state = self.environment.GP_action_in_state
+        self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
               n_cores: int = None):
@@ -185,7 +188,7 @@ class AgentTrainer:
 
             reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=state.current_action_GP, t=t)
 
-            if self._train_benchmarking_GP_reward:
+            if self.train_benchmarking_GP_reward:
 
                 if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
@@ -325,7 +328,7 @@ class AgentTrainer:
         plt.title('Realized (blue) / predicted (red) q')
 
         ax4 = plt.subplot2grid((2, 3), (1, 1))
-        if self.observe_GP:
+        if self.GP_action_in_state:
             rescaled_trade_GP_array = x_plot[:, 2]
             plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
             plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
