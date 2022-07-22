@@ -108,17 +108,21 @@ class Agent:
 
         lower_bound , upper_bound = self._get_action_bounds_trading(state)
 
-        # TODO: We are implying a preference for EstimateInitializationType.RandomTruncNorm, in that this is chosen by
-        #  default even if the initialization is set to GP. Make a better structuring of this part.
-
         if self.estimateInitializationType == EstimateInitializationType.RandomUniform:
 
             rescaled_trade = lower_bound + (upper_bound - lower_bound) * np.random.rand()
 
         else:
 
-            rescaled_trade = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=0.5*(upper_bound+lower_bound),
-                                           scale=0.5*(upper_bound-lower_bound))
+            # TODO: We are implying a preference for EstimateInitializationType.RandomTruncNorm, in that this is chosen
+            #  by default even if the initialization is set to GP. Make a better structuring of this part.
+
+            alpha = 0.5
+
+            loc = 0.5 * (upper_bound + lower_bound)
+            scale = alpha * (upper_bound - lower_bound)
+
+            rescaled_trade = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=loc, scale=scale)
 
 
         action = Action()
