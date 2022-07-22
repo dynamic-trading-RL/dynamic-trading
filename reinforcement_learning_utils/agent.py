@@ -149,7 +149,7 @@ class Agent:
             current_factor = state.current_factor
             current_rescaled_shares = state.current_rescaled_shares
 
-            if self.environment.observe_GP:
+            if self.environment.GP_action_in_state:
 
                 current_action_GP = state.current_action_GP
                 current_rescaled_trade_GP = current_action_GP.rescaled_trade
@@ -164,7 +164,7 @@ class Agent:
             current_other_observable = state.current_other_observable
             current_rescaled_shares = state.current_rescaled_shares
 
-            if self.environment.observe_GP:
+            if self.environment.GP_action_in_state:
 
                 current_action_GP = state.current_action_GP
                 current_rescaled_trade_GP = current_action_GP.rescaled_trade

@@ -10,10 +10,10 @@ j_episodes,2500
 kappa,0.001
 lam,0.015
 start_date,'2004-01-01'
-n_batches,7
+n_batches,1
 n_cores,40
-observe_GP,No
-parallel_computing,Yes
+GP_action_in_state,No
+parallel_computing,No
 riskDriverDynamicsType,NonLinear
 riskDriverType,PnL
 shares_scale,60
