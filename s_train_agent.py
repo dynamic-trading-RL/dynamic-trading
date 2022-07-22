@@ -12,7 +12,7 @@ if __name__ == '__main__':
     np.random.seed(789)
 
     # -------------------- Input parameters
-    train_benchmarking_GP_reward = No
+    train_benchmarking_GP_reward = False
     plot_regressor = True
     ann_hidden_nodes = 64
     early_stopping = True
