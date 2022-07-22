@@ -2,7 +2,7 @@ field,value
 estimateInitializationType,RandomTruncNorm
 factor_ticker,
 factorDefinitionType,StdMovingAverage
-factorDynamicsType,TARCH
+factorDynamicsType,AR
 factorSourceType,Constructed
 factorType,Observable
 gamma,0.9999
@@ -15,7 +15,7 @@ n_batches,4
 n_cores,40
 GP_action_in_state,No
 parallel_computing,No
-riskDriverDynamicsType,NonLinear
+riskDriverDynamicsType,Linear
 riskDriverType,PnL
 shares_scale,60
 t_,50
