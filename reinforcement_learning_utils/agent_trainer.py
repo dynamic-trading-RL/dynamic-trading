@@ -371,7 +371,7 @@ class AgentTrainer:
         if self._ann_hidden_nodes is None:
             self._ann_hidden_nodes = int(5 * 10**(-4) * self.j_episodes * self.t_)
 
-        hidden_layer_sizes = (self._ann_hidden_nodes,)
+        hidden_layer_sizes = (self._ann_hidden_nodes, int(self._ann_hidden_nodes/2))
         max_iter = self._max_iter
         n_iter_no_change = 10
         alpha_ann = 0.001
