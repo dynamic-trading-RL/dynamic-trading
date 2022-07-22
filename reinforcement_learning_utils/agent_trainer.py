@@ -276,7 +276,9 @@ class AgentTrainer:
 
         low_quant = 0.001
         high_quant = 0.999
-        j_plot = np.random.randint(low=0, high=self.j_episodes, size=min((self.j_episodes * self.t_), 10**5))
+        j_plot = np.random.randint(low=0,
+                                   high=(self.j_episodes * self.t_),
+                                   size=min((self.j_episodes * self.t_), 10**5))
         x_plot = x_array[j_plot, :]
         y_plot = y_array[j_plot]
 
