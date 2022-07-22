@@ -14,7 +14,7 @@ start_date,'2004-01-01'
 n_batches,4
 n_cores,40
 GP_action_in_state,No
-parallel_computing,No
+parallel_computing,Yes
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
 shares_scale,60
