@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # -------------------- Input parameters
     train_benchmarking_GP_reward = False
     plot_regressor = True
-    ann_hidden_nodes = 64
+    ann_hidden_nodes = 256
     early_stopping = True
     max_iter = 200
     activation = 'relu'
