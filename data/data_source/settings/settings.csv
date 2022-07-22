@@ -18,5 +18,5 @@ parallel_computing,Yes
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
 shares_scale,60
-t_,2000
+t_,5000
 window,5
