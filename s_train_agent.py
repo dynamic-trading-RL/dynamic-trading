@@ -12,7 +12,7 @@ if __name__ == '__main__':
     np.random.seed(789)
 
     # -------------------- Input parameters
-    train_using_GP_reward = False
+    train_benchmarking_GP_reward = False
     plot_regressor = True
     ann_hidden_nodes = 64
     early_stopping = True
@@ -33,14 +33,14 @@ if __name__ == '__main__':
                                 riskDriverType=riskDriverType,
                                 factorType=factorType,
                                 shares_scale=shares_scale,
-                                train_using_GP_reward=train_using_GP_reward,
+                                train_benchmarking_GP_reward=train_benchmarking_GP_reward,
                                 plot_regressor=plot_regressor,
                                 ann_hidden_nodes=ann_hidden_nodes,
                                 early_stopping=early_stopping,
                                 max_iter=max_iter,
                                 activation=activation)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
-                       n_cores=n_cores, eps_start=0.01)
+                       n_cores=n_cores, eps_start=0.03)
 
     agentTrainer.agent.dump_q_value_models()
 

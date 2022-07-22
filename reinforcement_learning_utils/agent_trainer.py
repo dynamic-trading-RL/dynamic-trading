@@ -24,7 +24,7 @@ class AgentTrainer:
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
                  factorType: FactorType = FactorType.Observable,
-                 train_using_GP_reward: bool = False,
+                 train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
                  ann_hidden_nodes: int = 100,
                  early_stopping: bool = True,
@@ -45,9 +45,9 @@ class AgentTrainer:
         self.agent = Agent(self.environment)
         self.observe_GP = self.environment.observe_GP
 
-        if train_using_GP_reward and not self.observe_GP:
-            raise NameError('Cannot train_using_GP_reward if not observe_GP')
-        self._train_using_GP_reward = train_using_GP_reward
+        if train_benchmarking_GP_reward and not self.observe_GP:
+            raise NameError('Cannot train_benchmarking_GP_reward if not observe_GP')
+        self._train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
               n_cores: int = None):
@@ -185,7 +185,7 @@ class AgentTrainer:
 
             reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=state.current_action_GP, t=t)
 
-            if self._train_using_GP_reward:
+            if self._train_benchmarking_GP_reward:
 
                 if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
