@@ -11,8 +11,8 @@ if __name__ == '__main__':
     j_trajectories_plot = 20
 
     # -------------------- Execution
-    backtester = SimulationTester(ticker=ticker)
-    backtester.execute_backtesting()
-    backtester.make_plots(j_trajectories_plot=j_trajectories_plot)
+    simulationTester = SimulationTester(ticker=ticker)
+    simulationTester.execute_backtesting()
+    simulationTester.make_plots(j_trajectories_plot=j_trajectories_plot)
 
     print('--- End s_simulationtesting.py')
