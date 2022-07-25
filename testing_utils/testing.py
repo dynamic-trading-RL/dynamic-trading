@@ -420,8 +420,6 @@ class SimulationTester(Tester):
 
     def make_plots(self, j_trajectories_plot):
 
-        # TODO: implement
-
         self._plot_shares(j_trajectories_plot)
         self._plot_value()
         self._plot_cost()
