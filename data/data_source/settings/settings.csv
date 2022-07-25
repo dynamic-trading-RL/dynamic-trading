@@ -1,5 +1,5 @@
 field,value
-estimateInitializationType,RandomTruncNorm
+estimateInitializationType,RandomUniform
 factor_ticker,
 factorDefinitionType,StdMovingAverage
 factorDynamicsType,AR
@@ -11,7 +11,7 @@ j_episodes,2500
 kappa,0.001
 lam,0.015
 start_date,'2004-01-01'
-n_batches,4
+n_batches,1
 n_cores,40
 GP_action_in_state,No
 parallel_computing,Yes
