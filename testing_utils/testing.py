@@ -17,9 +17,13 @@ from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, Fa
 
 class Tester:
 
-    def __init__(self, ticker):
+    def __init__(self, ticker, use_assessment_period: bool = False, assessment_proportion: float = 0.1):
+
+        # TODO: evaluating the introduction of the concept of assesment period
 
         self._ticker = ticker
+        self._use_assessment_period = use_assessment_period
+        self._assessment_proportion = assessment_proportion
         self._read_parameters()
 
         self._colors = {'Markowitz': 'm', 'GP': 'g', 'RL': 'r'}
@@ -121,6 +125,7 @@ class BackTester(Tester):
 
         self._factor_pnl_and_price = factor_pnl_and_price
         self.t_ = len(self._factor_pnl_and_price)
+        self.t_assessment = int(self.t_ * self._assessment_proportion)
 
     def _compute_backtesting_output(self):
         # TODO: unify this and the corresponding in SimulationTester and move as much as possible to superclass
@@ -217,13 +222,23 @@ class BackTester(Tester):
 
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
 
+    def _get_dates_plot(self):
+        if self._use_assessment_period:
+            dates = self._factor_pnl_and_price.index[self.t_assessment:-1]
+        else:
+            dates = self._factor_pnl_and_price.index[:-1]
+        return dates
+
     def _plot_shares(self):
+
+        dates = self._get_dates_plot()
 
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
-            plt.plot(self._factor_pnl_and_price.index[:-1], self._strategy_all[agent_type],
+            plt.plot(dates, self._strategy_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
+
         plt.title('Shares')
         plt.xlabel('Date')
         plt.ylabel('Shares [#]')
@@ -233,10 +248,12 @@ class BackTester(Tester):
 
     def _plot_value(self):
 
+        dates = self._get_dates_plot()
+
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
-            plt.plot(self._factor_pnl_and_price.index[:-1], self._cum_value_all[agent_type],
+            plt.plot(dates, self._cum_value_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
         plt.title('Value')
         plt.xlabel('Date')
@@ -247,10 +264,12 @@ class BackTester(Tester):
 
     def _plot_cost(self):
 
+        dates = self._get_dates_plot()
+
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
-            plt.plot(self._factor_pnl_and_price.index[:-1], self._cum_cost_all[agent_type],
+            plt.plot(dates, self._cum_cost_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
         plt.title('Cost')
         plt.xlabel('Date')
@@ -261,10 +280,12 @@ class BackTester(Tester):
 
     def _plot_risk(self):
 
+        dates = self._get_dates_plot()
+
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
-            plt.plot(self._factor_pnl_and_price.index[:-1], self._cum_risk_all[agent_type],
+            plt.plot(dates, self._cum_risk_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
         plt.title('Risk')
         plt.xlabel('Date')
@@ -275,10 +296,12 @@ class BackTester(Tester):
 
     def _plot_wealth(self):
 
+        dates = self._get_dates_plot()
+
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
-            plt.plot(self._factor_pnl_and_price.index[:-1],
+            plt.plot(dates,
                      self._cum_wealth_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
         plt.title('Wealth')
@@ -290,10 +313,12 @@ class BackTester(Tester):
 
     def _plot_wealth_net_risk(self):
 
+        dates = self._get_dates_plot()
+
         dpi = plt.rcParams['figure.dpi']
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
         for agent_type in self._agents.keys():
-            plt.plot(self._factor_pnl_and_price.index[:-1],
+            plt.plot(dates,
                      self._cum_wealth_net_risk_all[agent_type],
                      color=self._colors[agent_type], label=agent_type)
         plt.title('Wealth net Risk')
