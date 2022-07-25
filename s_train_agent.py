@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # -------------------- Input parameters
     train_benchmarking_GP_reward = False
     plot_regressor = True
-    ann_hidden_nodes = 256
+    ann_architecture = (128, 64, 32, 16, 8)
     early_stopping = True
     max_iter = 200
     activation = 'relu'
@@ -35,7 +35,7 @@ if __name__ == '__main__':
                                 shares_scale=shares_scale,
                                 train_benchmarking_GP_reward=train_benchmarking_GP_reward,
                                 plot_regressor=plot_regressor,
-                                ann_hidden_nodes=ann_hidden_nodes,
+                                ann_architecture=ann_architecture,
                                 early_stopping=early_stopping,
                                 max_iter=max_iter,
                                 activation=activation)
