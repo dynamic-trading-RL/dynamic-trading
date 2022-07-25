@@ -121,13 +121,11 @@ class Agent:
             # TODO: We are implying a preference for EstimateInitializationType.RandomTruncNorm, in that this is chosen
             #  by default even if the initialization is set to GP. Make a better structuring of this part.
 
-            alpha = 0.5
-
-            loc = 0.5 * (upper_bound + lower_bound)
-            scale = alpha * (upper_bound - lower_bound)
+            loc = self._get_trade_loc(lower_bound, upper_bound)
+            alpha = 0.12
+            scale = self._get_trade_scale(lower_bound, upper_bound, alpha)
 
             rescaled_trade = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=loc, scale=scale)
-
 
         action = Action()
         action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
