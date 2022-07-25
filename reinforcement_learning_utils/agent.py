@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-from scipy.optimize import shgo, minimize
+from scipy.optimize import basinhopping, brute, differential_evolution, dual_annealing, shgo, minimize
 from joblib import dump, load
 from scipy.stats import truncnorm
 
@@ -12,9 +12,13 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 
 class Agent:
 
-    def __init__(self, environment: Environment):
+    def __init__(self, environment: Environment, optimizer: str = 'brute'):
 
         self.environment = environment
+
+        # available optimizers: ('basinhopping', 'brute', 'differential_evolution', 'dual_annealing', 'shgo', 'local')
+        self._optimizer = optimizer
+
         self._q_value_models = []
         self._set_agent_attributes()
 
@@ -175,10 +179,36 @@ class Agent:
             return - qvl
 
         bounds = [(lower_bound, upper_bound)]
-        res = shgo(func=func, bounds=bounds)
-        #  res = minimize(fun=func, bounds=bounds, x0=0.)
+        x0 = self._get_trade_loc(lower_bound, upper_bound)
 
-        return res.x[0]
+        if self._optimizer == 'basinhopping':
+            res = basinhopping(func=func, x0=x0)
+            return res.x[0]
+
+        elif self._optimizer == 'brute':
+            Ns = 2 * int(upper_bound*state.shares_scale - lower_bound*state.shares_scale)
+            x = brute(func=func, ranges=(bounds), Ns=Ns)
+            return x[0]
+
+        elif self._optimizer == 'differential_evolution':
+            res = differential_evolution(func=func, bounds=bounds)
+            return res.x[0]
+
+        elif self._optimizer == 'dual_annealing':
+            res = dual_annealing(func=func, bounds=bounds)
+            return res.x[0]
+
+        elif self._optimizer == 'shgo':
+            res = shgo(func=func, bounds=bounds)
+            return res.x[0]
+
+        elif self._optimizer == 'local':
+            res = minimize(fun=func, bounds=bounds, x0=x0)
+            return res.x[0]
+
+        else:
+            raise NameError('Invalid optimizer: ' + self._optimizer)
+
 
     def extract_q_value_model_input_trading(self, state, action):
 
