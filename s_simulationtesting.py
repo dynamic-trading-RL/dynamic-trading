@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     # -------------------- Execution
     simulationTester = SimulationTester(ticker=ticker)
-    simulationTester.execute_backtesting()
+    simulationTester.execute_simulation_testing(j_=j_, t_=t_)
     simulationTester.make_plots(j_trajectories_plot=j_trajectories_plot)
 
     print('--- End s_simulationtesting.py')
