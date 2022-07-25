@@ -130,6 +130,19 @@ class Agent:
 
         return action
 
+    def _get_trade_loc(self, lower_bound, upper_bound):
+
+        # loc = 0.5 * (lower_bound + upper_bound)
+        loc = 0.
+
+        return loc
+
+    def _get_trade_scale(self, lower_bound, upper_bound, alpha):
+
+        scale = alpha * (upper_bound - lower_bound)
+
+        return scale
+
     def _get_action_bounds_trading(self, state: State):
 
         actionSpace = ActionSpace(state)
