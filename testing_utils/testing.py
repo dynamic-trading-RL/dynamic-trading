@@ -210,15 +210,15 @@ class BackTester(Tester):
                 cost.append(cost_trade)
                 risk.append(risk_trade)
 
-            self._strategy_all[agent_type] = strategy
-            self._trade_all[agent_type] = trades
-            self._cum_value_all[agent_type] = list(np.cumsum(value))
-            self._cum_cost_all[agent_type] = list(np.cumsum(cost))
-            self._cum_risk_all[agent_type] = list(np.cumsum(risk))
-            self._cum_wealth_all[agent_type] = list(np.cumsum(value) - np.cumsum(cost))
-            self._cum_wealth_net_risk_all[agent_type] = list(np.cumsum(value) - np.cumsum(cost) - np.cumsum(risk))
+            self._strategy_all[agent_type] = np.array(strategy)
+            self._trade_all[agent_type] = np.array(trades)
+            self._cum_value_all[agent_type] = np.cumsum(value)
+            self._cum_cost_all[agent_type] = np.cumsum(cost)
+            self._cum_risk_all[agent_type] = np.cumsum(risk)
+            self._cum_wealth_all[agent_type] = np.cumsum(value) - np.cumsum(cost)
+            self._cum_wealth_net_risk_all[agent_type] = np.cumsum(value) - np.cumsum(cost) - np.cumsum(risk)
 
-            pnl_net = np.diff(np.array(self._cum_wealth_all[agent_type]))
+            pnl_net = np.diff(self._cum_wealth_all[agent_type])
 
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
 
@@ -337,11 +337,11 @@ class BackTester(Tester):
         plt.xlabel('GP trades [#]')
         plt.ylabel('RL trades [#]')
         plt.axis('equal')
-        xlim = [np.quantile(self._trade_all['GP'], 0.02), np.quantile(self._trade_all['GP'], 0.98)]
-        ylim = [np.quantile(self._trade_all['RL'], 0.02), np.quantile(self._trade_all['RL'], 0.98)]
-        plt.plot(xlim, ylim, color='r', label='45° line')
+        xlim = [min(np.quantile(self._trade_all['GP'], 0.02), np.quantile(self._trade_all['RL'], 0.02)),
+                max(np.quantile(self._trade_all['GP'], 0.98), np.quantile(self._trade_all['RL'], 0.98))]
+        plt.plot(xlim, xlim, color='r', label='45° line')
         plt.xlim(xlim)
-        plt.ylim(ylim)
+        plt.ylim(xlim)
         plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
                     + '-backtesting-trades-scatter.png')
