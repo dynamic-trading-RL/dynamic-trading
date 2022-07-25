@@ -26,7 +26,7 @@ class AgentTrainer:
                  factorType: FactorType = FactorType.Observable,
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
-                 ann_hidden_nodes: int = None,
+                 ann_architecture: tuple = None,
                  early_stopping: bool = True,
                  max_iter: int = 200,
                  activation: str = 'relu'):
@@ -47,7 +47,7 @@ class AgentTrainer:
         self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
         self._plot_regressor = plot_regressor
-        self._ann_hidden_nodes = ann_hidden_nodes
+        self._ann_architecture = ann_architecture
         self._early_stopping = early_stopping
         self._max_iter = max_iter
         self._activation = activation
@@ -370,13 +370,13 @@ class AgentTrainer:
 
     def _set_supervised_regressor_parameters(self):
 
-        if self._ann_hidden_nodes is None:
-            self._ann_hidden_nodes = int(5 * 10**(-4) * self.j_episodes * self.t_)
+        if self._ann_architecture is None:
+            self._ann_architecture = (int(5 * 10**(-4) * self.j_episodes * self.t_), )
 
-        hidden_layer_sizes = (self._ann_hidden_nodes, )
+        hidden_layer_sizes = self._ann_architecture
         max_iter = self._max_iter
         n_iter_no_change = 10
-        alpha_ann = 0.001
+        alpha_ann = 0.01
         early_stopping = self._early_stopping
         validation_fraction = 0.1
         activation = self._activation
