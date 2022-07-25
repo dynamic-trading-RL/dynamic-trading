@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # -------------------- Input parameters
     train_benchmarking_GP_reward = False
     plot_regressor = True
-    ann_architecture = (128, 64, 32, 16, 8)
+    ann_architecture = (128, 64, 32)
     early_stopping = True
     max_iter = 200
     activation = 'relu'

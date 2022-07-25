@@ -12,4 +12,4 @@ if __name__ == '__main__':
     backtester.execute_backtesting()
     backtester.make_plots()
 
-    print('--- End s_in_sample_testing.py')
+    print('--- End s_backtesting.py')
