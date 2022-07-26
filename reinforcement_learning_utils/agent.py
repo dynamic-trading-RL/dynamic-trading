@@ -192,12 +192,9 @@ class Agent:
                 return x[0]
 
             except:
-                print(f'Input bounds: {bounds}')
-                print(f'Input Ns: {Ns}')
-                print(f'Input func evaluated at grid: {np.array([func(rs)[0] for rs in np.linspace(bounds[0][0], bounds[0][1], Ns)])}')
-
-                raise NameError('Brute gave error!!! Printed some variables for debugging.')
-
+                print('Brute gave error!!! Using Shgo')
+                res = shgo(func=func, bounds=bounds)
+                return res.x[0]
 
         elif self._optimizer == 'differential_evolution':
             res = differential_evolution(func=func, bounds=bounds)
