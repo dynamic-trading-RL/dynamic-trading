@@ -185,8 +185,19 @@ class Agent:
 
         elif self._optimizer == 'brute':
             Ns = 2 * int(upper_bound*state.shares_scale - lower_bound*state.shares_scale)
-            x = brute(func=func, ranges=(bounds), Ns=Ns)
-            return x[0]
+
+            # TODO: testing why this gives error in some cases
+            try:
+                x = brute(func=func, ranges=bounds, Ns=Ns)
+                return x[0]
+
+            except:
+                print(f'Input bounds: {bounds}')
+                print(f'Input Ns: {Ns}')
+                print(f'Input func evaluated at grid: {np.array([func(rs)[0] for rs in np.linspace(bounds[0][0], bounds[0][1], Ns)])}')
+
+                raise NameError('Brute gave error!!! Printed some variables for debugging.')
+
 
         elif self._optimizer == 'differential_evolution':
             res = differential_evolution(func=func, bounds=bounds)
