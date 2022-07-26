@@ -460,8 +460,8 @@ class SimulationTester(Tester):
         for agent_type in self._agents.keys():
 
             values = self._cum_value_all[agent_type][:, -1]
-            mean = values.mean()
-            std = values.std()
+            mean = self._means[agent_type]['value']
+            std = self._stds[agent_type]['value']
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
                      label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
@@ -481,8 +481,8 @@ class SimulationTester(Tester):
         for agent_type in self._agents.keys():
 
             values = self._cum_cost_all[agent_type][:, -1]
-            mean = values.mean()
-            std = values.std()
+            mean = self._means[agent_type]['cost']
+            std = self._stds[agent_type]['cost']
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
                      label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
@@ -502,8 +502,8 @@ class SimulationTester(Tester):
         for agent_type in self._agents.keys():
 
             values = self._cum_risk_all[agent_type][:, -1]
-            mean = values.mean()
-            std = values.std()
+            mean = self._means[agent_type]['risk']
+            std = self._stds[agent_type]['risk']
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
                      label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
@@ -523,8 +523,8 @@ class SimulationTester(Tester):
         for agent_type in self._agents.keys():
 
             values = self._cum_wealth_all[agent_type][:, -1]
-            mean = values.mean()
-            std = values.std()
+            mean = self._means[agent_type]['wealth']
+            std = self._stds[agent_type]['wealth']
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
                      label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
@@ -544,8 +544,8 @@ class SimulationTester(Tester):
         for agent_type in self._agents.keys():
 
             values = self._cum_wealth_net_risk_all[agent_type][:, -1]
-            mean = values.mean()
-            std = values.std()
+            mean = self._means[agent_type]['wealth_net_risk']
+            std = self._stds[agent_type]['wealth_net_risk']
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
                      label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
@@ -694,6 +694,38 @@ class SimulationTester(Tester):
             pnl_net = np.diff(self._cum_wealth_all[agent_type], axis=1)
 
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net, axis=1) / np.std(pnl_net, axis=1) * np.sqrt(252)
+
+        self._compute_means_and_stds()
+
+    def _compute_means_and_stds(self):
+
+        self._means = {}
+        self._stds = {}
+
+        for agent_type in self._agents.keys():
+
+            self._means[agent_type] = {}
+            self._stds[agent_type] = {}
+
+            values = self._cum_value_all[agent_type][:, -1]
+            self._means[agent_type]['value'] = values.mean()
+            self._stds[agent_type]['value'] = values.std()
+
+            values = self._cum_cost_all[agent_type][:, -1]
+            self._means[agent_type]['cost'] = values.mean()
+            self._stds[agent_type]['cost'] = values.std()
+
+            values = self._cum_risk_all[agent_type][:, -1]
+            self._means[agent_type]['risk'] = values.mean()
+            self._stds[agent_type]['risk'] = values.std()
+
+            values = self._cum_wealth_all[agent_type][:, -1]
+            self._means[agent_type]['wealth'] = values.mean()
+            self._stds[agent_type]['wealth'] = values.std()
+
+            values = self._cum_wealth_net_risk_all[agent_type][:, -1]
+            self._means[agent_type]['wealth_net_risk'] = values.mean()
+            self._stds[agent_type]['wealth_net_risk'] = values.std()
 
     def _compute_outputs_iter_j(self, j, factor_series_all_j, pnl_series_all_j, price_series_all_j, dates, agent_type):
 
