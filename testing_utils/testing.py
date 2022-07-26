@@ -464,8 +464,7 @@ class SimulationTester(Tester):
             std = values.std()
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
-                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True,
-                     bins=min(int(np.sqrt(self.j_)), 90))
+                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
 
         plt.title('Value')
         plt.xlabel('Portfolio Value [$]')
@@ -486,8 +485,7 @@ class SimulationTester(Tester):
             std = values.std()
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
-                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True,
-                     bins=min(int(np.sqrt(self.j_)), 90))
+                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
 
         plt.title('Cost')
         plt.xlabel('Cost [$]')
@@ -508,7 +506,7 @@ class SimulationTester(Tester):
             std = values.std()
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
-                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True)
+                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
 
         plt.title('Risk')
         plt.xlabel('Risk')
@@ -529,7 +527,7 @@ class SimulationTester(Tester):
             std = values.std()
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
-                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True)
+                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
 
         plt.title('Wealth')
         plt.xlabel('Wealth = Value - Cost [$]')
@@ -550,7 +548,7 @@ class SimulationTester(Tester):
             std = values.std()
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
-                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True)
+                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
 
         plt.title('Wealth net Risk')
         plt.xlabel('Wealth net Risk = Value - Cost - Risk')
@@ -592,7 +590,7 @@ class SimulationTester(Tester):
             std = values.std()
 
             plt.hist(values, color=self._colors[agent_type], alpha=0.3,
-                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True)
+                     label=f'{agent_type} : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
 
         plt.title('Realized Sharpe ratio')
         plt.xlabel('Realized Sharpe ratio (annualized)')
