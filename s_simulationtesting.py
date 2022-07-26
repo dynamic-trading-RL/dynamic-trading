@@ -6,7 +6,7 @@ if __name__ == '__main__':
 
     # -------------------- Input parameters
     ticker = 'WTI'
-    j_ = 1000
+    j_ = 10000
     t_ = 50
     j_trajectories_plot = 20
 
