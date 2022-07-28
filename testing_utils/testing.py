@@ -570,6 +570,8 @@ class SimulationTester(Tester):
 
         plt.scatter(xx, yy, s=2, alpha=0.5)
         plt.plot(xlim, xlim, label='45° line', color='r')
+        plt.xlim(xlim)
+        plt.ylim(xlim)
 
         plt.title('GP vs RL trades')
         plt.xlabel('GP trades [#]')
