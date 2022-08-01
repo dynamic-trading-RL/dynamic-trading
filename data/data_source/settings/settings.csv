@@ -7,11 +7,11 @@ factorSourceType,Constructed
 factorType,Observable
 gamma,0.9999
 in_sample_proportion,0.9
-j_episodes,25000
+j_episodes,15000
 kappa,0.001
 lam,0.015
 start_date,'2004-01-01'
-n_batches,1
+n_batches,5
 n_cores,20
 GP_action_in_state,No
 parallel_computing,Yes
