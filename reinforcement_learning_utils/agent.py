@@ -12,7 +12,7 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 
 class Agent:
 
-    def __init__(self, environment: Environment, optimizer: str = 'brute'):
+    def __init__(self, environment: Environment, optimizer: str = 'shgo'):
 
         self.environment = environment
 
@@ -28,6 +28,10 @@ class Agent:
             action = self._greedy_policy(state)
         else:
             action = self._eps_greedy_policy(state, eps)
+
+        if np.abs(state.current_rescaled_shares + action.rescaled_trade) > 1:
+
+            raise NameError(f'Shares went out of bound!! \n  current_rescaled_shares: {state.current_rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
 
         return action
 
@@ -80,8 +84,6 @@ class Agent:
 
     def _greedy_policy_trading(self, state):
 
-        lower_bound, upper_bound = self._get_action_bounds_trading(state)
-
         if len(self._q_value_models) == 0:  # We are at batch 0: use initialization
 
             if self.estimateInitializationType in (EstimateInitializationType.RandomUniform,
@@ -102,7 +104,7 @@ class Agent:
                 raise NameError('Invalid estimateInitializationType: ' + self.estimateInitializationType.value)
 
         else:
-            rescaled_trade = self._optimize_q_value_trading(state, lower_bound, upper_bound)
+            rescaled_trade = self._optimize_q_value_trading(state)
             action = Action()
             action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
@@ -165,7 +167,9 @@ class Agent:
 
         return qvl
 
-    def _optimize_q_value_trading(self, state: State, lower_bound: float, upper_bound: float):
+    def _optimize_q_value_trading(self, state: State):
+
+        lower_bound, upper_bound = self._get_action_bounds_trading(state)
 
         def func(rescaled_trade):
 
@@ -184,17 +188,22 @@ class Agent:
             return res.x[0]
 
         elif self._optimizer == 'brute':
-            Ns = 2 * int(upper_bound*state.shares_scale - lower_bound*state.shares_scale)
 
-            # TODO: testing why this gives error in some cases
-            try:
-                x = brute(func=func, ranges=bounds, Ns=Ns)
-                return x[0]
+            Ns = 4 * int(upper_bound*state.shares_scale - lower_bound*state.shares_scale)
+            xx = np.linspace(lower_bound, upper_bound, Ns)
+            ff = np.array([func(x) for x in xx])
+            x = xx[np.argmin(ff)]
+            return x
 
-            except:
-                print('Brute gave error!!! Using Shgo')
-                res = shgo(func=func, bounds=bounds)
-                return res.x[0]
+            # # TODO: understand why this gives error in some cases
+            # try:
+            #     x = brute(func=func, ranges=bounds, Ns=Ns, finish=None)
+            #     return x[0]
+            #
+            # except:
+            #     print('Brute gave error!!! Using Shgo')
+            #     res = shgo(func=func, bounds=bounds)
+            #     return res.x[0]
 
         elif self._optimizer == 'differential_evolution':
             res = differential_evolution(func=func, bounds=bounds)

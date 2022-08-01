@@ -422,10 +422,16 @@ class SimulationTester(Tester):
 
         self._plot_shares(j_trajectories_plot)
         self._plot_value()
+        self._plot_value_diff()
         self._plot_cost()
+        self._plot_cost_diff()
         self._plot_risk()
+        self._plot_risk_diff()
         self._plot_wealth()
+        self._plot_wealth_diff()
         self._plot_wealth_net_risk()
+        self._plot_wealth_net_risk_diff()
+        self._plot_wealth_net_risk_scatter()
         self._plot_trades_scatter()
         self._plot_sharpe_ratio()
 
@@ -473,6 +479,25 @@ class SimulationTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
                     + '-simulationtesting-value.png')
 
+    def _plot_value_diff(self):
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+
+        values = self._cum_value_all['RL'][:, -1] - self._cum_value_all['GP'][:, -1]
+        mean = values.mean()
+        std = values.std()
+
+        plt.hist(values, alpha=0.3,
+                 label=f'RL-GP : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
+
+        plt.title('RL - GP Value')
+        plt.xlabel('Portfolio Value [$]')
+        plt.yticks([])
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+                    + '-simulationtesting-RL-GP-value.png')
+
     def _plot_cost(self):
 
         dpi = plt.rcParams['figure.dpi']
@@ -493,6 +518,25 @@ class SimulationTester(Tester):
         plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
                     + '-simulationtesting-cost.png')
+
+    def _plot_cost_diff(self):
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+
+        values = self._cum_cost_all['RL'][:, -1] - self._cum_cost_all['GP'][:, -1]
+        mean = values.mean()
+        std = values.std()
+
+        plt.hist(values, alpha=0.3,
+                 label=f'RL-GP : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
+
+        plt.title('RL - GP Cost')
+        plt.xlabel('Cost [$]')
+        plt.yticks([])
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+                    + '-simulationtesting-RL-GP-cost.png')
 
     def _plot_risk(self):
 
@@ -515,6 +559,25 @@ class SimulationTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
                     + '-simulationtesting-risk.png')
 
+    def _plot_risk_diff(self):
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+
+        values = self._cum_risk_all['RL'][:, -1] - self._cum_risk_all['GP'][:, -1]
+        mean = values.mean()
+        std = values.std()
+
+        plt.hist(values, alpha=0.3,
+                 label=f'RL-GP : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
+
+        plt.title('RL - GP Risk')
+        plt.xlabel('Risk')
+        plt.yticks([])
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+                    + '-simulationtesting-RL-GP-risk.png')
+
     def _plot_wealth(self):
 
         dpi = plt.rcParams['figure.dpi']
@@ -535,6 +598,25 @@ class SimulationTester(Tester):
         plt.legend()
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
                     + '-simulationtesting-wealth.png')
+
+    def _plot_wealth_diff(self):
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+
+        values = self._cum_wealth_all['RL'][:, -1] - self._cum_wealth_all['GP'][:, -1]
+        mean = values.mean()
+        std = values.std()
+
+        plt.hist(values, alpha=0.3,
+                 label=f'RL-GP : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
+
+        plt.title('RL - GP Wealth')
+        plt.xlabel('Wealth = Value - Cost [$]')
+        plt.yticks([])
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+                    + '-simulationtesting-RL-GP-wealth.png')
 
     def _plot_wealth_net_risk(self):
 
@@ -557,6 +639,48 @@ class SimulationTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
                     + '-simulationtesting-wealth-net-risk.png')
 
+    def _plot_wealth_net_risk_diff(self):
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+
+        values = self._cum_wealth_net_risk_all['RL'][:, -1] - self._cum_wealth_net_risk_all['GP'][:, -1]
+        mean = values.mean()
+        std = values.std()
+
+        plt.hist(values, alpha=0.3,
+                 label=f'RL-GP : (mean, std) = ({mean:.2f}, {std:.2f})', density=True, bins=min(self.j_, 90))
+
+        plt.title('RL - GP Wealth net Risk')
+        plt.xlabel('Wealth net Risk = Value - Cost - Risk')
+        plt.yticks([])
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+                    + '-simulationtesting-RL-GP-wealth-net-risk.png')
+
+    def _plot_wealth_net_risk_scatter(self):
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+
+        xx = self._cum_wealth_net_risk_all['GP'][:, -1]
+        yy = self._cum_wealth_net_risk_all['RL'][:, -1]
+
+        xlim = [min(np.quantile(xx, 0.02), np.quantile(yy, 0.02)),
+                max(np.quantile(xx, 0.98), np.quantile(yy, 0.98))]
+
+        plt.scatter(xx, yy, s=2, alpha=0.5)
+        plt.plot(xlim, xlim, label='45° line', color='r')
+        plt.xlim(xlim)
+        plt.ylim(xlim)
+
+        plt.title('GP vs RL final Wealth net Risk')
+        plt.xlabel('GP Wealth net Risk')
+        plt.ylabel('RL Wealth net Risk')
+        plt.legend()
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+                    + '-simulationtesting-wealth-scatter.png')
+
     def _plot_trades_scatter(self):
 
         dpi = plt.rcParams['figure.dpi']
@@ -570,6 +694,8 @@ class SimulationTester(Tester):
 
         plt.scatter(xx, yy, s=2, alpha=0.5)
         plt.plot(xlim, xlim, label='45° line', color='r')
+        plt.xlim(xlim)
+        plt.ylim(xlim)
 
         plt.title('GP vs RL trades')
         plt.xlabel('GP trades [#]')
@@ -650,7 +776,7 @@ class SimulationTester(Tester):
 
                 p = mp.Pool(self._n_cores)
 
-                outputs = list(tqdm(p.imap_unordered(func=compute_outputs_iter_j_partial,
+                outputs = list(tqdm(p.imap(func=compute_outputs_iter_j_partial,
                                                      iterable=j_index,
                                                      chunksize=int(self.j_ / self._n_cores)),
                                     total=self.j_,
