@@ -2,23 +2,23 @@
 ==============================================================================
 Dep. Variable:            risk-driver   R-squared:                       0.000
 Model:                            OLS   Adj. R-squared:                 -0.000
-Method:                 Least Squares   F-statistic:                    0.2672
-Date:                Fri, 15 Jul 2022   Prob (F-statistic):              0.605
-Time:                        12:07:10   Log-Likelihood:                 4693.1
+Method:                 Least Squares   F-statistic:                  0.007804
+Date:                Mon, 08 Aug 2022   Prob (F-statistic):              0.930
+Time:                        17:52:30   Log-Likelihood:                 4693.0
 No. Observations:                2641   AIC:                            -9382.
-Df Residuals:                    2639   BIC:                            -9371.
+Df Residuals:                    2639   BIC:                            -9370.
 Df Model:                           1                                         
 Covariance Type:            nonrobust                                         
 ==============================================================================
                  coef    std err          t      P>|t|      [0.025      0.975]
 ------------------------------------------------------------------------------
-const          0.0010      0.001      0.741      0.459      -0.002       0.004
-factor         0.0014      0.003      0.517      0.605      -0.004       0.007
+const          0.0004      0.001      0.315      0.753      -0.002       0.003
+factor        -0.0055      0.062     -0.088      0.930      -0.127       0.116
 ==============================================================================
-Omnibus:                      470.453   Durbin-Watson:                   1.995
-Prob(Omnibus):                  0.000   Jarque-Bera (JB):             8210.544
-Skew:                          -0.303   Prob(JB):                         0.00
-Kurtosis:                      11.617   Cond. No.                         3.91
+Omnibus:                      471.875   Durbin-Watson:                   1.986
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             8233.894
+Skew:                          -0.307   Prob(JB):                         0.00
+Kurtosis:                      11.628   Cond. No.                         77.9
 ==============================================================================
 
 Notes:
