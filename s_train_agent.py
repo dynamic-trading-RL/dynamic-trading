@@ -14,9 +14,9 @@ if __name__ == '__main__':
     # -------------------- Input parameters
     train_benchmarking_GP_reward = False
     plot_regressor = True
-    ann_architecture = (64, 32, 16)
+    ann_architecture = (64, 32, 8)
     early_stopping = False
-    max_iter = 200
+    max_iter = 10
     activation = 'relu'
 
     # Market parameters
@@ -40,7 +40,7 @@ if __name__ == '__main__':
                                 max_iter=max_iter,
                                 activation=activation)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
-                       n_cores=n_cores, eps_start=0.1)
+                       n_cores=n_cores, eps_start=0.01)
 
     agentTrainer.agent.dump_q_value_models()
 

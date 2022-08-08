@@ -1,7 +1,7 @@
 field,value
 estimateInitializationType,RandomUniform
 factor_ticker,
-factorDefinitionType,StdMovingAverage
+factorDefinitionType,MovingAverage
 factorDynamicsType,AR
 factorSourceType,Constructed
 factorType,Observable
@@ -11,7 +11,7 @@ j_episodes,15000
 kappa,0.001
 lam,0.015
 start_date,'2004-01-01'
-n_batches,5
+n_batches,6
 n_cores,20
 GP_action_in_state,No
 parallel_computing,Yes
