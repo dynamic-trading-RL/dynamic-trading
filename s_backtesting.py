@@ -5,7 +5,7 @@ warnings.filterwarnings("ignore")
 if __name__ == '__main__':
 
     # -------------------- Input parameters
-    ticker = 'cocoa'
+    ticker = 'WTI'
 
     # -------------------- Execution
     backtester = BackTester(ticker=ticker)
