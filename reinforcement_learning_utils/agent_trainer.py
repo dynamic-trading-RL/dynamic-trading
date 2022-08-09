@@ -375,7 +375,7 @@ class AgentTrainer:
 
         hidden_layer_sizes = self._ann_architecture
         max_iter = self._max_iter
-        n_iter_no_change = 2
+        n_iter_no_change = 10
         alpha_ann = 0.0001
         early_stopping = self._early_stopping
         validation_fraction = 0.1
