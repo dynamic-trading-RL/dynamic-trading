@@ -5,7 +5,7 @@ warnings.filterwarnings("ignore")
 if __name__ == '__main__':
 
     # -------------------- Input parameters
-    ticker = 'WTI'
+    ticker = 'cocoa'
     j_ = 10000
     t_ = 50
     j_trajectories_plot = 20

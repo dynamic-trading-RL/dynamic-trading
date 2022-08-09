@@ -20,7 +20,7 @@ if __name__ == '__main__':
     activation = 'relu'
 
     # Market parameters
-    ticker = 'WTI'
+    ticker = 'cocoa'
     riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = read_trading_parameters_market(ticker)
 
     # Training parameters
