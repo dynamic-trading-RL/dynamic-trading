@@ -3,8 +3,8 @@
 Dep. Variable:                 factor   No. Observations:                 1400
 Model:                     AutoReg(1)   Log Likelihood                5436.792
 Method:               Conditional MLE   S.D. of innovations              0.005
-Date:                Mon, 08 Aug 2022   AIC                         -10867.585
-Time:                        17:52:29   BIC                         -10851.854
+Date:                Tue, 09 Aug 2022   AIC                         -10867.585
+Time:                        08:40:33   BIC                         -10851.854
 Sample:                             1   HQIC                        -10861.704
                                  1400                                         
 ==============================================================================
