@@ -1,8 +1,8 @@
 ,info
 ticker,WTI
-end_date,2020-07-20 00:00:00
-start_price,40.81
-len,6037
+end_date,2022-05-23 00:00:00
+start_price,110.29
+len,667
 out_of_sample_proportion_len,672
 window,5
 riskDriverType,PnL

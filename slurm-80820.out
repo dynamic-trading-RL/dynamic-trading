@@ -1,0 +1,471 @@
+Creating batch 1 of 5.
+  0%|          | 0/15000 [00:00<?, ?it/s]  0%|          | 1/15000 [00:01<5:51:34,  1.41s/it]  5%|▌         | 751/15000 [00:01<00:24, 590.95it/s] 10%|█         | 1501/15000 [00:02<00:14, 945.67it/s] 15%|█▌        | 2251/15000 [00:02<00:08, 1459.83it/s] 20%|██        | 3001/15000 [00:02<00:07, 1587.76it/s] 25%|██▌       | 3751/15000 [00:03<00:07, 1592.24it/s] 30%|███       | 4501/15000 [00:03<00:06, 1581.79it/s] 35%|███▌      | 5251/15000 [00:03<00:04, 2060.87it/s] 40%|████      | 6001/15000 [00:04<00:05, 1732.68it/s] 45%|████▌     | 6751/15000 [00:04<00:03, 2207.67it/s] 50%|█████     | 7501/15000 [00:04<00:02, 2708.02it/s] 55%|█████▌    | 8251/15000 [00:05<00:03, 1817.51it/s] 60%|██████    | 9001/15000 [00:05<00:02, 2283.25it/s] 65%|██████▌   | 9751/15000 [00:05<00:01, 2774.53it/s] 70%|███████   | 10501/15000 [00:06<00:02, 1658.21it/s] 75%|███████▌  | 11251/15000 [00:06<00:01, 2100.01it/s] 80%|████████  | 12001/15000 [00:06<00:01, 2580.32it/s] 85%|████████▌ | 12751/15000 [00:06<00:00, 3063.84it/s] 90%|█████████ | 13501/15000 [00:08<00:00, 1516.60it/s] 95%|█████████▌| 14251/15000 [00:08<00:00, 1937.52it/s]100%|██████████| 15000/15000 [00:08<00:00, 1836.13it/s]
+    Fitting supervised regressor 1 of 5.
+Iteration 1, loss = 37.78046641
+Iteration 2, loss = 0.01782615
+Iteration 3, loss = 0.01198082
+Iteration 4, loss = 0.00997757
+Iteration 5, loss = 0.00869118
+Iteration 6, loss = 0.00812980
+Iteration 7, loss = 0.00774203
+Iteration 8, loss = 0.00754584
+Iteration 9, loss = 0.00689871
+Iteration 10, loss = 0.00677601
+Iteration 11, loss = 0.00677244
+Iteration 12, loss = 0.00695187
+Iteration 13, loss = 0.00635790
+Iteration 14, loss = 0.00637979
+Iteration 15, loss = 0.00627379
+Iteration 16, loss = 0.00627692
+Iteration 17, loss = 0.00620450
+Iteration 18, loss = 0.00610595
+Iteration 19, loss = 0.00584838
+Iteration 20, loss = 0.00632210
+Iteration 21, loss = 0.00575570
+Iteration 22, loss = 0.00584837
+Iteration 23, loss = 0.00574124
+Iteration 24, loss = 0.00564427
+Iteration 25, loss = 0.00561597
+Iteration 26, loss = 0.00552184
+Iteration 27, loss = 0.00518508
+Iteration 28, loss = 0.00536811
+Iteration 29, loss = 0.00534325
+Iteration 30, loss = 0.00511962
+Iteration 31, loss = 0.00518713
+Iteration 32, loss = 0.00513893
+Iteration 33, loss = 0.00498639
+Iteration 34, loss = 0.00515313
+Iteration 35, loss = 0.00500743
+Iteration 36, loss = 0.00496327
+Iteration 37, loss = 0.00495909
+Iteration 38, loss = 0.00481005
+Iteration 39, loss = 0.00498637
+Iteration 40, loss = 0.00479022
+Iteration 41, loss = 0.00473989
+Iteration 42, loss = 0.00494203
+Iteration 43, loss = 0.00466206
+Iteration 44, loss = 0.00463366
+Iteration 45, loss = 0.00474580
+Iteration 46, loss = 0.00455999
+Iteration 47, loss = 0.00454689
+Iteration 48, loss = 0.00445131
+Iteration 49, loss = 0.00440094
+Training loss did not improve more than tol=0.000100 for 10 consecutive epochs. Stopping.
+Average RL reward for batch 1: -22296325.050237596
+Average GP reward for batch 1: 0.0 
+
+Creating batch 2 of 5.
+  0%|          | 0/15000 [00:00<?, ?it/s]  0%|          | 1/15000 [11:27<2865:18:54, 687.72s/it]  5%|▌         | 751/15000 [11:30<2:33:06,  1.55it/s]   10%|█         | 1501/15000 [11:44<1:02:18,  3.61it/s] 10%|█         | 1501/15000 [11:56<1:02:18,  3.61it/s] 15%|█▌        | 2251/15000 [11:58<33:44,  6.30it/s]   20%|██        | 3001/15000 [12:09<20:21,  9.83it/s] 20%|██        | 3001/15000 [12:26<20:21,  9.83it/s] 25%|██▌       | 3751/15000 [12:27<13:49, 13.57it/s] 30%|███       | 4501/15000 [12:43<09:51, 17.76it/s] 35%|███▌      | 5251/15000 [12:48<06:26, 25.20it/s] 40%|████      | 6001/15000 [13:01<04:53, 30.69it/s] 45%|████▌     | 6751/15000 [13:09<03:33, 38.62it/s] 50%|█████     | 7501/15000 [13:09<02:14, 55.58it/s] 55%|█████▌    | 8251/15000 [13:16<01:43, 65.09it/s] 55%|█████▌    | 8251/15000 [13:36<01:43, 65.09it/s] 60%|██████    | 9001/15000 [13:45<02:13, 44.79it/s] 65%|██████▌   | 9751/15000 [13:51<01:34, 55.57it/s] 70%|███████   | 10501/15000 [13:59<01:10, 63.61it/s] 70%|███████   | 10501/15000 [14:16<01:10, 63.61it/s] 75%|███████▌  | 11251/15000 [14:20<01:12, 51.56it/s] 80%|████████  | 12001/15000 [14:26<00:47, 62.81it/s] 85%|████████▌ | 12751/15000 [14:33<00:31, 71.61it/s] 90%|█████████ | 13501/15000 [14:33<00:14, 101.47it/s] 90%|█████████ | 13501/15000 [14:46<00:14, 101.47it/s] 95%|█████████▌| 14251/15000 [15:49<00:28, 26.70it/s] 100%|██████████| 15000/15000 [15:49<00:00, 15.79it/s]
+    Fitting supervised regressor 2 of 5.
+Iteration 1, loss = 7.33288593
+Iteration 2, loss = 5.68856603
+Iteration 3, loss = 5.67113957
+Iteration 4, loss = 5.66279270
+Iteration 5, loss = 5.65396655
+Iteration 6, loss = 5.65127874
+Iteration 7, loss = 5.64918151
+Iteration 8, loss = 5.64673158
+Iteration 9, loss = 5.64482879
+Iteration 10, loss = 5.64149042
+Iteration 11, loss = 5.63984205
+Iteration 12, loss = 5.63900817
+Iteration 13, loss = 5.63696983
+Iteration 14, loss = 5.63803732
+Iteration 15, loss = 5.63708212
+Iteration 16, loss = 5.63460482
+Iteration 17, loss = 5.63401506
+Iteration 18, loss = 5.63384688
+Iteration 19, loss = 5.63431713
+Iteration 20, loss = 5.63185965
+Iteration 21, loss = 5.63181359
+Iteration 22, loss = 5.63096102
+Iteration 23, loss = 5.63137924
+Iteration 24, loss = 5.62988864
+Iteration 25, loss = 5.63063283
+Iteration 26, loss = 5.62993217
+Iteration 27, loss = 5.62884294
+Iteration 28, loss = 5.62982035
+Iteration 29, loss = 5.62954190
+Iteration 30, loss = 5.62809083
+Iteration 31, loss = 5.62817954
+Iteration 32, loss = 5.62786941
+Iteration 33, loss = 5.62844144
+Iteration 34, loss = 5.62698769
+Iteration 35, loss = 5.62667216
+Iteration 36, loss = 5.62666125
+Iteration 37, loss = 5.62753510
+Iteration 38, loss = 5.62625132
+Iteration 39, loss = 5.62645932
+Iteration 40, loss = 5.62488124
+Iteration 41, loss = 5.62646293
+Iteration 42, loss = 5.62618440
+Iteration 43, loss = 5.62659037
+Iteration 44, loss = 5.62569962
+Iteration 45, loss = 5.62544850
+Iteration 46, loss = 5.62583077
+Iteration 47, loss = 5.62503716
+Iteration 48, loss = 5.62498873
+Iteration 49, loss = 5.62513466
+Iteration 50, loss = 5.62429521
+Iteration 51, loss = 5.62506634
+Iteration 52, loss = 5.62321618
+Iteration 53, loss = 5.62405499
+Iteration 54, loss = 5.62429467
+Iteration 55, loss = 5.62348057
+Iteration 56, loss = 5.62334976
+Iteration 57, loss = 5.62436857
+Iteration 58, loss = 5.62321469
+Iteration 59, loss = 5.62388420
+Iteration 60, loss = 5.62461336
+Iteration 61, loss = 5.62335035
+Iteration 62, loss = 5.62323307
+Iteration 63, loss = 5.62284957
+Iteration 64, loss = 5.62222856
+Iteration 65, loss = 5.62351166
+Iteration 66, loss = 5.62273780
+Iteration 67, loss = 5.62286160
+Iteration 68, loss = 5.62178393
+Iteration 69, loss = 5.62249810
+Iteration 70, loss = 5.62185721
+Iteration 71, loss = 5.62233215
+Iteration 72, loss = 5.62170774
+Iteration 73, loss = 5.62122681
+Iteration 74, loss = 5.62192045
+Iteration 75, loss = 5.62099994
+Iteration 76, loss = 5.62126098
+Iteration 77, loss = 5.62148238
+Iteration 78, loss = 5.62131166
+Iteration 79, loss = 5.62128815
+Iteration 80, loss = 5.62221246
+Iteration 81, loss = 5.62116351
+Iteration 82, loss = 5.62183228
+Iteration 83, loss = 5.62046001
+Iteration 84, loss = 5.62145805
+Iteration 85, loss = 5.62061695
+Iteration 86, loss = 5.62008138
+Iteration 87, loss = 5.62166052
+Iteration 88, loss = 5.62080763
+Iteration 89, loss = 5.62043426
+Iteration 90, loss = 5.62080499
+Iteration 91, loss = 5.61984816
+Iteration 92, loss = 5.61962308
+Iteration 93, loss = 5.61991489
+Iteration 94, loss = 5.61989846
+Iteration 95, loss = 5.62037400
+Iteration 96, loss = 5.61985713
+Iteration 97, loss = 5.61935732
+Iteration 98, loss = 5.61930683
+Iteration 99, loss = 5.61890441
+Iteration 100, loss = 5.61886771
+Iteration 101, loss = 5.62019681
+Iteration 102, loss = 5.61920764
+Iteration 103, loss = 5.61943185
+Iteration 104, loss = 5.61829649
+Iteration 105, loss = 5.61863123
+Iteration 106, loss = 5.61899032
+Iteration 107, loss = 5.61911491
+Iteration 108, loss = 5.61904799
+Iteration 109, loss = 5.61827804
+Iteration 110, loss = 5.61889879
+Iteration 111, loss = 5.61820867
+Iteration 112, loss = 5.61862708
+Iteration 113, loss = 5.61690876
+Iteration 114, loss = 5.61801009
+Iteration 115, loss = 5.61704926
+Iteration 116, loss = 5.61811475
+Iteration 117, loss = 5.61726864
+Iteration 118, loss = 5.61806414
+Iteration 119, loss = 5.61779543
+Iteration 120, loss = 5.61736746
+Iteration 121, loss = 5.61727237
+Iteration 122, loss = 5.61728523
+Iteration 123, loss = 5.61778670
+Iteration 124, loss = 5.61638324
+Iteration 125, loss = 5.61748434
+Iteration 126, loss = 5.61693479
+Iteration 127, loss = 5.61598359
+Iteration 128, loss = 5.61636827
+Iteration 129, loss = 5.61635939
+Iteration 130, loss = 5.61725678
+Iteration 131, loss = 5.61591105
+Iteration 132, loss = 5.61667990
+Iteration 133, loss = 5.61498080
+Iteration 134, loss = 5.61749147
+Iteration 135, loss = 5.61561252
+Iteration 136, loss = 5.61630026
+Iteration 137, loss = 5.61584689
+Iteration 138, loss = 5.61556723
+Iteration 139, loss = 5.61591700
+Iteration 140, loss = 5.61586860
+Iteration 141, loss = 5.61440400
+Iteration 142, loss = 5.61563893
+Iteration 143, loss = 5.61453054
+Iteration 144, loss = 5.61398775
+Iteration 145, loss = 5.61536348
+Iteration 146, loss = 5.61512240
+Iteration 147, loss = 5.61451266
+Iteration 148, loss = 5.61493925
+Iteration 149, loss = 5.61456238
+Iteration 150, loss = 5.61435510
+Iteration 151, loss = 5.61460247
+Iteration 152, loss = 5.61454966
+Iteration 153, loss = 5.61428323
+Iteration 154, loss = 5.61377715
+Iteration 155, loss = 5.61410797
+Iteration 156, loss = 5.61328791
+Iteration 157, loss = 5.61316140
+Iteration 158, loss = 5.61346279
+Iteration 159, loss = 5.61249056
+Iteration 160, loss = 5.61287540
+Iteration 161, loss = 5.61314870
+Iteration 162, loss = 5.61373781
+Iteration 163, loss = 5.61249805
+Iteration 164, loss = 5.61375405
+Iteration 165, loss = 5.61353688
+Iteration 166, loss = 5.61291967
+Iteration 167, loss = 5.61199407
+Iteration 168, loss = 5.61325833
+Iteration 169, loss = 5.61218988
+Iteration 170, loss = 5.61255819
+Iteration 171, loss = 5.61253313
+Iteration 172, loss = 5.61140255
+Iteration 173, loss = 5.61237410
+Iteration 174, loss = 5.61212019
+Iteration 175, loss = 5.61182093
+Iteration 176, loss = 5.61164961
+Iteration 177, loss = 5.61179307
+Iteration 178, loss = 5.61168987
+Iteration 179, loss = 5.61218284
+Iteration 180, loss = 5.61187754
+Iteration 181, loss = 5.61230785
+Iteration 182, loss = 5.61153558
+Iteration 183, loss = 5.61148059
+Training loss did not improve more than tol=0.000100 for 10 consecutive epochs. Stopping.
+Average RL reward for batch 2: -940017.4430561129
+Average GP reward for batch 2: 0.0 
+
+Creating batch 3 of 5.
+  0%|          | 0/15000 [00:00<?, ?it/s]  0%|          | 1/15000 [17:42<4428:34:12, 1062.93s/it]  5%|▌         | 751/15000 [18:12<4:04:37,  1.03s/it]     5%|▌         | 751/15000 [18:23<4:04:37,  1.03s/it] 10%|█         | 1501/15000 [18:42<1:40:44,  2.23it/s] 10%|█         | 1501/15000 [18:53<1:40:44,  2.23it/s] 15%|█▌        | 2251/15000 [19:16<56:07,  3.79it/s]   15%|█▌        | 2251/15000 [19:33<56:07,  3.79it/s] 20%|██        | 3001/15000 [19:41<34:40,  5.77it/s] 20%|██        | 3001/15000 [19:53<34:40,  5.77it/s] 25%|██▌       | 3751/15000 [19:56<22:08,  8.47it/s] 25%|██▌       | 3751/15000 [20:13<22:08,  8.47it/s] 30%|███       | 4501/15000 [20:26<15:59, 10.94it/s] 30%|███       | 4501/15000 [20:43<15:59, 10.94it/s] 35%|███▌      | 5251/15000 [20:53<11:55, 13.63it/s] 35%|███▌      | 5251/15000 [21:03<11:55, 13.63it/s] 40%|████      | 6001/15000 [21:23<09:22, 15.99it/s] 40%|████      | 6001/15000 [21:33<09:22, 15.99it/s] 45%|████▌     | 6751/15000 [22:06<08:23, 16.38it/s] 50%|█████     | 7501/15000 [22:21<06:02, 20.68it/s] 50%|█████     | 7501/15000 [22:33<06:02, 20.68it/s] 55%|█████▌    | 8251/15000 [22:39<04:35, 24.50it/s] 55%|█████▌    | 8251/15000 [22:53<04:35, 24.50it/s] 60%|██████    | 9001/15000 [23:01<03:43, 26.83it/s] 60%|██████    | 9001/15000 [23:13<03:43, 26.83it/s] 65%|██████▌   | 9751/15000 [23:21<02:59, 29.31it/s] 65%|██████▌   | 9751/15000 [23:33<02:59, 29.31it/s] 70%|███████   | 10501/15000 [24:22<03:38, 20.60it/s] 70%|███████   | 10501/15000 [24:33<03:38, 20.60it/s] 75%|███████▌  | 11251/15000 [24:40<02:34, 24.24it/s] 75%|███████▌  | 11251/15000 [24:53<02:34, 24.24it/s] 80%|████████  | 12001/15000 [25:28<02:23, 20.95it/s] 85%|████████▌ | 12751/15000 [25:32<01:18, 28.53it/s] 85%|████████▌ | 12751/15000 [25:48<01:18, 28.53it/s] 90%|█████████ | 13501/15000 [26:16<01:03, 23.68it/s] 95%|█████████▌| 14251/15000 [26:16<00:22, 33.75it/s]100%|██████████| 15000/15000 [26:16<00:00,  9.51it/s]
+    Fitting supervised regressor 3 of 5.
+Iteration 1, loss = 3.65087831
+Iteration 2, loss = 2.97680333
+Iteration 3, loss = 2.96410054
+Iteration 4, loss = 2.95906942
+Iteration 5, loss = 2.95957278
+Iteration 6, loss = 2.95747386
+Iteration 7, loss = 2.95444504
+Iteration 8, loss = 2.95550463
+Iteration 9, loss = 2.95546654
+Iteration 10, loss = 2.95300871
+Iteration 11, loss = 2.95129868
+Iteration 12, loss = 2.95048028
+Iteration 13, loss = 2.95200623
+Iteration 14, loss = 2.95092753
+Iteration 15, loss = 2.95001932
+Iteration 16, loss = 2.94967156
+Iteration 17, loss = 2.95017445
+Iteration 18, loss = 2.94923155
+Iteration 19, loss = 2.94848431
+Iteration 20, loss = 2.94802642
+Iteration 21, loss = 2.94892051
+Iteration 22, loss = 2.94855828
+Iteration 23, loss = 2.94829865
+Iteration 24, loss = 2.94806053
+Iteration 25, loss = 2.94837674
+Iteration 26, loss = 2.94678173
+Iteration 27, loss = 2.94657162
+Iteration 28, loss = 2.94666942
+Iteration 29, loss = 2.94683147
+Iteration 30, loss = 2.94613626
+Iteration 31, loss = 2.94708718
+Iteration 32, loss = 2.94534023
+Iteration 33, loss = 2.94572277
+Iteration 34, loss = 2.94660909
+Iteration 35, loss = 2.94572565
+Iteration 36, loss = 2.94494587
+Iteration 37, loss = 2.94584553
+Iteration 38, loss = 2.94595132
+Iteration 39, loss = 2.94486599
+Iteration 40, loss = 2.94498399
+Iteration 41, loss = 2.94525972
+Iteration 42, loss = 2.94443780
+Iteration 43, loss = 2.94579425
+Iteration 44, loss = 2.94446629
+Iteration 45, loss = 2.94524188
+Iteration 46, loss = 2.94465260
+Iteration 47, loss = 2.94475947
+Iteration 48, loss = 2.94393536
+Iteration 49, loss = 2.94396391
+Iteration 50, loss = 2.94479794
+Iteration 51, loss = 2.94357688
+Iteration 52, loss = 2.94472082
+Iteration 53, loss = 2.94433946
+Iteration 54, loss = 2.94371927
+Iteration 55, loss = 2.94478407
+Iteration 56, loss = 2.94382639
+Iteration 57, loss = 2.94368546
+Iteration 58, loss = 2.94438091
+Iteration 59, loss = 2.94418533
+Iteration 60, loss = 2.94405420
+Iteration 61, loss = 2.94333821
+Iteration 62, loss = 2.94455118
+Iteration 63, loss = 2.94386785
+Iteration 64, loss = 2.94420107
+Iteration 65, loss = 2.94315036
+Iteration 66, loss = 2.94324454
+Iteration 67, loss = 2.94461025
+Iteration 68, loss = 2.94307072
+Iteration 69, loss = 2.94362001
+Iteration 70, loss = 2.94277848
+Iteration 71, loss = 2.94323407
+Iteration 72, loss = 2.94308436
+Iteration 73, loss = 2.94295917
+Iteration 74, loss = 2.94276725
+Iteration 75, loss = 2.94300310
+Iteration 76, loss = 2.94233583
+Iteration 77, loss = 2.94369766
+Iteration 78, loss = 2.94350192
+Iteration 79, loss = 2.94323146
+Iteration 80, loss = 2.94273837
+Iteration 81, loss = 2.94269405
+Iteration 82, loss = 2.94231862
+Iteration 83, loss = 2.94214240
+Iteration 84, loss = 2.94316018
+Iteration 85, loss = 2.94284575
+Iteration 86, loss = 2.94276903
+Iteration 87, loss = 2.94206337
+Iteration 88, loss = 2.94324973
+Iteration 89, loss = 2.94244485
+Iteration 90, loss = 2.94264765
+Iteration 91, loss = 2.94249838
+Iteration 92, loss = 2.94216511
+Iteration 93, loss = 2.94206926
+Iteration 94, loss = 2.94278632
+Training loss did not improve more than tol=0.000100 for 10 consecutive epochs. Stopping.
+Average RL reward for batch 3: -281696.3634292836
+Average GP reward for batch 3: 0.0 
+
+Creating batch 4 of 5.
+  0%|          | 0/15000 [00:00<?, ?it/s]  0%|          | 1/15000 [24:20<6086:53:44, 1460.95s/it]  5%|▌         | 751/15000 [25:51<5:52:10,  1.48s/it]    10%|█         | 1501/15000 [26:40<2:26:09,  1.54it/s] 15%|█▌        | 2251/15000 [26:41<1:15:02,  2.83it/s] 15%|█▌        | 2251/15000 [27:00<1:15:02,  2.83it/s] 20%|██        | 3001/15000 [27:39<48:51,  4.09it/s]   20%|██        | 3001/15000 [27:50<48:51,  4.09it/s] 25%|██▌       | 3751/15000 [29:04<36:59,  5.07it/s] 30%|███       | 4501/15000 [29:46<26:06,  6.70it/s] 30%|███       | 4501/15000 [30:00<26:06,  6.70it/s] 35%|███▌      | 5251/15000 [30:37<19:54,  8.16it/s] 35%|███▌      | 5251/15000 [30:50<19:54,  8.16it/s] 40%|████      | 6001/15000 [32:16<18:51,  7.95it/s] 45%|████▌     | 6751/15000 [33:04<14:38,  9.39it/s] 45%|████▌     | 6751/15000 [33:20<14:38,  9.39it/s] 50%|█████     | 7501/15000 [33:49<11:30, 10.86it/s] 50%|█████     | 7501/15000 [34:00<11:30, 10.86it/s] 55%|█████▌    | 8251/15000 [34:26<08:53, 12.66it/s] 55%|█████▌    | 8251/15000 [34:40<08:53, 12.66it/s] 60%|██████    | 9001/15000 [35:01<06:54, 14.48it/s] 60%|██████    | 9001/15000 [35:20<06:54, 14.48it/s] 65%|██████▌   | 9751/15000 [35:23<04:59, 17.54it/s] 65%|██████▌   | 9751/15000 [35:40<04:59, 17.54it/s] 70%|███████   | 10501/15000 [35:58<04:02, 18.53it/s] 70%|███████   | 10501/15000 [36:10<04:02, 18.53it/s] 75%|███████▌  | 11251/15000 [36:34<03:15, 19.18it/s] 75%|███████▌  | 11251/15000 [36:50<03:15, 19.18it/s] 80%|████████  | 12001/15000 [37:11<02:34, 19.47it/s] 80%|████████  | 12001/15000 [37:30<02:34, 19.47it/s] 85%|████████▌ | 12751/15000 [38:06<02:10, 17.28it/s] 85%|████████▌ | 12751/15000 [38:20<02:10, 17.28it/s] 90%|█████████ | 13501/15000 [38:43<01:22, 18.11it/s] 90%|█████████ | 13501/15000 [39:03<01:22, 18.11it/s] 95%|█████████▌| 14251/15000 [39:11<00:37, 19.93it/s]100%|██████████| 15000/15000 [39:11<00:00,  6.38it/s]
+    Fitting supervised regressor 4 of 5.
+Iteration 1, loss = 1.35571324
+Iteration 2, loss = 1.09937011
+Iteration 3, loss = 1.09346211
+Iteration 4, loss = 1.09183384
+Iteration 5, loss = 1.08913678
+Iteration 6, loss = 1.08867245
+Iteration 7, loss = 1.08838512
+Iteration 8, loss = 1.08689491
+Iteration 9, loss = 1.08606872
+Iteration 10, loss = 1.08573669
+Iteration 11, loss = 1.08550849
+Iteration 12, loss = 1.08533621
+Iteration 13, loss = 1.08447494
+Iteration 14, loss = 1.08514189
+Iteration 15, loss = 1.08418661
+Iteration 16, loss = 1.08386171
+Iteration 17, loss = 1.08417250
+Iteration 18, loss = 1.08348224
+Iteration 19, loss = 1.08330937
+Iteration 20, loss = 1.08334913
+Iteration 21, loss = 1.08354864
+Iteration 22, loss = 1.08259678
+Iteration 23, loss = 1.08235012
+Iteration 24, loss = 1.08279108
+Iteration 25, loss = 1.08257013
+Iteration 26, loss = 1.08256759
+Iteration 27, loss = 1.08235705
+Iteration 28, loss = 1.08218783
+Iteration 29, loss = 1.08207128
+Iteration 30, loss = 1.08208646
+Iteration 31, loss = 1.08150701
+Iteration 32, loss = 1.08195132
+Iteration 33, loss = 1.08231057
+Iteration 34, loss = 1.08149696
+Iteration 35, loss = 1.08186254
+Iteration 36, loss = 1.08155315
+Iteration 37, loss = 1.08190713
+Iteration 38, loss = 1.08162050
+Iteration 39, loss = 1.08143742
+Iteration 40, loss = 1.08139249
+Iteration 41, loss = 1.08155746
+Iteration 42, loss = 1.08104321
+Iteration 43, loss = 1.08116233
+Iteration 44, loss = 1.08126834
+Iteration 45, loss = 1.08120042
+Iteration 46, loss = 1.08132099
+Iteration 47, loss = 1.08104750
+Iteration 48, loss = 1.08141571
+Iteration 49, loss = 1.08110060
+Iteration 50, loss = 1.08091654
+Iteration 51, loss = 1.08096413
+Iteration 52, loss = 1.08074281
+Iteration 53, loss = 1.08119881
+Iteration 54, loss = 1.08096471
+Iteration 55, loss = 1.08121156
+Iteration 56, loss = 1.08124675
+Iteration 57, loss = 1.08090687
+Iteration 58, loss = 1.08105901
+Iteration 59, loss = 1.08078370
+Iteration 60, loss = 1.08109678
+Iteration 61, loss = 1.08069749
+Iteration 62, loss = 1.08074627
+Iteration 63, loss = 1.08061134
+Training loss did not improve more than tol=0.000100 for 10 consecutive epochs. Stopping.
+Average RL reward for batch 4: -106317.98941012808
+Average GP reward for batch 4: 0.0 
+
+Creating batch 5 of 5.
+  0%|          | 0/15000 [00:00<?, ?it/s]  0%|          | 1/15000 [30:24<7601:18:48, 1824.44s/it]  5%|▌         | 751/15000 [31:09<6:58:14,  1.76s/it]     5%|▌         | 751/15000 [31:24<6:58:14,  1.76s/it] 10%|█         | 1501/15000 [32:06<2:53:17,  1.30it/s] 10%|█         | 1501/15000 [32:24<2:53:17,  1.30it/s] 15%|█▌        | 2251/15000 [33:17<1:38:08,  2.17it/s] 15%|█▌        | 2251/15000 [33:27<1:38:08,  2.17it/s] 20%|██        | 3001/15000 [34:03<1:00:42,  3.29it/s] 20%|██        | 3001/15000 [34:17<1:00:42,  3.29it/s] 25%|██▌       | 3751/15000 [35:08<42:19,  4.43it/s]   25%|██▌       | 3751/15000 [35:27<42:19,  4.43it/s] 30%|███       | 4501/15000 [36:08<30:46,  5.69it/s] 30%|███       | 4501/15000 [36:27<30:46,  5.69it/s] 35%|███▌      | 5251/15000 [37:00<22:58,  7.07it/s] 35%|███▌      | 5251/15000 [37:17<22:58,  7.07it/s] 40%|████      | 6001/15000 [37:46<17:19,  8.65it/s] 40%|████      | 6001/15000 [37:57<17:19,  8.65it/s] 45%|████▌     | 6751/15000 [38:35<13:44, 10.00it/s] 45%|████▌     | 6751/15000 [38:47<13:44, 10.00it/s] 50%|█████     | 7501/15000 [39:33<11:37, 10.74it/s] 50%|█████     | 7501/15000 [39:47<11:37, 10.74it/s] 55%|█████▌    | 8251/15000 [40:21<09:27, 11.90it/s] 55%|█████▌    | 8251/15000 [40:37<09:27, 11.90it/s] 60%|██████    | 9001/15000 [41:02<07:31, 13.30it/s] 60%|██████    | 9001/15000 [41:17<07:31, 13.30it/s] 65%|██████▌   | 9751/15000 [45:32<14:07,  6.19it/s] 70%|███████   | 10501/15000 [46:42<10:33,  7.10it/s] 70%|███████   | 10501/15000 [46:57<10:33,  7.10it/s] 75%|███████▌  | 11251/15000 [47:13<06:56,  9.00it/s] 75%|███████▌  | 11251/15000 [47:27<06:56,  9.00it/s] 80%|████████  | 12001/15000 [47:29<04:10, 11.95it/s] 80%|████████  | 12001/15000 [47:47<04:10, 11.95it/s] 85%|████████▌ | 12751/15000 [48:14<02:52, 13.03it/s] 85%|████████▌ | 12751/15000 [48:27<02:52, 13.03it/s] 90%|█████████ | 13501/15000 [49:24<02:02, 12.23it/s] 90%|█████████ | 13501/15000 [49:37<02:02, 12.23it/s] 95%|█████████▌| 14251/15000 [49:57<00:52, 14.22it/s]100%|██████████| 15000/15000 [49:57<00:00,  5.00it/s]
+    Fitting supervised regressor 5 of 5.
+Iteration 1, loss = 0.33968588
+Iteration 2, loss = 0.25264175
+Iteration 3, loss = 0.24993007
+Iteration 4, loss = 0.24925197
+Iteration 5, loss = 0.24885082
+Iteration 6, loss = 0.24840079
+Iteration 7, loss = 0.24815521
+Iteration 8, loss = 0.24795733
+Iteration 9, loss = 0.24768584
+Iteration 10, loss = 0.24759462
+Iteration 11, loss = 0.24729133
+Iteration 12, loss = 0.24744150
+Iteration 13, loss = 0.24708964
+Iteration 14, loss = 0.24703391
+Iteration 15, loss = 0.24696427
+Iteration 16, loss = 0.24704207
+Iteration 17, loss = 0.24698288
+Iteration 18, loss = 0.24688133
+Iteration 19, loss = 0.24683311
+Iteration 20, loss = 0.24692173
+Iteration 21, loss = 0.24665746
+Iteration 22, loss = 0.24673517
+Iteration 23, loss = 0.24661185
+Iteration 24, loss = 0.24672999
+Iteration 25, loss = 0.24638899
+Iteration 26, loss = 0.24649677
+Iteration 27, loss = 0.24653043
+Iteration 28, loss = 0.24639916
+Iteration 29, loss = 0.24647032
+Iteration 30, loss = 0.24646897
+Iteration 31, loss = 0.24647542
+Iteration 32, loss = 0.24634414
+Iteration 33, loss = 0.24646029
+Iteration 34, loss = 0.24641361
+Iteration 35, loss = 0.24630275
+Iteration 36, loss = 0.24637809
+Training loss did not improve more than tol=0.000100 for 10 consecutive epochs. Stopping.
+Average RL reward for batch 5: 46782.62804940902
+Average GP reward for batch 5: 0.0 
+
+--- End s_train_agent.py
+Computing Markowitz strategy:   0%|          | 0/666 [00:00<?, ?it/s]Computing Markowitz strategy: 100%|██████████| 666/666 [00:00<00:00, 12286.43it/s]
+Computing GP strategy:   0%|          | 0/666 [00:00<?, ?it/s]Computing GP strategy:   3%|▎         | 18/666 [00:00<00:03, 174.54it/s]Computing GP strategy:   5%|▌         | 36/666 [00:00<00:03, 174.98it/s]Computing GP strategy:   8%|▊         | 54/666 [00:00<00:03, 175.51it/s]Computing GP strategy:  11%|█         | 72/666 [00:00<00:03, 175.64it/s]Computing GP strategy:  14%|█▎        | 90/666 [00:00<00:03, 175.73it/s]Computing GP strategy:  16%|█▌        | 108/666 [00:00<00:03, 175.66it/s]Computing GP strategy:  19%|█▉        | 126/666 [00:00<00:03, 175.94it/s]Computing GP strategy:  22%|██▏       | 144/666 [00:00<00:02, 175.79it/s]Computing GP strategy:  24%|██▍       | 162/666 [00:00<00:02, 175.81it/s]Computing GP strategy:  27%|██▋       | 180/666 [00:01<00:02, 175.79it/s]Computing GP strategy:  30%|██▉       | 198/666 [00:01<00:02, 176.01it/s]Computing GP strategy:  32%|███▏      | 216/666 [00:01<00:02, 176.02it/s]Computing GP strategy:  35%|███▌      | 234/666 [00:01<00:02, 175.98it/s]Computing GP strategy:  38%|███▊      | 252/666 [00:01<00:02, 175.93it/s]Computing GP strategy:  41%|████      | 270/666 [00:01<00:02, 175.86it/s]Computing GP strategy:  43%|████▎     | 288/666 [00:01<00:02, 176.05it/s]Computing GP strategy:  46%|████▌     | 306/666 [00:01<00:02, 175.98it/s]Computing GP strategy:  49%|████▊     | 324/666 [00:01<00:01, 175.97it/s]Computing GP strategy:  51%|█████▏    | 342/666 [00:01<00:01, 175.81it/s]Computing GP strategy:  54%|█████▍    | 360/666 [00:02<00:01, 176.06it/s]Computing GP strategy:  57%|█████▋    | 378/666 [00:02<00:01, 176.07it/s]Computing GP strategy:  59%|█████▉    | 396/666 [00:02<00:01, 176.02it/s]Computing GP strategy:  62%|██████▏   | 414/666 [00:02<00:01, 175.98it/s]Computing GP strategy:  65%|██████▍   | 432/666 [00:02<00:01, 176.20it/s]Computing GP strategy:  68%|██████▊   | 450/666 [00:02<00:01, 176.12it/s]Computing GP strategy:  70%|███████   | 468/666 [00:02<00:01, 176.14it/s]Computing GP strategy:  73%|███████▎  | 486/666 [00:02<00:01, 176.03it/s]Computing GP strategy:  76%|███████▌  | 504/666 [00:02<00:00, 176.24it/s]Computing GP strategy:  78%|███████▊  | 522/666 [00:02<00:00, 176.36it/s]Computing GP strategy:  81%|████████  | 540/666 [00:03<00:00, 176.37it/s]Computing GP strategy:  84%|████████▍ | 558/666 [00:03<00:00, 176.26it/s]Computing GP strategy:  86%|████████▋ | 576/666 [00:03<00:00, 176.29it/s]Computing GP strategy:  89%|████████▉ | 594/666 [00:03<00:00, 176.51it/s]Computing GP strategy:  92%|█████████▏| 612/666 [00:03<00:00, 176.43it/s]Computing GP strategy:  95%|█████████▍| 630/666 [00:03<00:00, 176.54it/s]Computing GP strategy:  97%|█████████▋| 648/666 [00:03<00:00, 176.41it/s]Computing GP strategy: 100%|██████████| 666/666 [00:03<00:00, 176.64it/s]Computing GP strategy: 100%|██████████| 666/666 [00:03<00:00, 176.07it/s]
+Computing RL strategy:   0%|          | 0/666 [00:00<?, ?it/s]Computing RL strategy:   0%|          | 2/666 [00:00<00:46, 14.22it/s]Computing RL strategy:   1%|          | 5/666 [00:00<00:32, 20.52it/s]Computing RL strategy:   1%|          | 8/666 [00:00<00:37, 17.37it/s]Computing RL strategy:   2%|▏         | 11/666 [00:00<00:32, 19.88it/s]Computing RL strategy:   2%|▏         | 14/666 [00:00<00:30, 21.62it/s]Computing RL strategy:   3%|▎         | 17/666 [00:00<00:29, 21.82it/s]Computing RL strategy:   3%|▎         | 21/666 [00:01<00:31, 20.48it/s]Computing RL strategy:   4%|▎         | 24/666 [00:01<00:35, 18.16it/s]Computing RL strategy:   4%|▍         | 27/666 [00:01<00:36, 17.55it/s]Computing RL strategy:   4%|▍         | 29/666 [00:01<00:38, 16.54it/s]Computing RL strategy:   5%|▍         | 31/666 [00:01<00:40, 15.81it/s]Computing RL strategy:   5%|▍         | 33/666 [00:01<00:38, 16.61it/s]Computing RL strategy:   5%|▌         | 36/666 [00:02<00:40, 15.48it/s]Computing RL strategy:   6%|▌         | 38/666 [00:02<00:48, 12.99it/s]Computing RL strategy:   6%|▌         | 40/666 [00:02<00:52, 11.93it/s]Computing RL strategy:   6%|▋         | 43/666 [00:02<00:43, 14.17it/s]Computing RL strategy:   7%|▋         | 46/666 [00:02<00:36, 16.81it/s]Computing RL strategy:   7%|▋         | 48/666 [00:02<00:35, 17.25it/s]Computing RL strategy:   8%|▊         | 50/666 [00:02<00:35, 17.44it/s]Computing RL strategy:   8%|▊         | 52/666 [00:03<00:35, 17.34it/s]Computing RL strategy:   8%|▊         | 54/666 [00:03<00:36, 16.55it/s]Computing RL strategy:   9%|▊         | 57/666 [00:03<00:32, 18.60it/s]Computing RL strategy:   9%|▉         | 60/666 [00:03<00:33, 18.19it/s]Computing RL strategy:   9%|▉         | 62/666 [00:03<00:42, 14.29it/s]Computing RL strategy:  10%|▉         | 65/666 [00:03<00:34, 17.32it/s]Computing RL strategy:  10%|█         | 67/666 [00:04<00:38, 15.59it/s]Computing RL strategy:  11%|█         | 70/666 [00:04<00:34, 17.34it/s]Computing RL strategy:  11%|█         | 73/666 [00:04<00:30, 19.26it/s]Computing RL strategy:  11%|█▏        | 76/666 [00:04<00:27, 21.36it/s]Computing RL strategy:  12%|█▏        | 79/666 [00:04<00:28, 20.47it/s]Computing RL strategy:  12%|█▏        | 82/666 [00:04<00:30, 19.42it/s]Computing RL strategy:  13%|█▎        | 85/666 [00:04<00:31, 18.56it/s]Computing RL strategy:  13%|█▎        | 87/666 [00:05<00:35, 16.29it/s]Computing RL strategy:  13%|█▎        | 89/666 [00:05<00:38, 15.16it/s]Computing RL strategy:  14%|█▎        | 91/666 [00:05<00:41, 13.82it/s]Computing RL strategy:  14%|█▍        | 93/666 [00:05<00:44, 12.75it/s]Computing RL strategy:  14%|█▍        | 96/666 [00:05<00:36, 15.65it/s]Computing RL strategy:  15%|█▍        | 99/666 [00:05<00:32, 17.47it/s]Computing RL strategy:  15%|█▌        | 102/666 [00:05<00:30, 18.77it/s]Computing RL strategy:  16%|█▌        | 104/666 [00:06<00:31, 17.72it/s]Computing RL strategy:  16%|█▌        | 106/666 [00:06<00:33, 16.58it/s]Computing RL strategy:  16%|█▋        | 109/666 [00:06<00:31, 17.81it/s]Computing RL strategy:  17%|█▋        | 112/666 [00:06<00:27, 19.94it/s]Computing RL strategy:  17%|█▋        | 115/666 [00:06<00:29, 18.58it/s]Computing RL strategy:  18%|█▊        | 117/666 [00:06<00:31, 17.69it/s]Computing RL strategy:  18%|█▊        | 119/666 [00:06<00:33, 16.09it/s]Computing RL strategy:  18%|█▊        | 121/666 [00:07<00:37, 14.65it/s]Computing RL strategy:  19%|█▊        | 124/666 [00:07<00:33, 16.32it/s]Computing RL strategy:  19%|█▉        | 126/666 [00:07<00:31, 17.07it/s]Computing RL strategy:  19%|█▉        | 128/666 [00:07<00:34, 15.78it/s]Computing RL strategy:  20%|█▉        | 131/666 [00:07<00:33, 16.00it/s]Computing RL strategy:  20%|█▉        | 133/666 [00:07<00:34, 15.67it/s]Computing RL strategy:  20%|██        | 135/666 [00:07<00:33, 15.86it/s]Computing RL strategy:  21%|██        | 138/666 [00:08<00:27, 19.13it/s]Computing RL strategy:  21%|██        | 141/666 [00:08<00:27, 18.78it/s]Computing RL strategy:  21%|██▏       | 143/666 [00:08<00:29, 18.00it/s]Computing RL strategy:  22%|██▏       | 145/666 [00:08<00:32, 15.80it/s]Computing RL strategy:  22%|██▏       | 148/666 [00:08<00:28, 18.14it/s]Computing RL strategy:  23%|██▎       | 151/666 [00:08<00:24, 20.87it/s]Computing RL strategy:  23%|██▎       | 154/666 [00:08<00:23, 22.23it/s]Computing RL strategy:  24%|██▎       | 157/666 [00:09<00:23, 21.60it/s]Computing RL strategy:  24%|██▍       | 160/666 [00:09<00:31, 15.94it/s]Computing RL strategy:  24%|██▍       | 162/666 [00:09<00:31, 15.76it/s]Computing RL strategy:  25%|██▍       | 164/666 [00:09<00:33, 14.88it/s]Computing RL strategy:  25%|██▍       | 166/666 [00:09<00:32, 15.41it/s]Computing RL strategy:  25%|██▌       | 168/666 [00:09<00:32, 15.17it/s]Computing RL strategy:  26%|██▌       | 171/666 [00:09<00:27, 17.92it/s]Computing RL strategy:  26%|██▌       | 173/666 [00:10<00:28, 17.13it/s]Computing RL strategy:  26%|██▋       | 176/666 [00:10<00:25, 18.89it/s]Computing RL strategy:  27%|██▋       | 178/666 [00:10<00:26, 18.55it/s]Computing RL strategy:  27%|██▋       | 181/666 [00:10<00:23, 21.07it/s]Computing RL strategy:  28%|██▊       | 184/666 [00:10<00:21, 22.43it/s]Computing RL strategy:  28%|██▊       | 187/666 [00:10<00:21, 22.49it/s]Computing RL strategy:  29%|██▊       | 190/666 [00:10<00:21, 21.67it/s]Computing RL strategy:  29%|██▉       | 193/666 [00:11<00:22, 20.61it/s]Computing RL strategy:  29%|██▉       | 196/666 [00:11<00:21, 21.78it/s]Computing RL strategy:  30%|██▉       | 199/666 [00:11<00:23, 19.48it/s]Computing RL strategy:  30%|███       | 202/666 [00:11<00:25, 18.37it/s]Computing RL strategy:  31%|███       | 204/666 [00:11<00:25, 18.43it/s]Computing RL strategy:  31%|███       | 207/666 [00:11<00:24, 18.61it/s]Computing RL strategy:  31%|███▏      | 209/666 [00:11<00:25, 17.61it/s]Computing RL strategy:  32%|███▏      | 211/666 [00:12<00:27, 16.82it/s]Computing RL strategy:  32%|███▏      | 213/666 [00:12<00:25, 17.51it/s]Computing RL strategy:  32%|███▏      | 215/666 [00:12<00:29, 15.29it/s]Computing RL strategy:  33%|███▎      | 218/666 [00:12<00:24, 18.65it/s]Computing RL strategy:  33%|███▎      | 221/666 [00:12<00:24, 18.48it/s]Computing RL strategy:  33%|███▎      | 223/666 [00:12<00:25, 17.13it/s]Computing RL strategy:  34%|███▍      | 225/666 [00:12<00:26, 16.96it/s]Computing RL strategy:  34%|███▍      | 228/666 [00:13<00:23, 18.93it/s]Computing RL strategy:  35%|███▍      | 231/666 [00:13<00:21, 20.43it/s]Computing RL strategy:  35%|███▌      | 234/666 [00:13<00:20, 21.00it/s]Computing RL strategy:  36%|███▌      | 237/666 [00:13<00:20, 20.99it/s]Computing RL strategy:  36%|███▌      | 240/666 [00:13<00:21, 19.73it/s]Computing RL strategy:  36%|███▋      | 243/666 [00:13<00:19, 21.42it/s]Computing RL strategy:  37%|███▋      | 246/666 [00:13<00:20, 20.43it/s]Computing RL strategy:  37%|███▋      | 249/666 [00:13<00:18, 21.97it/s]Computing RL strategy:  38%|███▊      | 253/666 [00:14<00:16, 24.37it/s]Computing RL strategy:  38%|███▊      | 256/666 [00:14<00:19, 21.28it/s]Computing RL strategy:  39%|███▉      | 259/666 [00:14<00:20, 19.41it/s]Computing RL strategy:  39%|███▉      | 262/666 [00:14<00:19, 20.90it/s]Computing RL strategy:  40%|███▉      | 265/666 [00:14<00:20, 19.47it/s]Computing RL strategy:  40%|████      | 268/666 [00:14<00:23, 17.16it/s]Computing RL strategy:  41%|████      | 270/666 [00:15<00:22, 17.51it/s]Computing RL strategy:  41%|████      | 272/666 [00:15<00:22, 17.81it/s]Computing RL strategy:  41%|████▏     | 275/666 [00:15<00:20, 18.87it/s]Computing RL strategy:  42%|████▏     | 278/666 [00:15<00:20, 19.13it/s]Computing RL strategy:  42%|████▏     | 281/666 [00:15<00:18, 20.49it/s]Computing RL strategy:  43%|████▎     | 284/666 [00:15<00:19, 19.13it/s]Computing RL strategy:  43%|████▎     | 287/666 [00:15<00:17, 21.40it/s]Computing RL strategy:  44%|████▎     | 290/666 [00:16<00:17, 21.68it/s]Computing RL strategy:  44%|████▍     | 293/666 [00:16<00:18, 20.28it/s]Computing RL strategy:  44%|████▍     | 296/666 [00:16<00:19, 18.63it/s]Computing RL strategy:  45%|████▍     | 299/666 [00:16<00:18, 19.46it/s]Computing RL strategy:  45%|████▌     | 302/666 [00:16<00:18, 19.26it/s]Computing RL strategy:  46%|████▌     | 304/666 [00:16<00:21, 17.18it/s]Computing RL strategy:  46%|████▌     | 306/666 [00:17<00:22, 16.26it/s]Computing RL strategy:  46%|████▌     | 308/666 [00:17<00:23, 14.96it/s]Computing RL strategy:  47%|████▋     | 310/666 [00:17<00:29, 12.13it/s]Computing RL strategy:  47%|████▋     | 312/666 [00:17<00:30, 11.68it/s]Computing RL strategy:  47%|████▋     | 314/666 [00:17<00:29, 11.85it/s]Computing RL strategy:  48%|████▊     | 317/666 [00:17<00:26, 13.14it/s]Computing RL strategy:  48%|████▊     | 319/666 [00:18<00:25, 13.58it/s]Computing RL strategy:  48%|████▊     | 322/666 [00:18<00:21, 15.83it/s]Computing RL strategy:  49%|████▉     | 325/666 [00:18<00:21, 15.62it/s]Computing RL strategy:  49%|████▉     | 328/666 [00:18<00:18, 18.23it/s]Computing RL strategy:  50%|████▉     | 331/666 [00:18<00:16, 20.24it/s]Computing RL strategy:  50%|█████     | 334/666 [00:18<00:18, 17.95it/s]Computing RL strategy:  50%|█████     | 336/666 [00:18<00:18, 17.89it/s]Computing RL strategy:  51%|█████     | 340/666 [00:19<00:15, 20.62it/s]Computing RL strategy:  52%|█████▏    | 343/666 [00:19<00:19, 16.83it/s]Computing RL strategy:  52%|█████▏    | 346/666 [00:19<00:19, 16.82it/s]Computing RL strategy:  52%|█████▏    | 348/666 [00:19<00:19, 16.53it/s]Computing RL strategy:  53%|█████▎    | 351/666 [00:19<00:17, 18.41it/s]Computing RL strategy:  53%|█████▎    | 353/666 [00:19<00:19, 16.26it/s]Computing RL strategy:  53%|█████▎    | 355/666 [00:20<00:19, 15.65it/s]Computing RL strategy:  54%|█████▍    | 358/666 [00:20<00:18, 16.47it/s]Computing RL strategy:  54%|█████▍    | 360/666 [00:20<00:21, 14.54it/s]Computing RL strategy:  54%|█████▍    | 362/666 [00:20<00:20, 14.56it/s]Computing RL strategy:  55%|█████▍    | 365/666 [00:20<00:17, 17.18it/s]Computing RL strategy:  55%|█████▌    | 367/666 [00:20<00:21, 13.90it/s]Computing RL strategy:  55%|█████▌    | 369/666 [00:21<00:21, 13.87it/s]Computing RL strategy:  56%|█████▌    | 371/666 [00:21<00:23, 12.54it/s]Computing RL strategy:  56%|█████▌    | 374/666 [00:21<00:19, 15.16it/s]Computing RL strategy:  57%|█████▋    | 377/666 [00:21<00:16, 17.84it/s]Computing RL strategy:  57%|█████▋    | 379/666 [00:21<00:16, 16.98it/s]Computing RL strategy:  57%|█████▋    | 382/666 [00:21<00:15, 18.68it/s]Computing RL strategy:  58%|█████▊    | 386/666 [00:21<00:12, 22.25it/s]Computing RL strategy:  58%|█████▊    | 389/666 [00:22<00:15, 18.42it/s]Computing RL strategy:  59%|█████▉    | 392/666 [00:22<00:15, 17.59it/s]Computing RL strategy:  59%|█████▉    | 394/666 [00:22<00:16, 16.68it/s]Computing RL strategy:  60%|█████▉    | 397/666 [00:22<00:16, 16.50it/s]Computing RL strategy:  60%|█████▉    | 399/666 [00:22<00:16, 15.90it/s]Computing RL strategy:  60%|██████    | 402/666 [00:23<00:17, 15.34it/s]Computing RL strategy:  61%|██████    | 404/666 [00:23<00:19, 13.17it/s]Computing RL strategy:  61%|██████    | 406/666 [00:23<00:21, 12.05it/s]Computing RL strategy:  61%|██████▏   | 408/666 [00:23<00:22, 11.47it/s]Computing RL strategy:  62%|██████▏   | 410/666 [00:23<00:21, 11.84it/s]Computing RL strategy:  62%|██████▏   | 412/666 [00:23<00:19, 13.20it/s]Computing RL strategy:  62%|██████▏   | 414/666 [00:24<00:19, 13.05it/s]Computing RL strategy:  62%|██████▏   | 416/666 [00:24<00:22, 11.07it/s]Computing RL strategy:  63%|██████▎   | 419/666 [00:24<00:21, 11.33it/s]Computing RL strategy:  63%|██████▎   | 422/666 [00:24<00:17, 14.22it/s]Computing RL strategy:  64%|██████▎   | 424/666 [00:24<00:16, 14.74it/s]Computing RL strategy:  64%|██████▍   | 426/666 [00:25<00:18, 12.76it/s]Computing RL strategy:  64%|██████▍   | 429/666 [00:25<00:16, 13.97it/s]Computing RL strategy:  65%|██████▍   | 431/666 [00:25<00:16, 14.47it/s]Computing RL strategy:  65%|██████▌   | 434/666 [00:25<00:16, 13.78it/s]Computing RL strategy:  66%|██████▌   | 437/666 [00:25<00:15, 14.96it/s]Computing RL strategy:  66%|██████▌   | 439/666 [00:25<00:14, 15.30it/s]Computing RL strategy:  66%|██████▌   | 441/666 [00:25<00:14, 16.02it/s]Computing RL strategy:  67%|██████▋   | 443/666 [00:26<00:14, 15.02it/s]Computing RL strategy:  67%|██████▋   | 445/666 [00:26<00:14, 15.14it/s]Computing RL strategy:  67%|██████▋   | 447/666 [00:26<00:16, 13.02it/s]Computing RL strategy:  67%|██████▋   | 449/666 [00:26<00:15, 13.66it/s]Computing RL strategy:  68%|██████▊   | 451/666 [00:26<00:14, 15.02it/s]Computing RL strategy:  68%|██████▊   | 454/666 [00:26<00:11, 18.12it/s]Computing RL strategy:  68%|██████▊   | 456/666 [00:26<00:12, 17.19it/s]Computing RL strategy:  69%|██████▉   | 459/666 [00:27<00:10, 19.19it/s]Computing RL strategy:  69%|██████▉   | 461/666 [00:27<00:10, 19.26it/s]Computing RL strategy:  70%|██████▉   | 463/666 [00:27<00:11, 17.83it/s]Computing RL strategy:  70%|███████   | 467/666 [00:27<00:09, 20.98it/s]Computing RL strategy:  71%|███████   | 470/666 [00:27<00:13, 14.58it/s]Computing RL strategy:  71%|███████   | 473/666 [00:27<00:12, 15.44it/s]Computing RL strategy:  72%|███████▏  | 477/666 [00:28<00:10, 18.16it/s]Computing RL strategy:  72%|███████▏  | 479/666 [00:28<00:11, 16.50it/s]Computing RL strategy:  72%|███████▏  | 481/666 [00:28<00:12, 15.14it/s]Computing RL strategy:  73%|███████▎  | 484/666 [00:28<00:10, 16.89it/s]Computing RL strategy:  73%|███████▎  | 487/666 [00:28<00:11, 15.51it/s]Computing RL strategy:  73%|███████▎  | 489/666 [00:28<00:11, 15.36it/s]Computing RL strategy:  74%|███████▎  | 491/666 [00:29<00:13, 13.41it/s]Computing RL strategy:  74%|███████▍  | 495/666 [00:29<00:10, 16.86it/s]Computing RL strategy:  75%|███████▍  | 497/666 [00:29<00:11, 14.46it/s]Computing RL strategy:  75%|███████▍  | 499/666 [00:29<00:11, 14.56it/s]Computing RL strategy:  75%|███████▌  | 501/666 [00:29<00:12, 13.51it/s]Computing RL strategy:  76%|███████▌  | 503/666 [00:29<00:12, 13.10it/s]Computing RL strategy:  76%|███████▌  | 505/666 [00:30<00:11, 13.52it/s]Computing RL strategy:  76%|███████▌  | 507/666 [00:30<00:11, 13.49it/s]Computing RL strategy:  77%|███████▋  | 510/666 [00:30<00:09, 16.14it/s]Computing RL strategy:  77%|███████▋  | 512/666 [00:30<00:09, 16.75it/s]Computing RL strategy:  77%|███████▋  | 515/666 [00:30<00:08, 18.42it/s]Computing RL strategy:  78%|███████▊  | 518/666 [00:30<00:07, 20.70it/s]Computing RL strategy:  78%|███████▊  | 521/666 [00:30<00:06, 22.25it/s]Computing RL strategy:  79%|███████▊  | 524/666 [00:31<00:07, 18.87it/s]Computing RL strategy:  79%|███████▉  | 527/666 [00:31<00:07, 17.76it/s]Computing RL strategy:  79%|███████▉  | 529/666 [00:31<00:08, 16.16it/s]Computing RL strategy:  80%|███████▉  | 531/666 [00:31<00:08, 16.45it/s]Computing RL strategy:  80%|████████  | 535/666 [00:31<00:06, 20.80it/s]Computing RL strategy:  81%|████████  | 538/666 [00:31<00:05, 22.74it/s]Computing RL strategy:  81%|████████  | 541/666 [00:31<00:05, 21.67it/s]Computing RL strategy:  82%|████████▏ | 544/666 [00:32<00:05, 21.39it/s]Computing RL strategy:  82%|████████▏ | 547/666 [00:32<00:05, 21.21it/s]Computing RL strategy:  83%|████████▎ | 550/666 [00:32<00:06, 19.14it/s]Computing RL strategy:  83%|████████▎ | 553/666 [00:32<00:06, 18.10it/s]Computing RL strategy:  83%|████████▎ | 556/666 [00:32<00:05, 20.41it/s]Computing RL strategy:  84%|████████▍ | 559/666 [00:32<00:05, 20.67it/s]Computing RL strategy:  84%|████████▍ | 562/666 [00:33<00:05, 17.55it/s]Computing RL strategy:  85%|████████▍ | 564/666 [00:33<00:06, 16.14it/s]Computing RL strategy:  85%|████████▌ | 567/666 [00:33<00:05, 17.18it/s]Computing RL strategy:  85%|████████▌ | 569/666 [00:33<00:06, 15.60it/s]Computing RL strategy:  86%|████████▌ | 571/666 [00:33<00:06, 14.47it/s]Computing RL strategy:  86%|████████▌ | 573/666 [00:33<00:06, 14.97it/s]Computing RL strategy:  86%|████████▋ | 576/666 [00:33<00:05, 15.24it/s]Computing RL strategy:  87%|████████▋ | 578/666 [00:34<00:05, 15.30it/s]Computing RL strategy:  87%|████████▋ | 580/666 [00:34<00:06, 12.68it/s]Computing RL strategy:  88%|████████▊ | 583/666 [00:34<00:05, 14.56it/s]Computing RL strategy:  88%|████████▊ | 585/666 [00:34<00:05, 14.05it/s]Computing RL strategy:  88%|████████▊ | 587/666 [00:34<00:05, 14.54it/s]Computing RL strategy:  88%|████████▊ | 589/666 [00:34<00:05, 14.15it/s]Computing RL strategy:  89%|████████▊ | 591/666 [00:35<00:05, 14.16it/s]Computing RL strategy:  89%|████████▉ | 593/666 [00:35<00:05, 13.52it/s]Computing RL strategy:  89%|████████▉ | 595/666 [00:35<00:04, 14.29it/s]Computing RL strategy:  90%|████████▉ | 597/666 [00:35<00:05, 13.05it/s]Computing RL strategy:  90%|████████▉ | 599/666 [00:35<00:04, 14.01it/s]Computing RL strategy:  90%|█████████ | 601/666 [00:35<00:04, 14.49it/s]Computing RL strategy:  91%|█████████ | 604/666 [00:35<00:03, 17.07it/s]Computing RL strategy:  91%|█████████ | 606/666 [00:36<00:03, 16.29it/s]Computing RL strategy:  91%|█████████▏| 609/666 [00:36<00:03, 17.36it/s]Computing RL strategy:  92%|█████████▏| 611/666 [00:36<00:03, 17.62it/s]Computing RL strategy:  92%|█████████▏| 614/666 [00:36<00:02, 18.74it/s]Computing RL strategy:  92%|█████████▏| 616/666 [00:36<00:02, 17.39it/s]Computing RL strategy:  93%|█████████▎| 618/666 [00:36<00:03, 15.36it/s]Computing RL strategy:  93%|█████████▎| 620/666 [00:36<00:03, 14.72it/s]Computing RL strategy:  94%|█████████▎| 623/666 [00:37<00:02, 17.30it/s]Computing RL strategy:  94%|█████████▍| 625/666 [00:37<00:02, 14.82it/s]Computing RL strategy:  94%|█████████▍| 627/666 [00:37<00:02, 15.04it/s]Computing RL strategy:  95%|█████████▍| 630/666 [00:37<00:02, 16.60it/s]Computing RL strategy:  95%|█████████▍| 632/666 [00:37<00:01, 17.05it/s]Computing RL strategy:  95%|█████████▌| 634/666 [00:37<00:01, 16.24it/s]Computing RL strategy:  95%|█████████▌| 636/666 [00:37<00:02, 13.73it/s]Computing RL strategy:  96%|█████████▌| 639/666 [00:38<00:01, 16.27it/s]Computing RL strategy:  96%|█████████▋| 642/666 [00:38<00:01, 16.92it/s]Computing RL strategy:  97%|█████████▋| 644/666 [00:38<00:01, 15.41it/s]Computing RL strategy:  97%|█████████▋| 646/666 [00:38<00:01, 14.81it/s]Computing RL strategy:  97%|█████████▋| 649/666 [00:38<00:01, 14.79it/s]Computing RL strategy:  98%|█████████▊| 652/666 [00:38<00:00, 16.71it/s]Computing RL strategy:  98%|█████████▊| 655/666 [00:39<00:00, 17.64it/s]Computing RL strategy:  99%|█████████▊| 657/666 [00:39<00:00, 17.99it/s]Computing RL strategy:  99%|█████████▉| 659/666 [00:39<00:00, 16.51it/s]Computing RL strategy:  99%|█████████▉| 661/666 [00:39<00:00, 17.26it/s]Computing RL strategy: 100%|█████████▉| 664/666 [00:39<00:00, 17.10it/s]Computing RL strategy: 100%|██████████| 666/666 [00:39<00:00, 16.24it/s]Computing RL strategy: 100%|██████████| 666/666 [00:39<00:00, 16.77it/s]
+{'Markowitz': -0.5110158012374383, 'GP': 0.3844566004835883, 'RL': 0.5233657845503619}
+--- End s_backtesting.py
+Computing simulations of Markowitz strategy:   0%|          | 0/10000 [00:00<?, ?it/s]Computing simulations of Markowitz strategy:   0%|          | 1/10000 [00:03<8:44:50,  3.15s/it]Computing simulations of Markowitz strategy:  10%|█         | 1001/10000 [00:03<00:21, 421.53it/s]Computing simulations of Markowitz strategy:  15%|█▌        | 1501/10000 [00:03<00:14, 598.46it/s]Computing simulations of Markowitz strategy:  45%|████▌     | 4501/10000 [00:03<00:02, 2525.33it/s]Computing simulations of Markowitz strategy:  57%|█████▋    | 5672/10000 [00:04<00:01, 2947.07it/s]Computing simulations of Markowitz strategy:  66%|██████▌   | 6593/10000 [00:05<00:02, 1367.53it/s]Computing simulations of Markowitz strategy:  75%|███████▌  | 7501/10000 [00:05<00:01, 1761.12it/s]Computing simulations of Markowitz strategy: 100%|██████████| 10000/10000 [00:05<00:00, 1706.81it/s]
+Computing simulations of GP strategy:   0%|          | 0/10000 [00:00<?, ?it/s]Computing simulations of GP strategy:   0%|          | 1/10000 [04:43<787:37:43, 283.57s/it]Computing simulations of GP strategy:  75%|███████▌  | 7501/10000 [04:44<01:06, 37.62it/s]  Computing simulations of GP strategy:  84%|████████▎ | 8357/10000 [04:46<00:37, 43.27it/s]Computing simulations of GP strategy: 100%|██████████| 10000/10000 [04:46<00:00, 34.95it/s]
+Computing simulations of RL strategy:   0%|          | 0/10000 [00:00<?, ?it/s]Computing simulations of RL strategy:   0%|          | 1/10000 [27:10<4528:03:33, 1630.26s/it]Computing simulations of RL strategy:   5%|▌         | 501/10000 [27:13<6:01:56,  2.29s/it]   Computing simulations of RL strategy:   5%|▌         | 501/10000 [27:27<6:01:56,  2.29s/it]Computing simulations of RL strategy:  10%|█         | 1001/10000 [48:04<6:01:47,  2.41s/it]Computing simulations of RL strategy:  80%|████████  | 8001/10000 [48:16<06:21,  5.24it/s]  Computing simulations of RL strategy:  85%|████████▌ | 8501/10000 [48:17<04:21,  5.73it/s]Computing simulations of RL strategy: 100%|██████████| 10000/10000 [48:17<00:00,  3.45it/s]
+
+--- End s_simulationtesting.py
