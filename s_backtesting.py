@@ -1,8 +1,11 @@
+import numpy as np
 from testing_utils.testing import BackTester
 import warnings
 warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
+
+    np.random.seed(789)
 
     # -------------------- Input parameters
     ticker = 'WTI'
