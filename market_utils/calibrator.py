@@ -137,7 +137,10 @@ class DynamicsCalibrator:
         ind_0 = df_reg['factor'] < c
         ind_1 = df_reg['factor'] >= c
         ind_lst = [ind_0, ind_1]
-        p = ind_0.sum() / ind_1.sum()
+        p = ind_0.sum() / np.array(ind_lst).sum()
+
+        if p < 0 or p > 1:
+            raise NameError('p should be between 0 and 1')
 
         self.all_dynamics_param_dict[var_type][tgt_key]['c'] = c
         self.all_dynamics_param_dict[var_type][tgt_key]['p'] = p
