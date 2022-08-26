@@ -45,8 +45,15 @@ class ModeType(Enum):
     InSample = 'InSample'
     OutOfSample = 'OutOfSample'
 
+
 class EstimateInitializationType(Enum):
 
     RandomUniform = 'RandomUniform'
     RandomTruncNorm = 'RandomTruncNorm'
     GP = 'GP'
+
+
+class StrategyType(Enum):
+
+    Unconstrained = 'Unconstrained'
+    LongOnly = 'LongOnly'
