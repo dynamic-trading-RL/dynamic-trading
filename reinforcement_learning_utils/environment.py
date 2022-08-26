@@ -11,6 +11,10 @@ class Environment:
 
     def __init__(self, market: Market):
 
+        self.kappa = None
+        self.gamma = None
+        self.agent_GP = None
+        self.market_benchmark = None
         self.market = market
         self._set_attributes()
 
@@ -134,8 +138,7 @@ class Environment:
     def _set_trading_attributes(self):
 
         self.ticker = self.market.ticker
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/settings/settings.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
         lam = float(df_trad_params.loc['lam'][0])

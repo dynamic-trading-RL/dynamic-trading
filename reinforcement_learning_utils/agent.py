@@ -134,16 +134,14 @@ class Agent:
 
         return action
 
-    @staticmethod
-    def _get_trade_loc(lower_bound, upper_bound):
+    def _get_trade_loc(self, lower_bound, upper_bound):
 
         # loc = 0.5 * (lower_bound + upper_bound)
         loc = 0.
 
         return loc
 
-    @staticmethod
-    def _get_trade_scale(lower_bound, upper_bound, alpha):
+    def _get_trade_scale(self, lower_bound, upper_bound, alpha):
 
         scale = alpha * (upper_bound - lower_bound)
 

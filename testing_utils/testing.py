@@ -22,8 +22,9 @@ class Tester:
 
     def __init__(self, ticker, use_assessment_period: bool = False, assessment_proportion: float = 0.1):
 
-        # TODO: evaluating the introduction of the concept of assesment period
+        # TODO: evaluating the introduction of the concept of assessment period
 
+        self._factor_pnl_and_price = None
         self._ticker = ticker
         self._use_assessment_period = use_assessment_period
         self._assessment_proportion = assessment_proportion
@@ -34,7 +35,7 @@ class Tester:
     def _read_parameters(self):
 
         # Trading parameters
-        riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType =\
+        riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = \
             read_trading_parameters_market(self._ticker)
 
         # Training parameters
@@ -140,7 +141,7 @@ class Tester:
             cost_trade = self._agents[agent_type].compute_trading_cost(trade=rescaled_trade * self._shares_scale,
                                                                        current_factor=factor,
                                                                        price=price)
-            risk_trade =\
+            risk_trade = \
                 self._agents[agent_type].compute_trading_risk(current_factor=factor,
                                                               price=price,
                                                               current_rescaled_shares=current_rescaled_shares,
@@ -229,7 +230,6 @@ class BackTester(Tester):
             current_rescaled_shares = 0.
 
             for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy'):
-
                 factor, pnl, price = self._get_current_factor_pnl_price(date, dates, factor_series, pnl_series,
                                                                         price_series)
 
@@ -400,6 +400,8 @@ class SimulationTester(Tester):
     def __init__(self, ticker: str):
 
         super().__init__(ticker)
+        self.t_ = None
+        self.j_ = None
 
     def execute_simulation_testing(self, j_, t_):
 
@@ -448,7 +450,6 @@ class SimulationTester(Tester):
                      alpha=0.5)
 
             for j in range(1, min(j_trajectories_plot, self.j_)):
-
                 plt.plot(dates[:-1], self._strategy_all[agent_type][j], color=self._colors[agent_type])
 
         plt.title('Shares')
@@ -464,7 +465,6 @@ class SimulationTester(Tester):
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
 
         for agent_type in self._agents.keys():
-
             values = self._cum_value_all[agent_type][:, -1]
             mean = self._means[agent_type]['value']
             std = self._stds[agent_type]['value']
@@ -504,7 +504,6 @@ class SimulationTester(Tester):
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
 
         for agent_type in self._agents.keys():
-
             values = self._cum_cost_all[agent_type][:, -1]
             mean = self._means[agent_type]['cost']
             std = self._stds[agent_type]['cost']
@@ -544,7 +543,6 @@ class SimulationTester(Tester):
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
 
         for agent_type in self._agents.keys():
-
             values = self._cum_risk_all[agent_type][:, -1]
             mean = self._means[agent_type]['risk']
             std = self._stds[agent_type]['risk']
@@ -584,7 +582,6 @@ class SimulationTester(Tester):
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
 
         for agent_type in self._agents.keys():
-
             values = self._cum_wealth_all[agent_type][:, -1]
             mean = self._means[agent_type]['wealth']
             std = self._stds[agent_type]['wealth']
@@ -624,7 +621,6 @@ class SimulationTester(Tester):
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
 
         for agent_type in self._agents.keys():
-
             values = self._cum_wealth_net_risk_all[agent_type][:, -1]
             mean = self._means[agent_type]['wealth_net_risk']
             std = self._stds[agent_type]['wealth_net_risk']
@@ -710,7 +706,6 @@ class SimulationTester(Tester):
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
 
         for agent_type in self._agents.keys():
-
             values = self._sharpe_ratio_all[agent_type]
             mean = values.mean()
             std = values.std()
@@ -735,7 +730,6 @@ class SimulationTester(Tester):
         dates = pd.date_range(start=start_date, periods=self.t_)
 
         for data_type in ('factor', 'pnl', 'price'):
-
             sims = pd.DataFrame(data=self._environment.market.simulations[data_type], columns=dates)
             sims.index.name = 'simulation'
             sims = pd.melt(sims, var_name='date', ignore_index=False)
@@ -777,8 +771,8 @@ class SimulationTester(Tester):
                 p = mp.Pool(self._n_cores)
 
                 outputs = list(tqdm(p.imap(func=compute_outputs_iter_j_partial,
-                                                     iterable=j_index,
-                                                     chunksize=int(self.j_ / self._n_cores)),
+                                           iterable=j_index,
+                                           chunksize=int(self.j_ / self._n_cores)),
                                     total=self.j_,
                                     desc='Computing simulations of ' + agent_type + ' strategy'))
 
@@ -795,8 +789,7 @@ class SimulationTester(Tester):
             else:
 
                 for j in tqdm(j_index, desc='Computing simulations of ' + agent_type + ' strategy'):
-
-                    strategy_j, trades_j, value_j, cost_j, risk_j =\
+                    strategy_j, trades_j, value_j, cost_j, risk_j = \
                         self._compute_outputs_iter_j(j, factor_series_all_j, pnl_series_all_j, price_series_all_j,
                                                      dates, agent_type)
 
@@ -811,11 +804,9 @@ class SimulationTester(Tester):
             self._cum_value_all[agent_type] = np.cumsum(value, axis=1)
             self._cum_cost_all[agent_type] = np.cumsum(cost, axis=1)
             self._cum_risk_all[agent_type] = np.cumsum(risk, axis=1)
-            self._cum_wealth_all[agent_type] = np.cumsum(value, axis=1) -\
-                                               np.cumsum(cost, axis=1)
-            self._cum_wealth_net_risk_all[agent_type] = np.cumsum(value, axis=1) -\
-                                                        np.cumsum(cost, axis=1) -\
-                                                        np.cumsum(risk, axis=1)
+            self._cum_wealth_all[agent_type] = np.cumsum(value, axis=1) - np.cumsum(cost, axis=1)
+            self._cum_wealth_net_risk_all[agent_type] =\
+                np.cumsum(value, axis=1) - np.cumsum(cost, axis=1) - np.cumsum(risk, axis=1)
 
             pnl_net = np.diff(self._cum_wealth_all[agent_type], axis=1)
 
@@ -829,7 +820,6 @@ class SimulationTester(Tester):
         self._stds = {}
 
         for agent_type in self._agents.keys():
-
             self._means[agent_type] = {}
             self._stds[agent_type] = {}
 
@@ -867,7 +857,7 @@ class SimulationTester(Tester):
             factor, pnl, price = self._get_current_factor_pnl_price(date, dates, factor_series_j,
                                                                     pnl_series_j, price_series_j)
 
-            cost_trade, current_rescaled_shares, rescaled_trade, risk_trade =\
+            cost_trade, current_rescaled_shares, rescaled_trade, risk_trade = \
                 self._compute_outputs_for_time_t(agent_type, current_rescaled_shares, factor, price)
 
             self._update_lists(cost_j, cost_trade, current_rescaled_shares, pnl, rescaled_trade, risk_j,
@@ -877,7 +867,6 @@ class SimulationTester(Tester):
 
 
 if __name__ == '__main__':
-
     simulationTester = SimulationTester('WTI')
 
     simulationTester.execute_simulation_testing(8, 5)

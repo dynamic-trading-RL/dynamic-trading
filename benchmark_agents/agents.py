@@ -45,7 +45,6 @@ class AgentBenchmark:
 
         return 0.5 * current_shares * self.kappa * sig2 * current_shares
 
-
     def _set_attributes(self):
 
         gamma, kappa, strategyType = self._read_trading_parameters()
@@ -65,9 +64,7 @@ class AgentBenchmark:
         return gamma, kappa, strategyType
 
     def _get_df_trad_params(self):
-        ticker = self.market.ticker
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/settings/settings.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         return df_trad_params
 
@@ -88,8 +85,7 @@ class AgentBenchmark:
 
     def _read_lam(self):
 
-        ticker = self.market.ticker
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
+        filename = os.path.dirname(os.path.dirname(__file__)) + \
                    '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
@@ -111,12 +107,10 @@ class AgentBenchmark:
 class AgentMarkowitz(AgentBenchmark):
 
     def __init__(self, market: Market):
-
         super().__init__(market)
 
     def policy(self, current_factor: float, current_rescaled_shares: float, shares_scale: float = 1,
                price: float = None):
-
         current_shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(current_factor, current_rescaled_shares,
                                                                           price, shares_scale)
 
@@ -127,7 +121,6 @@ class AgentMarkowitz(AgentBenchmark):
         return rescaled_trade
 
     def _get_markowitz_trade(self, current_shares, pnl, sig2):
-
         trade = (self.kappa * sig2) ** (-1) * pnl - current_shares
 
         trade = self._update_trade_by_strategyType(current_shares, trade)
@@ -138,12 +131,10 @@ class AgentMarkowitz(AgentBenchmark):
 class AgentGP(AgentBenchmark):
 
     def __init__(self, market: Market):
-
         super().__init__(market)
 
     def policy(self, current_factor: float, current_rescaled_shares: float, shares_scale: float = 1,
                price: float = None):
-
         current_shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(current_factor, current_rescaled_shares,
                                                                           price, shares_scale)
 
@@ -154,7 +145,6 @@ class AgentGP(AgentBenchmark):
         return rescaled_trade
 
     def _get_gp_trade(self, current_shares, pnl, sig2):
-
         a = self._get_a()
         gp_rescaling = self._get_gp_rescaling(a)
         aim_ptf = (self.kappa * sig2) ** (-1) * gp_rescaling * pnl
@@ -171,7 +161,6 @@ class AgentGP(AgentBenchmark):
         return a
 
     def _get_gp_rescaling(self, a):
-
         if self.market.riskDriverType != RiskDriverType.PnL:
             warnings.warn('Trying to use GP with a model not on PnL. The model is actually on '
                           + self.market.riskDriverType.value)
@@ -185,9 +174,9 @@ class AgentGP(AgentBenchmark):
     def _read_Phi(self):
         ticker = self.market.ticker
         riskDriverType = self.market.riskDriverType
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/financial_time_series_data/financial_time_series_calibrations/' +\
-                   ticker + '-riskDriverType-' + riskDriverType.value + '-factor-calibrations.xlsx'
+        filename = os.path.dirname(os.path.dirname(__file__)) + \
+            '/data/financial_time_series_data/financial_time_series_calibrations/' + \
+            ticker + '-riskDriverType-' + riskDriverType.value + '-factor-calibrations.xlsx'
         df_factor_params = pd.read_excel(filename, sheet_name='AR', index_col=0)
         Phi = 1 - df_factor_params.loc['B'][0]
         return Phi
