@@ -22,7 +22,7 @@ class State:
 
         self.current_factor = current_factor
         self.current_rescaled_shares = current_rescaled_shares
-        self.current_other_observable = current_other_observable  # e.g. average of last few PnLs, in case the factor is hidden
+        self.current_other_observable = current_other_observable  # e.g. average of last  PnLs when factor is hidden
         self.current_shares = self.current_rescaled_shares * self.shares_scale
         self.current_price = current_price
         self.current_action_GP = action_GP

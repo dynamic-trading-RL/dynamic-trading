@@ -9,7 +9,6 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from benchmark_agents.agents import AgentGP
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
@@ -31,6 +30,9 @@ class AgentTrainer:
                  max_iter: int = 200,
                  activation: str = 'relu'):
 
+        self.t_ = None
+        self.n_batches = None
+        self.j_episodes = None
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
                                          ticker=ticker, riskDriverType=riskDriverType, factorType=factorType)
@@ -64,7 +66,7 @@ class AgentTrainer:
             n_cores = os.cpu_count()
 
         if parallel_computing and n_cores > os.cpu_count():
-            print('Number of cores set is greater than those available on this machine. Setting it to maximum available.')
+            print('Number of cores set exceeds those available on this machine. Setting it to maximum available.')
             n_cores = os.cpu_count()
 
         self._train_trading(eps_start, parallel_computing, n_cores)
@@ -83,10 +85,9 @@ class AgentTrainer:
         eps = eps_start
 
         for n in range(self.n_batches):
-
             self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
 
-            eps = eps/3
+            eps = eps / 3
 
     def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
 
@@ -111,13 +112,12 @@ class AgentTrainer:
 
         del self.market.simulations_trading[n]
 
-        print(f'Average RL reward for batch {n+1}: {self.reward_RL[n]}')
-        print(f'Average GP reward for batch {n+1}: {self.reward_GP[n]} \n')
+        print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
+        print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]} \n')
 
     def _create_batch_sequential(self, eps, n):
 
         for j in tqdm(range(self.j_episodes), 'Creating episodes in batch %d of %d.' % (n + 1, self.n_batches)):
-
             state_action_grid, q_grid, reward_RL_j, reward_GP_j = self._generate_single_episode(j, n, eps)
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
             self.reward_RL[n] += reward_RL_j
@@ -137,7 +137,7 @@ class AgentTrainer:
         # 1:
         episodes = list(tqdm(p.imap_unordered(func=generate_single_episode,
                                               iterable=range(self.j_episodes),
-                                              chunksize=int(self.j_episodes/n_cores)),
+                                              chunksize=int(self.j_episodes / n_cores)),
                              total=self.j_episodes))
 
         # 2:
@@ -227,7 +227,7 @@ class AgentTrainer:
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        reward , next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j,t=t)
+        reward, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
 
         return reward, next_state
 
@@ -239,7 +239,7 @@ class AgentTrainer:
 
     def _fit_supervised_regressor(self, n: int):
 
-        print('    Fitting supervised regressor %d of %d.' % (n+1, self.n_batches))
+        print('    Fitting supervised regressor %d of %d.' % (n + 1, self.n_batches))
 
         x_array, y_array = self._prepare_data_for_supervised_regressor_fit(n)
 
@@ -248,7 +248,7 @@ class AgentTrainer:
         self.agent.update_q_value_models(q_value_model=model)
 
     def _set_and_fit_supervised_regressor_model(self, x_array, y_array, n):
-        alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation =\
+        alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation = \
             self._set_supervised_regressor_parameters()
         model = self._fit_supervised_regressor_model(alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change,
                                                      early_stopping, validation_fraction, activation, x_array, y_array,
@@ -267,7 +267,6 @@ class AgentTrainer:
                              verbose=1).fit(x_array, y_array)
 
         if self._plot_regressor:
-
             self._make_regressor_plots(model, n, x_array, y_array)
 
         return model
@@ -278,7 +277,7 @@ class AgentTrainer:
         high_quant = 0.999
         j_plot = np.random.randint(low=0,
                                    high=self.j_episodes * (self.t_ - 1),
-                                   size=min(self.j_episodes * (self.t_ - 1), 10**5))
+                                   size=min(self.j_episodes * (self.t_ - 1), 10 ** 5))
         x_plot = x_array[j_plot, :]
         y_plot = y_array[j_plot]
 
@@ -334,7 +333,8 @@ class AgentTrainer:
             rescaled_trade_GP_array = x_plot[:, 2]
             plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
             plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-            xlim = [np.quantile(rescaled_trade_GP_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
+            xlim = [np.quantile(rescaled_trade_GP_array, low_quant),
+                    np.quantile(current_rescaled_shares_array, high_quant)]
             ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                     max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
             plt.xlim(xlim)
@@ -349,7 +349,6 @@ class AgentTrainer:
             plt.xlabel('Rescaled trade GP')
             plt.ylabel('q')
             plt.title('Realized (blue) / predicted (red) q')
-
 
         ax5 = plt.subplot2grid((2, 3), (1, 2))
         plt.plot(rescaled_trade_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
@@ -371,7 +370,7 @@ class AgentTrainer:
     def _set_supervised_regressor_parameters(self):
 
         if self._ann_architecture is None:
-            self._ann_architecture = (int(5 * 10**(-4) * self.j_episodes * self.t_), )
+            self._ann_architecture = (int(5 * 10 ** (-4) * self.j_episodes * self.t_),)
 
         hidden_layer_sizes = self._ann_architecture
         max_iter = self._max_iter
@@ -388,7 +387,6 @@ class AgentTrainer:
         y_grid = []
         for j in range(self.j_episodes):
             for t in range(self.t_ - 1):
-
                 state = self.state_action_grid_dict[n][j][t][0]
                 action = self.state_action_grid_dict[n][j][t][1]
 
@@ -414,8 +412,7 @@ class AgentTrainer:
 
 
 def read_trading_parameters_training(ticker):
-
-    filename = os.path.dirname(os.path.dirname(__file__)) +\
+    filename = os.path.dirname(os.path.dirname(__file__)) + \
                '/data/data_source/settings/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
 
