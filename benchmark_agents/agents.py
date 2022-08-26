@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, FactorType
+from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, FactorType, StrategyType
 from market_utils.market import Market, instantiate_market
 
 
@@ -48,10 +48,11 @@ class AgentBenchmark:
 
     def _set_attributes(self):
 
-        gamma, kappa = self._read_trading_parameters()
+        gamma, kappa, strategyType = self._read_trading_parameters()
 
         self.gamma = gamma
         self.kappa = kappa
+        self.strategyType = strategyType
 
     def _read_trading_parameters(self):
 
@@ -59,8 +60,9 @@ class AgentBenchmark:
 
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_trad_params.loc['kappa'][0])
+        strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
 
-        return gamma, kappa
+        return gamma, kappa, strategyType
 
     def _get_df_trad_params(self):
         ticker = self.market.ticker
@@ -95,6 +97,16 @@ class AgentBenchmark:
 
         return lam
 
+    def _update_trade_by_strategyType(self, current_shares, trade):
+        if self.strategyType == StrategyType.Unconstrained:
+            pass
+        elif self.strategyType == StrategyType.LongOnly:
+            if current_shares + trade < 0:
+                trade = - current_shares
+        else:
+            raise NameError(f'Invalid strategyType = {self.strategyType.value}')
+        return trade
+
 
 class AgentMarkowitz(AgentBenchmark):
 
@@ -115,7 +127,11 @@ class AgentMarkowitz(AgentBenchmark):
         return rescaled_trade
 
     def _get_markowitz_trade(self, current_shares, pnl, sig2):
+
         trade = (self.kappa * sig2) ** (-1) * pnl - current_shares
+
+        trade = self._update_trade_by_strategyType(current_shares, trade)
+
         return trade
 
 
@@ -138,10 +154,14 @@ class AgentGP(AgentBenchmark):
         return rescaled_trade
 
     def _get_gp_trade(self, current_shares, pnl, sig2):
+
         a = self._get_a()
         gp_rescaling = self._get_gp_rescaling(a)
         aim_ptf = (self.kappa * sig2) ** (-1) * gp_rescaling * pnl
         trade = (1 - a / self.lam) * current_shares + a / self.lam * aim_ptf - current_shares
+
+        trade = self._update_trade_by_strategyType(current_shares, trade)
+
         return trade
 
     def _get_a(self):
