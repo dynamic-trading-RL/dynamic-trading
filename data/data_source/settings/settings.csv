@@ -5,6 +5,7 @@ factorDefinitionType,MovingAverage
 factorDynamicsType,AR
 factorSourceType,Constructed
 factorType,Observable
+strategyType,Unconstrained
 gamma,0.9999
 in_sample_proportion,0.9
 j_episodes,15000

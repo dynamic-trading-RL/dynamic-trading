@@ -165,7 +165,7 @@ class Environment:
                                                    factorType=FactorType.Observable)
         self.agent_GP = AgentGP(market=self.market_benchmark)
 
-    def _get_trading_parameters_from_agent(self, gamma: float, kappa: float):
+    def get_trading_parameters_from_agent(self, gamma: float, kappa: float):
 
         self.gamma = gamma
         self.kappa = kappa
