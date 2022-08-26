@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 import os
-from scipy.optimize import basinhopping, brute, differential_evolution, dual_annealing, shgo, minimize
+from scipy.optimize import basinhopping, differential_evolution, dual_annealing, shgo, minimize
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import FactorType, EstimateInitializationType
+from enums import FactorType, EstimateInitializationType, StrategyType
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -30,8 +30,8 @@ class Agent:
             action = self._eps_greedy_policy(state, eps)
 
         if np.abs(state.current_rescaled_shares + action.rescaled_trade) > 1:
-
-            raise NameError(f'Shares went out of bound!! \n  current_rescaled_shares: {state.current_rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
+            raise NameError(
+                f'Shares went out of bound!! \n  current_rescaled_shares: {state.current_rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
 
         return action
 
@@ -48,15 +48,15 @@ class Agent:
     def dump_q_value_models(self):
 
         for n in range(len(self._q_value_models)):
-
             q_value_model = self._q_value_models[n]
-            dump(q_value_model, os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
+            dump(q_value_model,
+                 os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
 
     def load_q_value_models(self, n_batches: int):
 
         for n in range(n_batches):
-
-            q_value_model = load(os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
+            q_value_model = load(
+                os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
             self.update_q_value_models(q_value_model)
 
     def _greedy_policy(self, state: State):
@@ -112,7 +112,7 @@ class Agent:
 
     def _random_action_trading(self, state):
 
-        lower_bound , upper_bound = self._get_action_bounds_trading(state)
+        lower_bound, upper_bound = self._get_action_bounds_trading(state)
 
         if self.estimateInitializationType == EstimateInitializationType.RandomUniform:
 
@@ -134,14 +134,16 @@ class Agent:
 
         return action
 
-    def _get_trade_loc(self, lower_bound, upper_bound):
+    @staticmethod
+    def _get_trade_loc(lower_bound, upper_bound):
 
         # loc = 0.5 * (lower_bound + upper_bound)
         loc = 0.
 
         return loc
 
-    def _get_trade_scale(self, lower_bound, upper_bound, alpha):
+    @staticmethod
+    def _get_trade_scale(lower_bound, upper_bound, alpha):
 
         scale = alpha * (upper_bound - lower_bound)
 
@@ -149,7 +151,7 @@ class Agent:
 
     def _get_action_bounds_trading(self, state: State):
 
-        actionSpace = ActionSpace(state)
+        actionSpace = ActionSpace(state, self.strategyType)
         actionSpace.set_trading_actions_interval()
         lower_bound, upper_bound = actionSpace.actions_interval
 
@@ -162,7 +164,6 @@ class Agent:
         qvl = 0.
 
         for q_value_model in self._q_value_models:
-
             qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
 
         return qvl
@@ -189,21 +190,11 @@ class Agent:
 
         elif self._optimizer == 'brute':
 
-            Ns = 4 * int(upper_bound*state.shares_scale - lower_bound*state.shares_scale)
+            Ns = 4 * int(upper_bound * state.shares_scale - lower_bound * state.shares_scale)
             xx = np.linspace(lower_bound, upper_bound, Ns)
             ff = np.array([func(x) for x in xx])
             x = xx[np.argmin(ff)]
             return x
-
-            # # TODO: understand why this gives error in some cases
-            # try:
-            #     x = brute(func=func, ranges=bounds, Ns=Ns, finish=None)
-            #     return x[0]
-            #
-            # except:
-            #     print('Brute gave error!!! Using Shgo')
-            #     res = shgo(func=func, bounds=bounds)
-            #     return res.x[0]
 
         elif self._optimizer == 'differential_evolution':
             res = differential_evolution(func=func, bounds=bounds)
@@ -223,7 +214,6 @@ class Agent:
 
         else:
             raise NameError('Invalid optimizer: ' + self._optimizer)
-
 
     def extract_q_value_model_input_trading(self, state, action):
 
@@ -272,20 +262,21 @@ class Agent:
 
     def _set_agent_attributes(self):
 
-        ticker = self.environment.market.ticker
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
+        filename = os.path.dirname(os.path.dirname(__file__)) + \
                    '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_trad_params.loc['kappa'][0])
-        estimateInitializationType =\
+        estimateInitializationType = \
             EstimateInitializationType(str(df_trad_params.loc['estimateInitializationType'][0]))
+        strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
 
         self.gamma = gamma
         self.kappa = kappa
         self.estimateInitializationType = estimateInitializationType
+        self.strategyType = strategyType
 
-        self.environment._get_trading_parameters_from_agent(self.gamma, self.kappa)
+        self.environment.get_trading_parameters_from_agent(self.gamma, self.kappa)
 
         if self.estimateInitializationType == EstimateInitializationType.GP:
             self.environment.observe_GP = True
