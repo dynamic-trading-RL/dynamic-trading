@@ -414,6 +414,8 @@ class AllSeriesDynamicsCalibrator:
         self.best_factorDynamicsType = {}
         self.best_factorDynamicsType_resid = {}
         self.non_best_factorDynamicsType_resid = {}
+        self.average_price_per_contract = {}
+        self.std_price_changes = {}
 
     def fit_all_series_dynamics(self):
 
@@ -427,6 +429,7 @@ class AllSeriesDynamicsCalibrator:
         self._plot_financial_time_series()
         self._plot_residuals()
         self._print_report()
+        self._print_statistics()
 
     def _plot_financial_time_series(self):
 
@@ -469,6 +472,19 @@ class AllSeriesDynamicsCalibrator:
 
         filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/model_choice/residuals_analysis.csv'
         df_report.to_csv(filename, index=False)
+
+    def _print_statistics(self):
+
+        average_prices_per_contract_df = pd.DataFrame.from_dict(self.average_price_per_contract,
+                                                                orient='index',
+                                                                columns=['Average Price Per Contract'])
+        std_price_changes_df = pd.DataFrame.from_dict(self.std_price_changes,
+                                                      orient='index',
+                                                      columns=['Standard Deviation of Price Changes'])
+        out_dict = pd.concat([average_prices_per_contract_df, std_price_changes_df], axis=1)
+
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/model_choice/prices_and_stds.csv'
+        out_dict.to_csv(filename, index=True)
 
     def _plot_residuals(self):
         self._plot_best_residuals()
@@ -597,6 +613,9 @@ class AllSeriesDynamicsCalibrator:
         self.all_series_dynamics_calibrators[ticker] = dynamicsCalibrator
         self.riskDriverType = financialTimeSeries.riskDriverType
         self.factorDefinitionType = financialTimeSeries.factorDefinitionType
+
+        self.average_price_per_contract[ticker] = financialTimeSeries.time_series[ticker].mean()
+        self.std_price_changes[ticker] = financialTimeSeries.time_series[ticker].diff().std()
 
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
