@@ -9,8 +9,8 @@ strategyType,Unconstrained
 gamma,0.9999
 in_sample_proportion,0.9
 j_episodes,15000
-kappa,0.001
-lam,0.015
+kappa,0.000000001
+lam,0.0000000348
 start_date,'2004-01-01'
 n_batches,7
 n_cores,20
@@ -18,6 +18,6 @@ GP_action_in_state,No
 parallel_computing,Yes
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
-shares_scale,60
+shares_scale,64315121
 t_,50
 window,5
