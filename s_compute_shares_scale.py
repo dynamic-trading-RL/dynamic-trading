@@ -38,6 +38,6 @@ if __name__ == '__main__':
             rescaled_trade_lst.append(rescaled_trade)
             rescaled_shares_lst.append(current_rescaled_shares)
 
-    M = int(np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.99))
+    M = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.99)
 
     print(f'M = {M}')
