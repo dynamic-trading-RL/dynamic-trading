@@ -3,8 +3,8 @@
 Dep. Variable:            risk-driver   R-squared:                       0.001
 Model:                            OLS   Adj. R-squared:                  0.001
 Method:                 Least Squares   F-statistic:                     3.609
-Date:                Thu, 25 Aug 2022   Prob (F-statistic):             0.0575
-Time:                        11:57:46   Log-Likelihood:                -2537.9
+Date:                Sat, 27 Aug 2022   Prob (F-statistic):             0.0575
+Time:                        15:47:52   Log-Likelihood:                -2537.9
 No. Observations:                4719   AIC:                             5080.
 Df Residuals:                    4717   BIC:                             5093.
 Df Model:                           1                                         
