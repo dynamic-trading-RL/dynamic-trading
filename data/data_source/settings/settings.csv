@@ -18,6 +18,6 @@ GP_action_in_state,No
 parallel_computing,Yes
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
-shares_scale,64.56294341457856
+shares_scale,64.62236883651885
 t_,50
 window,5
