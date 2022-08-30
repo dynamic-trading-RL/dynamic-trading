@@ -7,6 +7,8 @@ from market_utils.market import read_trading_parameters_market, instantiate_mark
 
 if __name__ == '__main__':
 
+    np.random.seed(789)
+
     ticker = 'WTI'
     j_episodes = 10000
     t_ = 50
