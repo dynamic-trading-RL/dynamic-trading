@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 
 from benchmark_agents.agents import AgentMarkowitz
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 from market_utils.market import read_trading_parameters_market, instantiate_market
 
 if __name__ == '__main__':
@@ -11,10 +12,10 @@ if __name__ == '__main__':
     t_ = 50
 
     riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = read_trading_parameters_market(ticker)
-    market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
-                                factorDynamicsType=factorDynamicsType,
+    market = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
+                                factorDynamicsType=FactorDynamicsType.AR,
                                 ticker=ticker,
-                                riskDriverType=riskDriverType)
+                                riskDriverType=RiskDriverType.PnL)
     market.simulate_market_trading(n=0, j_episodes=j_episodes, t_=t_)
 
     agentMarkowitz = AgentMarkowitz(market=market)
