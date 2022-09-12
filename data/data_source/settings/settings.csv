@@ -12,7 +12,7 @@ j_episodes,15000
 kappa,0.001
 lam,0.0348034273264734
 start_date,'2004-01-01'
-n_batches,7
+n_batches,15
 n_cores,20
 GP_action_in_state,No
 parallel_computing,Yes
