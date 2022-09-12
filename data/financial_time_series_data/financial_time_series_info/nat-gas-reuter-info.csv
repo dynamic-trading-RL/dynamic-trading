@@ -1,0 +1,9 @@
+,info
+ticker,nat-gas-reuter
+end_date,2020-07-21 00:00:00
+start_price,1.675
+len,6038
+out_of_sample_proportion_len,672
+window,5
+riskDriverType,PnL
+factorDefinitionType,MovingAverage

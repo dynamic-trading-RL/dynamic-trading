@@ -1,0 +1,9 @@
+,info
+ticker,nat-gas-rngc1d
+end_date,2020-07-15 00:00:00
+start_price,1.778
+len,6032
+out_of_sample_proportion_len,671
+window,5
+riskDriverType,PnL
+factorDefinitionType,MovingAverage

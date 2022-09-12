@@ -1,0 +1,9 @@
+,info
+ticker,sugar
+end_date,2020-07-21 00:00:00
+start_price,355.3
+len,6041
+out_of_sample_proportion_len,672
+window,5
+riskDriverType,PnL
+factorDefinitionType,MovingAverage

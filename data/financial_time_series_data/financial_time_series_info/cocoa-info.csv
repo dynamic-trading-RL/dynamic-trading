@@ -1,0 +1,9 @@
+,info
+ticker,cocoa
+end_date,2020-07-20 00:00:00
+start_price,1977.490536657
+len,6040
+out_of_sample_proportion_len,672
+window,5
+riskDriverType,PnL
+factorDefinitionType,MovingAverage
