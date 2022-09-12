@@ -377,7 +377,7 @@ class AgentTrainer:
         n_iter_no_change = 10
         alpha_ann = 0.001
         early_stopping = self._early_stopping
-        validation_fraction = 0.1
+        validation_fraction = 0.05
         activation = self._activation
 
         return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation
