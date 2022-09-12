@@ -16,6 +16,7 @@ from reinforcement_learning_utils.agent_trainer import read_trading_parameters_t
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State, Action
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType, ModeType
+from testing_utils.hypothesis_testing import TTester
 
 
 class Tester:
@@ -35,7 +36,7 @@ class Tester:
     def _read_parameters(self):
 
         # Trading parameters
-        riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = \
+        riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType =\
             read_trading_parameters_market(self._ticker)
 
         # Training parameters
@@ -141,7 +142,7 @@ class Tester:
             cost_trade = self._agents[agent_type].compute_trading_cost(trade=rescaled_trade * self._shares_scale,
                                                                        current_factor=factor,
                                                                        price=price)
-            risk_trade = \
+            risk_trade =\
                 self._agents[agent_type].compute_trading_risk(current_factor=factor,
                                                               price=price,
                                                               current_rescaled_shares=current_rescaled_shares,
@@ -191,7 +192,7 @@ class BackTester(Tester):
         self._plot_sharpe_ratio()
 
     def _read_out_of_sample_proportion_len(self):
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
                    '/data/financial_time_series_data/financial_time_series_info/' + self._ticker + '-info.csv'
         df_info = pd.read_csv(filename, index_col=0)
         self._out_of_sample_proportion_len = int(df_info.loc['out_of_sample_proportion_len'][0])
@@ -253,6 +254,18 @@ class BackTester(Tester):
             pnl_net = np.diff(self._cum_wealth_all[agent_type])
 
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
+
+        self._final_wealth_diff_between_RL_and_GP =\
+            self._cum_wealth_net_risk_all['RL'][:, -1] - self._cum_wealth_net_risk_all['GP'][:, -1]
+
+        self.tTester = TTester(t_test_id=self._ticker,
+                               sample_a=self._final_wealth_diff_between_RL_and_GP,
+                               sample_b=np.zeros(len(self._final_wealth_diff_between_RL_and_GP)),
+                               equal_var=False,
+                               nan_policy='omit',
+                               permutations=self.j_,
+                               random_state=789,
+                               alternative='greater')
 
     def _get_dates_plot(self):
         if self._use_assessment_period:
@@ -789,7 +802,7 @@ class SimulationTester(Tester):
             else:
 
                 for j in tqdm(j_index, desc='Computing simulations of ' + agent_type + ' strategy'):
-                    strategy_j, trades_j, value_j, cost_j, risk_j = \
+                    strategy_j, trades_j, value_j, cost_j, risk_j =\
                         self._compute_outputs_iter_j(j, factor_series_all_j, pnl_series_all_j, price_series_all_j,
                                                      dates, agent_type)
 
@@ -857,7 +870,7 @@ class SimulationTester(Tester):
             factor, pnl, price = self._get_current_factor_pnl_price(date, dates, factor_series_j,
                                                                     pnl_series_j, price_series_j)
 
-            cost_trade, current_rescaled_shares, rescaled_trade, risk_trade = \
+            cost_trade, current_rescaled_shares, rescaled_trade, risk_trade =\
                 self._compute_outputs_for_time_t(agent_type, current_rescaled_shares, factor, price)
 
             self._update_lists(cost_j, cost_trade, current_rescaled_shares, pnl, rescaled_trade, risk_j,

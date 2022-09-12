@@ -1,5 +1,5 @@
 import numpy as np
-from testing_utils.testing import BackTester
+from testing_utils.testers import BackTester
 import warnings
 warnings.filterwarnings("ignore")
 

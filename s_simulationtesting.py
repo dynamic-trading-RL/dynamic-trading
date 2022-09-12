@@ -1,5 +1,6 @@
 import numpy as np
-from testing_utils.testing import SimulationTester
+
+from testing_utils.testers import SimulationTester
 import warnings
 warnings.filterwarnings("ignore")
 
