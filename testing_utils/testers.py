@@ -255,17 +255,6 @@ class BackTester(Tester):
 
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
 
-        self._final_wealth_diff_between_RL_and_GP =\
-            self._cum_wealth_net_risk_all['RL'][:, -1] - self._cum_wealth_net_risk_all['GP'][:, -1]
-
-        self.tTester = TTester(t_test_id=self._ticker,
-                               sample_a=self._final_wealth_diff_between_RL_and_GP,
-                               sample_b=np.zeros(len(self._final_wealth_diff_between_RL_and_GP)),
-                               equal_var=False,
-                               nan_policy='omit',
-                               permutations=self.j_,
-                               random_state=789,
-                               alternative='greater')
 
     def _get_dates_plot(self):
         if self._use_assessment_period:
@@ -827,6 +816,17 @@ class SimulationTester(Tester):
 
         self._compute_means_and_stds()
 
+        self._final_wealth_diff_between_RL_and_GP =\
+            self._cum_wealth_net_risk_all['RL'][:, -1] - self._cum_wealth_net_risk_all['GP'][:, -1]
+
+        self.tTester = TTester(t_test_id=self._ticker,
+                               sample_a=self._final_wealth_diff_between_RL_and_GP,
+                               sample_b=np.zeros(len(self._final_wealth_diff_between_RL_and_GP)),
+                               equal_var=False,
+                               nan_policy='omit',
+                               permutations=self.j_,
+                               random_state=789,
+                               alternative='greater')
     def _compute_means_and_stds(self):
 
         self._means = {}
