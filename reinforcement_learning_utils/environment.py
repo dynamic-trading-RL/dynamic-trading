@@ -141,7 +141,12 @@ class Environment:
         filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
-        lam = float(df_trad_params.loc['lam'][0])
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/data_source/market_data/commodities-summary-statistics.xlsx '
+        df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
+        df_lam_kappa = df_lam_kappa.loc[self.ticker]
+
+        lam = float(df_lam_kappa.loc['lam'])
         self.lam = lam
 
         if str(df_trad_params.loc['GP_action_in_state'][0]) == 'Yes':

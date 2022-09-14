@@ -1,3 +1,7 @@
+import os
+from joblib import dump
+
+from gen_utils.utils import read_ticker
 from market_utils.calibrator import DynamicsCalibrator
 from market_utils.financial_time_series import FinancialTimeSeries
 
@@ -5,7 +9,7 @@ from market_utils.financial_time_series import FinancialTimeSeries
 if __name__ == '__main__':
 
     # -------------------- Input parameters
-    ticker = 'WTI'
+    ticker = read_ticker()
     scale = 1
     scale_f = 1
     c = 0

@@ -1,5 +1,8 @@
 import numpy as np
+from joblib import load
+import os
 
+from gen_utils.utils import read_ticker
 from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
 
@@ -14,13 +17,13 @@ if __name__ == '__main__':
     # -------------------- Input parameters
     train_benchmarking_GP_reward = False
     plot_regressor = True
-    ann_architecture = (64, 32, 16)
-    early_stopping = False
+    ann_architecture = (128, 64, 32, 16)
+    early_stopping = True
     max_iter = 200
     activation = 'relu'
 
     # Market parameters
-    ticker = 'WTI'
+    ticker = read_ticker()
     riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = read_trading_parameters_market(ticker)
 
     # Training parameters

@@ -1,15 +1,18 @@
+import os
+from joblib import load, dump
 import numpy as np
 from tqdm import tqdm
 
 from benchmark_agents.agents import AgentMarkowitz
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from gen_utils.utils import read_ticker
 from market_utils.market import read_trading_parameters_market, instantiate_market
 
 if __name__ == '__main__':
 
     np.random.seed(789)
 
-    ticker = 'WTI'
+    ticker = read_ticker()
     j_episodes = 10000
     t_ = 50
 
@@ -41,6 +44,8 @@ if __name__ == '__main__':
             rescaled_trade_lst.append(rescaled_trade)
             rescaled_shares_lst.append(current_rescaled_shares)
 
-    M = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.99)
+    shares_scale = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.99)
 
-    print(f'M = {M}')
+    print(f'shares_scale = {shares_scale}')
+
+    dump(shares_scale, os.path.dirname(__file__) + '/data/data_tmp/shares_scale.joblib')

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import numpy as np
+from joblib import load
 from sklearn.neural_network import MLPRegressor
 from tqdm import tqdm
 import multiprocessing as mp
@@ -416,7 +417,8 @@ def read_trading_parameters_training(ticker):
                '/data/data_source/settings/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
 
-    shares_scale = float(df_trad_params.loc['shares_scale'][0])
+    shares_scale = float(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/shares_scale.joblib'))
+
     j_episodes = int(df_trad_params.loc['j_episodes'][0])
     n_batches = int(df_trad_params.loc['n_batches'][0])
     t_ = int(df_trad_params.loc['t_'][0])

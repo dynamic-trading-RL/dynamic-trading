@@ -260,11 +260,17 @@ class Agent:
 
     def _set_agent_attributes(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
-                   '/data/data_source/settings/settings.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
+
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/data_source/market_data/commodities-summary-statistics.xlsx '
+        df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
+        df_lam_kappa = df_lam_kappa.loc[self.environment.market.ticker]  # TODO: should it be self.environment.ticker?
+
         gamma = float(df_trad_params.loc['gamma'][0])
-        kappa = float(df_trad_params.loc['kappa'][0])
+        kappa = float(df_lam_kappa.loc['kappa'])
+
         estimateInitializationType = \
             EstimateInitializationType(str(df_trad_params.loc['estimateInitializationType'][0]))
         strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
