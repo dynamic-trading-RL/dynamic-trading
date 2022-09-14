@@ -19,7 +19,7 @@ if __name__ == '__main__':
     plot_regressor = True
     ann_architecture = (128, 64, 32, 16)
     early_stopping = True
-    max_iter = 200
+    max_iter = 2
     activation = 'relu'
 
     # Market parameters

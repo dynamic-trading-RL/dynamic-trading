@@ -1,5 +1,3 @@
-import os
-from joblib import dump
 
 from gen_utils.utils import read_ticker
 from market_utils.calibrator import DynamicsCalibrator

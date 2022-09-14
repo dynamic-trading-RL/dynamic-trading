@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import numpy as np
-from joblib import load
+from joblib import load, dump
 from sklearn.neural_network import MLPRegressor
 from tqdm import tqdm
 import multiprocessing as mp
@@ -90,6 +90,12 @@ class AgentTrainer:
 
             eps = eps / 3
 
+        n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
+        self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0])
+
+        dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
+        print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n + 1}')
+
     def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
 
         self._check_n(n)
@@ -113,6 +119,9 @@ class AgentTrainer:
 
         del self.market.simulations_trading[n]
 
+        self.reward_RL[n] /= (self.j_episodes * self.t_)
+        self.reward_GP[n] /= (self.j_episodes * self.t_)
+
         print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
         print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]} \n')
 
@@ -124,8 +133,6 @@ class AgentTrainer:
             self.reward_RL[n] += reward_RL_j
             self.reward_GP[n] += reward_GP_j
 
-        self.reward_RL[n] /= (self.j_episodes * self.t_)
-        self.reward_GP[n] /= (self.j_episodes * self.t_)
 
     def _create_batch_parallel(self, eps, n, n_cores):
 

@@ -12,7 +12,7 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 
 class Agent:
 
-    def __init__(self, environment: Environment, optimizer: str = 'shgo'):
+    def __init__(self, environment: Environment, optimizer: str = 'shgo', average_across_models: bool = False):
 
         self.environment = environment
 
@@ -21,6 +21,8 @@ class Agent:
 
         self._q_value_models = []
         self._set_agent_attributes()
+
+        self._average_across_models = average_across_models
 
     def policy(self, state: State, eps: float = None):
 
@@ -159,10 +161,20 @@ class Agent:
 
         q_value_model_input = self.extract_q_value_model_input_trading(state, action)
 
-        qvl = 0.
-
-        for q_value_model in self._q_value_models:
-            qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
+        if self._average_across_models:
+            for q_value_model in self._q_value_models:
+                qvl = 0.
+                qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
+        else:
+            if self.best_n is None:
+                if len(self._q_value_models) > 0:
+                    q_value_model = self._q_value_models[-1]
+                    qvl = q_value_model.predict(q_value_model_input)
+                else:
+                    qvl = 0.
+            else:
+                q_value_model = self._q_value_models[self.best_n]
+                qvl = q_value_model.predict(q_value_model_input)
 
         return qvl
 
@@ -285,3 +297,9 @@ class Agent:
         if self.estimateInitializationType == EstimateInitializationType.GP:
             self.environment.observe_GP = True
             self.environment.instantiate_market_benchmark_and_agent_GP()
+
+        try:
+            self.best_n = int(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib'))
+        except:
+            self.best_n = None
+            print('Notice: agent is not yet trained')
