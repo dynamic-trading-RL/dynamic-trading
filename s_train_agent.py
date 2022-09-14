@@ -1,6 +1,4 @@
 import numpy as np
-from joblib import load
-import os
 
 from gen_utils.utils import read_ticker
 from market_utils.market import read_trading_parameters_market

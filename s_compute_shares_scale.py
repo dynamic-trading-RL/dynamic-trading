@@ -1,5 +1,5 @@
 import os
-from joblib import load, dump
+from joblib import dump
 import numpy as np
 from tqdm import tqdm
 
