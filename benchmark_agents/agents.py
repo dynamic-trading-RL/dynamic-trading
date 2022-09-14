@@ -71,7 +71,7 @@ class AgentBenchmark:
 
     def _get_df_lam_kappa(self):
         filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/market_data/commodities-summary-statistics.xlsx '
+                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.market.ticker]
         return df_lam_kappa
@@ -94,7 +94,7 @@ class AgentBenchmark:
     def _read_lam(self):
 
         filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/market_data/commodities-summary-statistics.xlsx '
+                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.market.ticker]  # TODO: should it be self.environment.ticker?
 
