@@ -12,7 +12,7 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 
 class Agent:
 
-    def __init__(self, environment: Environment, optimizer: str = 'shgo', average_across_models: bool = False):
+    def __init__(self, environment: Environment, optimizer: str = 'shgo', average_across_models: bool = True):
 
         self.environment = environment
 
@@ -162,8 +162,8 @@ class Agent:
         q_value_model_input = self.extract_q_value_model_input_trading(state, action)
 
         if self._average_across_models:
+            qvl = 0.
             for q_value_model in self._q_value_models:
-                qvl = 0.
                 qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
         else:
             if self.best_n is None:
