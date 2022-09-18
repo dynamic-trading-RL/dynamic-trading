@@ -9,13 +9,13 @@ factorType,Observable
 strategyType,Unconstrained
 gamma,0.9999
 in_sample_proportion,0.9
-j_episodes,15000
+j_episodes,5000
 start_date,'2004-01-01'
-n_batches,15
+n_batches,1
 n_cores,20
 GP_action_in_state,No
 parallel_computing,Yes
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
-t_,50
+t_,1000
 window,5

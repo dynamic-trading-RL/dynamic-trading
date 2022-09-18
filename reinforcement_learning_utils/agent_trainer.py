@@ -29,6 +29,7 @@ class AgentTrainer:
                  ann_architecture: tuple = None,
                  early_stopping: bool = True,
                  max_iter: int = 200,
+                 n_iter_no_change : int = 10,
                  activation: str = 'relu'):
 
         self.t_ = None
@@ -53,9 +54,10 @@ class AgentTrainer:
         self._ann_architecture = ann_architecture
         self._early_stopping = early_stopping
         self._max_iter = max_iter
+        self._n_iter_no_change = n_iter_no_change
         self._activation = activation
 
-    def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
+    def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
 
         self.j_episodes = j_episodes
@@ -88,7 +90,7 @@ class AgentTrainer:
         for n in range(self.n_batches):
             self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
 
-            eps = eps / 3
+            eps = max(eps/3, 10**-5)
 
         n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
         self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0])
@@ -382,8 +384,8 @@ class AgentTrainer:
 
         hidden_layer_sizes = self._ann_architecture
         max_iter = self._max_iter
-        n_iter_no_change = 10
-        alpha_ann = 0.001
+        n_iter_no_change = self._n_iter_no_change
+        alpha_ann = 0.0001
         early_stopping = self._early_stopping
         validation_fraction = 0.1
         activation = self._activation

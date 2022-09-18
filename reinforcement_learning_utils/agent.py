@@ -12,7 +12,8 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 
 class Agent:
 
-    def __init__(self, environment: Environment, optimizer: str = 'shgo', average_across_models: bool = True):
+    def __init__(self, environment: Environment, optimizer: str = 'shgo', average_across_models: bool = True,
+                 use_best_n_batch: bool = False):
 
         self.environment = environment
 
@@ -23,6 +24,7 @@ class Agent:
         self._set_agent_attributes()
 
         self._average_across_models = average_across_models
+        self._use_best_n_batch = use_best_n_batch
 
     def policy(self, state: State, eps: float = None):
 
@@ -55,6 +57,12 @@ class Agent:
                  os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
 
     def load_q_value_models(self, n_batches: int):
+
+        if self._use_best_n_batch:
+            if self.best_n is None:
+                n_batches = 1
+            else:
+                n_batches = self.best_n
 
         for n in range(n_batches):
             q_value_model = load(
@@ -161,19 +169,14 @@ class Agent:
 
         q_value_model_input = self.extract_q_value_model_input_trading(state, action)
 
+        qvl = 0.
+
         if self._average_across_models:
-            qvl = 0.
             for q_value_model in self._q_value_models:
                 qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
         else:
-            if self.best_n is None:
-                if len(self._q_value_models) > 0:
-                    q_value_model = self._q_value_models[-1]
-                    qvl = q_value_model.predict(q_value_model_input)
-                else:
-                    qvl = 0.
-            else:
-                q_value_model = self._q_value_models[self.best_n]
+            if len(self._q_value_models) > 0:
+                q_value_model = self._q_value_models[-1]
                 qvl = q_value_model.predict(q_value_model_input)
 
         return qvl

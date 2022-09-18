@@ -182,6 +182,7 @@ class BackTester(Tester):
 
     def make_plots(self):
 
+        self._plot_time_series()
         self._plot_shares()
         self._plot_value()
         self._plot_cost()
@@ -220,6 +221,7 @@ class BackTester(Tester):
 
         # get time series
         factor_series, pnl_series, price_series = self._get_time_series()
+        self._price_series = price_series
 
         # get dates
         dates = factor_series.index
@@ -262,6 +264,20 @@ class BackTester(Tester):
         else:
             dates = self._factor_pnl_and_price.index[:-1]
         return dates
+
+    def _plot_time_series(self):
+
+        dates = self._get_dates_plot()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+        plt.plot(dates, self._price_series.loc[dates], color='k')
+
+        plt.title(self._ticker)
+        plt.xlabel('Date')
+        plt.ylabel('Price [$]')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-time_series.png')
 
     def _plot_shares(self):
 
