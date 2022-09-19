@@ -48,6 +48,7 @@ class AgentTrainer:
 
         self.observe_GP = self.environment.observe_GP
         self.GP_action_in_state = self.environment.GP_action_in_state
+        self.ttm_in_state = self.environment.ttm_in_state
         self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
         self._plot_regressor = plot_regressor
