@@ -5,18 +5,16 @@ import pandas as pd
 import os
 
 from market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType, ModeType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType
 from market_utils.financial_time_series import FinancialTimeSeries
 
 
 class Market:
 
-    def __init__(self, financialTimeSeries: FinancialTimeSeries, marketDynamics: MarketDynamics,
-                 factorType: FactorType = FactorType.Observable):
+    def __init__(self, financialTimeSeries: FinancialTimeSeries, marketDynamics: MarketDynamics):
 
         self.financialTimeSeries = financialTimeSeries
         self.marketDynamics = marketDynamics
-        self.factorType = factorType
         self._set_market_attributes()
         self.simulations_trading = None
 
@@ -357,7 +355,6 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
                        factorDynamicsType: FactorDynamicsType,
                        ticker: str,
                        riskDriverType: RiskDriverType,
-                       factorType: FactorType = FactorType.Observable,
                        modeType: ModeType = ModeType.InSample):
 
     # Instantiate financialTimeSeries
@@ -374,7 +371,7 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
     # Set dynamics
     marketDynamics = MarketDynamics(riskDriverDynamics, factorDynamics)
 
-    return Market(financialTimeSeries, marketDynamics, factorType)
+    return Market(financialTimeSeries, marketDynamics)
 
 
 def read_trading_parameters_market(ticker):
@@ -385,6 +382,5 @@ def read_trading_parameters_market(ticker):
     riskDriverDynamicsType = RiskDriverDynamicsType(df_trad_params.loc['riskDriverDynamicsType'][0])
     factorDynamicsType = FactorDynamicsType(df_trad_params.loc['factorDynamicsType'][0])
     riskDriverType = RiskDriverType(df_trad_params.loc['riskDriverType'][0])
-    factorType = FactorType(df_trad_params.loc['factorType'][0])
 
-    return riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType
+    return riskDriverDynamicsType, factorDynamicsType, riskDriverType

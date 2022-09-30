@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, FactorType, StrategyType
+from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, StrategyType
 from market_utils.market import Market, instantiate_market
 
 
@@ -28,9 +28,6 @@ class AgentBenchmark:
 
         if market.riskDriverType != RiskDriverType.PnL:
             raise NameError('riskDriverType for benchmark agent should be PnL')
-
-        if market.factorType != FactorType.Observable:
-            raise NameError('factorType for benchmark agent should be Observable')
 
     def compute_trading_cost(self, trade, current_factor, price):
 

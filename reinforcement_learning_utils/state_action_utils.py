@@ -3,7 +3,10 @@ from enums import StrategyType
 
 class State:
 
-    def __init__(self):
+    def __init__(self, environment):
+
+        self.environment = environment
+
         self.next_other_observable = None
         self.next_price = None
         self.next_factor = None
@@ -14,9 +17,10 @@ class State:
         self.current_rescaled_shares = None
         self.current_factor = None
         self.shares_scale = None
+        self.ttm = None
 
     def set_trading_attributes(self, current_factor, current_rescaled_shares, current_other_observable, shares_scale,
-                               current_price, action_GP):
+                               current_price, action_GP, ttm):
 
         self.shares_scale = shares_scale
 
@@ -26,6 +30,7 @@ class State:
         self.current_shares = self.current_rescaled_shares * self.shares_scale
         self.current_price = current_price
         self.current_action_GP = action_GP
+        self.ttm = ttm
 
     def set_extra_trading_attributes(self, next_factor: float, next_price: float, next_other_observable: float):
 
@@ -37,7 +42,7 @@ class State:
 class ActionSpace:
 
     def __init__(self, state: State, strategyType: StrategyType = StrategyType.Unconstrained):
-    
+
         self.state = state
         self.strategyType = strategyType
         self.actions_interval = None
