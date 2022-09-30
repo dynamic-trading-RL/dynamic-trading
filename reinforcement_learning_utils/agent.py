@@ -5,7 +5,7 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import FactorType, EstimateInitializationType, StrategyType
+from enums import EstimateInitializationType, StrategyType
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -239,37 +239,30 @@ class Agent:
 
     def _extract_state_lst_trading(self, state):
 
-        if self.environment.factorType == FactorType.Observable:
+        state_shape = state.environment.state_shape
+        state_lst = [None] * len(state_shape)
 
-            current_factor = state.current_factor
-            current_rescaled_shares = state.current_rescaled_shares
+        # get info
+        current_rescaled_shares = state.current_rescaled_shares
+        current_factor = state.current_factor
+        ttm = state.ttm
+        current_price = state.current_price
+        try:
+            current_action_GP = state.current_action_GP
+        except:
+            current_action_GP = None
 
-            if self.environment.GP_action_in_state:
+        # fill list
+        state_lst[0] = current_rescaled_shares
 
-                current_action_GP = state.current_action_GP
-                current_rescaled_trade_GP = current_action_GP.rescaled_trade
-                state_lst = [current_factor, current_rescaled_shares, current_rescaled_trade_GP]
-
-            else:
-
-                state_lst = [current_factor, current_rescaled_shares]
-
-        elif self.environment.factorType == FactorType.Latent:
-
-            current_other_observable = state.current_other_observable
-            current_rescaled_shares = state.current_rescaled_shares
-
-            if self.environment.GP_action_in_state:
-
-                current_action_GP = state.current_action_GP
-                current_rescaled_trade_GP = current_action_GP.rescaled_trade
-                state_lst = [current_other_observable, current_rescaled_shares, current_rescaled_trade_GP]
-
-            else:
-                state_lst = [current_other_observable, current_rescaled_shares]
-
-        else:
-            raise NameError('Invalid factorType: ' + self.environment.factorType.value)
+        if self.environment.factor_in_state:
+            state_lst[state_shape['current_factor']] = current_factor
+        if self.environment.ttm_in_state:
+            state_lst[state_shape['ttm']] = ttm
+        if self.environment.price_in_state:
+            state_lst[state_shape['current_price']] = current_price
+        if self.environment.GP_action_in_state:
+            state_lst[state_shape['current_action_GP']] = current_action_GP
 
         return state_lst
 

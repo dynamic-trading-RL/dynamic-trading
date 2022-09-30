@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     # Market parameters
     ticker = read_ticker()
-    riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType = read_trading_parameters_market(ticker)
+    riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market(ticker)
 
     # Training parameters
     shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores = read_trading_parameters_training(ticker)
@@ -34,7 +34,6 @@ if __name__ == '__main__':
                                 factorDynamicsType=factorDynamicsType,
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
-                                factorType=factorType,
                                 shares_scale=shares_scale,
                                 train_benchmarking_GP_reward=train_benchmarking_GP_reward,
                                 plot_regressor=plot_regressor,

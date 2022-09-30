@@ -16,12 +16,6 @@ class FactorDynamicsType(Enum):
     AR_TARCH = 'AR_TARCH'
 
 
-class FactorType(Enum):
-
-    Observable = 'Observable'
-    Latent = 'Latent'
-
-
 class FactorDefinitionType(Enum):
 
     MovingAverage = 'MovingAverage'

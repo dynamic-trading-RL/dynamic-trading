@@ -10,7 +10,7 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -23,7 +23,6 @@ class AgentTrainer:
 
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
-                 factorType: FactorType = FactorType.Observable,
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
                  ann_architecture: tuple = None,
@@ -37,7 +36,7 @@ class AgentTrainer:
         self.j_episodes = None
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
-                                         ticker=ticker, riskDriverType=riskDriverType, factorType=factorType)
+                                         ticker=ticker, riskDriverType=riskDriverType)
         self.shares_scale = shares_scale
         self.environment = Environment(market=self.market)
         self.agent = Agent(self.environment)
@@ -46,9 +45,11 @@ class AgentTrainer:
             self.environment.observe_GP = True
             self.environment.instantiate_market_benchmark_and_agent_GP()
 
+        self.factor_in_state = self.environment.factor_in_state
         self.observe_GP = self.environment.observe_GP
         self.GP_action_in_state = self.environment.GP_action_in_state
         self.ttm_in_state = self.environment.ttm_in_state
+        self.price_in_state = self.environment.price_in_state
         self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
         self._plot_regressor = plot_regressor
@@ -196,7 +197,6 @@ class AgentTrainer:
 
             # Observe reward_RL and state at time t
             reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
-
             reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=state.current_action_GP, t=t)
 
             if self.train_benchmarking_GP_reward:
@@ -284,6 +284,12 @@ class AgentTrainer:
 
     def _make_regressor_plots(self, model, n, x_array, y_array):
 
+        dpi = plt.rcParams['figure.dpi']
+
+        inverse_state_shape = {}
+        for key, value in self.environment.state_shape.items():
+            inverse_state_shape[value] = key
+
         low_quant = 0.001
         high_quant = 0.999
         j_plot = np.random.randint(low=0,
@@ -291,18 +297,10 @@ class AgentTrainer:
                                    size=min(self.j_episodes * (self.t_ - 1), 10 ** 5))
         x_plot = x_array[j_plot, :]
         y_plot = y_array[j_plot]
-
-        # TODO: generalize to non-observable factors
         q_predicted = model.predict(x_plot)
-        current_factor_array = x_plot[:, 0]
-        current_rescaled_shares_array = x_plot[:, 1]
 
-        rescaled_trade_array = x_plot[:, -1]
-
-        dpi = plt.rcParams['figure.dpi']
-        fig = plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
-
-        ax1 = plt.subplot2grid((2, 3), (0, 0), rowspan=2)
+        # --------- Plotting y_plot vs q_predicted
+        plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
         xlim = [np.quantile(y_plot, low_quant), np.quantile(y_plot, 0.95)]
         ylim = [np.quantile(q_predicted, low_quant), np.quantile(q_predicted, 0.95)]
         plt.scatter(y_plot, q_predicted, s=1)
@@ -313,69 +311,40 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/figures/training/training_batch_%d_realized_vs_predicted_q.png' % n
+        plt.savefig(filename)
 
-        ax2 = plt.subplot2grid((2, 3), (0, 1))
-        plt.plot(current_factor_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-        plt.plot(current_factor_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-        xlim = [np.quantile(current_factor_array, low_quant), np.quantile(current_factor_array, high_quant)]
-        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
-        plt.xlim(xlim)
-        plt.ylim(ylim)
-        plt.xlabel('Current factor')
-        plt.ylabel('q')
-        plt.title('Realized (blue) / predicted (red) q')
-
-        ax3 = plt.subplot2grid((2, 3), (0, 2))
-        plt.plot(current_rescaled_shares_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-        plt.plot(current_rescaled_shares_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-        xlim = [np.quantile(current_rescaled_shares_array, low_quant),
-                np.quantile(current_rescaled_shares_array, high_quant)]
-        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
-        plt.xlim(xlim)
-        plt.ylim(ylim)
-        plt.xlabel('Current rescaled shares')
-        plt.ylabel('q')
-        plt.title('Realized (blue) / predicted (red) q')
-
-        ax4 = plt.subplot2grid((2, 3), (1, 1))
-        if self.GP_action_in_state:
-            rescaled_trade_GP_array = x_plot[:, 2]
-            plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-            plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-            xlim = [np.quantile(rescaled_trade_GP_array, low_quant),
-                    np.quantile(current_rescaled_shares_array, high_quant)]
+        # --------- Plotting detail of regressor
+        for idx, variable in inverse_state_shape.items():
+            plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
+            plt.plot(x_plot[:, idx], y_plot, '.', markersize=1, alpha=0.5, color='b')
+            plt.plot(x_plot[:, idx], q_predicted, '.', markersize=1, alpha=0.5, color='r')
+            xlim = [np.quantile(x_plot[:, idx], low_quant), np.quantile(x_plot[:, idx], high_quant)]
             ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                     max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
             plt.xlim(xlim)
             plt.ylim(ylim)
-            plt.xlabel('Rescaled trade GP')
+            plt.xlabel(variable)
             plt.ylabel('q')
             plt.title('Realized (blue) / predicted (red) q')
-        else:
-            plt.text(x=0, y=0, s='NA')
-            plt.xlim([-1, 1])
-            plt.ylim([-1, 1])
-            plt.xlabel('Rescaled trade GP')
-            plt.ylabel('q')
-            plt.title('Realized (blue) / predicted (red) q')
+            filename = os.path.dirname(os.path.dirname(__file__)) +\
+                       f'/figures/training/training_batch_{n}_{variable}.png'
+            plt.savefig(filename)
 
-        ax5 = plt.subplot2grid((2, 3), (1, 2))
-        plt.plot(rescaled_trade_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-        plt.plot(rescaled_trade_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-        xlim = [np.quantile(rescaled_trade_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
+        plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
+        plt.plot(x_plot[:, -1], y_plot, '.', markersize=1, alpha=0.5, color='b')
+        plt.plot(x_plot[:, -1], q_predicted, '.', markersize=1, alpha=0.5, color='r')
+        xlim = [np.quantile(x_plot[:, -1], low_quant), np.quantile(x_plot[:, -1], high_quant)]
         ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                 max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
         plt.xlim(xlim)
         plt.ylim(ylim)
-        plt.xlabel('Rescaled trade')
+        plt.xlabel('action')
         plt.ylabel('q')
         plt.title('Realized (blue) / predicted (red) q')
-
-        plt.tight_layout()
-
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/figures/training/training_batch_%d.png' % n
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   f'/figures/training/training_batch_{n}_action.png'
         plt.savefig(filename)
 
     def _set_supervised_regressor_parameters(self):
