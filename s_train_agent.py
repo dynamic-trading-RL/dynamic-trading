@@ -13,7 +13,21 @@ if __name__ == '__main__':
     np.random.seed(789)
 
     # -------------------- Input parameters
+    # todo: all of these inputs should be read from settings.csv via a dedicated function
+
+    # if True, the agent implements the action a_t immediately at time t; else, at time t+1
+    trade_immediately = True
+    # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
+    predict_pnl_and_sig2_for_reward = False
+    # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
+    average_across_models = True
+    # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
+    # provided the best reward in the training phase
+    use_best_n_batch = False
+    # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
+    # than the one learned automatically
     train_benchmarking_GP_reward = False
+
     plot_regressor = True
     ann_architecture = (64, 32, 16)
     early_stopping = False
@@ -24,7 +38,7 @@ if __name__ == '__main__':
 
     # Market parameters
     ticker = read_ticker()
-    riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market(ticker)
+    riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
 
     # Training parameters
     shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores = read_trading_parameters_training(ticker)
@@ -34,6 +48,10 @@ if __name__ == '__main__':
                                 factorDynamicsType=factorDynamicsType,
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
+                                trade_immediately=trade_immediately,
+                                predict_pnl_and_sig2_for_reward=predict_pnl_and_sig2_for_reward,
+                                average_across_models=average_across_models,
+                                use_best_n_batch=use_best_n_batch,
                                 shares_scale=shares_scale,
                                 train_benchmarking_GP_reward=train_benchmarking_GP_reward,
                                 plot_regressor=plot_regressor,

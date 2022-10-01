@@ -22,7 +22,12 @@ from reinforcement_learning_utils.state_action_utils import State, Action
 class AgentTrainer:
 
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
-                 ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
+                 ticker: str,
+                 riskDriverType: RiskDriverType, shares_scale: float = 1,
+                 trade_immediately: bool = True,
+                 predict_pnl_and_sig2_for_reward: bool = False,
+                 average_across_models: bool = True,
+                 use_best_n_batch: bool = False,
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
                  ann_architecture: tuple = None,
@@ -38,8 +43,22 @@ class AgentTrainer:
                                          factorDynamicsType=factorDynamicsType,
                                          ticker=ticker, riskDriverType=riskDriverType)
         self.shares_scale = shares_scale
+        self._trade_immediately = trade_immediately
+        dump(self._trade_immediately,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/trade_immediately.joblib')
+        self._predict_pnl_and_sig2_for_reward = predict_pnl_and_sig2_for_reward
+        self._average_across_models = average_across_models
+        dump(self._average_across_models,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
+        self._use_best_n_batch = use_best_n_batch
+        dump(self._use_best_n_batch,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
+
         self.environment = Environment(market=self.market)
-        self.agent = Agent(self.environment)
+        self.agent = Agent(self.environment,
+                           trade_immediately=self._trade_immediately,
+                           average_across_models=self._average_across_models,
+                           use_best_n_batch=self._use_best_n_batch)
 
         if train_benchmarking_GP_reward and not self.environment.observe_GP:
             self.environment.observe_GP = True
@@ -136,7 +155,6 @@ class AgentTrainer:
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
             self.reward_RL[n] += reward_RL_j
             self.reward_GP[n] += reward_GP_j
-
 
     def _create_batch_parallel(self, eps, n, n_cores):
 
@@ -238,7 +256,8 @@ class AgentTrainer:
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        reward, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
+        next_state, reward = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t,
+                                                                            predict_pnl_and_sig2_for_reward=self._predict_pnl_and_sig2_for_reward)
 
         return reward, next_state
 

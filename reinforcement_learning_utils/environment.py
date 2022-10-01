@@ -18,12 +18,13 @@ class Environment:
         self.market = market
         self._set_attributes()
 
-    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int):
+    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int, predict_pnl_and_sig2_for_reward: bool):
 
-        reward = self._compute_reward(state=state, action=action)
         next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
+        reward = self._compute_reward(state=state, action=action, next_state=next_state,
+                                      predict_pnl_and_sig2_for_reward=predict_pnl_and_sig2_for_reward)
 
-        return reward, next_state
+        return next_state, reward
 
     def instantiate_initial_state_trading(self, n: int, j: int, shares_scale: float = 1):
 
@@ -56,9 +57,9 @@ class Environment:
 
         return state
 
-    def _compute_reward(self, state: State, action: Action):
+    def _compute_reward(self, state: State, action: Action, next_state: State, predict_pnl_and_sig2_for_reward: bool):
 
-        reward = self._compute_trading_reward(state, action)
+        reward = self._compute_trading_reward(state, action, next_state, predict_pnl_and_sig2_for_reward)
 
         return reward
 
@@ -68,15 +69,19 @@ class Environment:
 
         return next_state
 
-    def _compute_trading_reward(self, state, action):
+    def _compute_trading_reward(self, state, action, next_state, predict_pnl_and_sig2_for_reward):
 
         current_shares = state.current_shares
-        current_factor = state.current_factor
         current_price = state.current_price
 
-        # todo: pnl should not be predicted
-        pnl = self.market.next_step_pnl(factor=current_factor, price=current_price)
-        sig2 = self.market.next_step_sig2(factor=current_factor, price=current_price)
+        if predict_pnl_and_sig2_for_reward:
+            current_factor = state.current_factor
+            pnl = self.market.next_step_pnl(factor=current_factor, price=current_price)
+            sig2 = self.market.next_step_sig2(factor=current_factor, price=current_price)
+        else:
+            next_price = next_state.current_price
+            pnl = next_price - current_price
+            sig2 = pnl**2
 
         cost = self.compute_trading_cost(action, sig2)
 

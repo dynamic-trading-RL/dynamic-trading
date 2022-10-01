@@ -7,7 +7,7 @@ factorDefinitionType,MovingAverage
 window,5
 factorDynamicsType,AR
 factorSourceType,Constructed
-factor_in_state,No
+factor_in_state,Yes
 ttm_in_state,Yes
 price_in_state,Yes
 GP_action_in_state,No
@@ -16,8 +16,8 @@ estimateInitializationType,RandomUniform
 gamma,0.9999
 start_date,'2004-01-01'
 in_sample_proportion,0.9
-j_episodes,5000
-t_,1000
-n_batches,3
-parallel_computing,Yes
+j_episodes,15000
+t_,50
+n_batches,1
+parallel_computing,No
 n_cores,20

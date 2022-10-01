@@ -1,6 +1,20 @@
 from enums import StrategyType
 
 
+class Action:
+
+    def __init__(self):
+        self.trade = None
+        self.shares_scale = None
+        self.rescaled_trade = None
+
+    def set_trading_attributes(self, rescaled_trade: float, shares_scale: float = 1):
+
+        self.rescaled_trade = rescaled_trade
+        self.shares_scale = shares_scale
+        self.trade = self.rescaled_trade * self.shares_scale
+
+
 class State:
 
     def __init__(self, environment):
@@ -38,6 +52,11 @@ class State:
         self.next_price = next_price
         self.next_other_observable = next_other_observable
 
+    def implement_trade(self, action: Action):
+
+        self.current_rescaled_shares += action.rescaled_trade
+        self.current_shares = self.current_rescaled_shares * self.shares_scale
+
 
 class ActionSpace:
 
@@ -57,17 +76,3 @@ class ActionSpace:
             self.actions_interval = (- current_rescaled_shares, 1 - current_rescaled_shares)
         else:
             raise NameError(f'Invalid strategyType = {self.strategyType.value}')
-
-
-class Action:
-
-    def __init__(self):
-        self.trade = None
-        self.shares_scale = None
-        self.rescaled_trade = None
-
-    def set_trading_attributes(self, rescaled_trade: float, shares_scale: float = 1):
-
-        self.rescaled_trade = rescaled_trade
-        self.shares_scale = shares_scale
-        self.trade = self.rescaled_trade * self.shares_scale

@@ -374,7 +374,7 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
     return Market(financialTimeSeries, marketDynamics)
 
 
-def read_trading_parameters_market(ticker):
+def read_trading_parameters_market():
 
     filename = os.path.dirname(os.path.dirname(__file__)) +\
                '/data/data_source/settings/settings.csv'

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import os
 
+from joblib import load
 from tqdm import tqdm
 
 from benchmark_agents.agents import AgentMarkowitz, AgentGP
@@ -37,7 +38,7 @@ class Tester:
 
         # Trading parameters
         riskDriverDynamicsType, factorDynamicsType, riskDriverType =\
-            read_trading_parameters_market(self._ticker)
+            read_trading_parameters_market()
 
         # Training parameters
         shares_scale, _, n_batches, _, parallel_computing, n_cores = read_trading_parameters_training(self._ticker)
@@ -69,7 +70,14 @@ class Tester:
                                     riskDriverType=self._riskDriverType,
                                     modeType=ModeType.OutOfSample)
         environment = Environment(market)
-        agentRL = Agent(environment)
+
+        trade_immediately = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/trade_immediately.joblib')
+        average_across_models = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
+        use_best_n_batch = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
+        agentRL = Agent(environment,
+                        trade_immediately=trade_immediately,
+                        average_across_models=average_across_models,
+                        use_best_n_batch=use_best_n_batch)
         agentRL.load_q_value_models(self._n_batches)
 
         self._agents = {'Markowitz': agentMarkowitz, 'GP': agentGP, 'RL': agentRL}
@@ -260,7 +268,6 @@ class BackTester(Tester):
             pnl_net = np.diff(self._cum_wealth_all[agent_type])
 
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
-
 
     def _get_dates_plot(self):
         if self._use_assessment_period:
