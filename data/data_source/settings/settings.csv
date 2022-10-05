@@ -8,8 +8,8 @@ window,5
 factorDynamicsType,AR
 factorSourceType,Constructed
 factor_in_state,Yes
-ttm_in_state,Yes
-price_in_state,Yes
+ttm_in_state,No
+price_in_state,No
 GP_action_in_state,No
 strategyType,Unconstrained
 estimateInitializationType,RandomUniform
@@ -20,4 +20,4 @@ j_episodes,15000
 t_,50
 n_batches,5
 parallel_computing,Yes
-n_cores,20
+n_cores,8
