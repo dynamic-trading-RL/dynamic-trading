@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #SBATCH --job-name=tr
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=8
 conda activate /home/giorgi/conda/env_py3_10/
 python s_calibrate_specific_market_dynamics.py
 python s_compute_shares_scale.py
