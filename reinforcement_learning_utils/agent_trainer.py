@@ -25,7 +25,7 @@ class AgentTrainer:
                  ticker: str,
                  riskDriverType: RiskDriverType, shares_scale: float = 1,
                  trade_immediately: bool = True,
-                 predict_pnl_and_sig2_for_reward: bool = False,
+                 predict_pnl_for_reward: bool = False,
                  average_across_models: bool = True,
                  use_best_n_batch: bool = False,
                  train_benchmarking_GP_reward: bool = False,
@@ -46,7 +46,7 @@ class AgentTrainer:
         self._trade_immediately = trade_immediately
         dump(self._trade_immediately,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/trade_immediately.joblib')
-        self._predict_pnl_and_sig2_for_reward = predict_pnl_and_sig2_for_reward
+        self._predict_pnl_for_reward = predict_pnl_for_reward
         self._average_across_models = average_across_models
         dump(self._average_across_models,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
@@ -257,7 +257,7 @@ class AgentTrainer:
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
         next_state, reward = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t,
-                                                                            predict_pnl_and_sig2_for_reward=self._predict_pnl_and_sig2_for_reward)
+                                                                            predict_pnl_for_reward=self._predict_pnl_for_reward)
 
         return reward, next_state
 
