@@ -18,12 +18,12 @@ if __name__ == '__main__':
     # if True, the agent implements the action a_t immediately at time t; else, at time t+1
     trade_immediately = True
     # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
-    predict_pnl_and_sig2_for_reward = False
+    predict_pnl_for_reward = True
     # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
-    average_across_models = True
+    average_across_models = False
     # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
     # provided the best reward in the training phase
-    use_best_n_batch = False
+    use_best_n_batch = True
     # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
     # than the one learned automatically
     train_benchmarking_GP_reward = False
@@ -49,7 +49,7 @@ if __name__ == '__main__':
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
                                 trade_immediately=trade_immediately,
-                                predict_pnl_and_sig2_for_reward=predict_pnl_and_sig2_for_reward,
+                                predict_pnl_for_reward=predict_pnl_for_reward,
                                 average_across_models=average_across_models,
                                 use_best_n_batch=use_best_n_batch,
                                 shares_scale=shares_scale,
