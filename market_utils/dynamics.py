@@ -4,9 +4,6 @@ from market_utils.calibrator import DynamicsCalibrator, build_filename_calibrati
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 
 
-
-
-
 class Dynamics:
 
     def __init__(self):

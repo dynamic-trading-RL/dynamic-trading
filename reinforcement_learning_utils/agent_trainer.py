@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import numpy as np
+from joblib import load, dump
 from sklearn.neural_network import MLPRegressor
 from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -21,13 +22,18 @@ from reinforcement_learning_utils.state_action_utils import State, Action
 class AgentTrainer:
 
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
-                 ticker: str, riskDriverType: RiskDriverType, shares_scale: float = 1,
-                 factorType: FactorType = FactorType.Observable,
+                 ticker: str,
+                 riskDriverType: RiskDriverType, shares_scale: float = 1,
+                 trade_immediately: bool = True,
+                 predict_pnl_for_reward: bool = False,
+                 average_across_models: bool = True,
+                 use_best_n_batch: bool = False,
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
                  ann_architecture: tuple = None,
                  early_stopping: bool = True,
                  max_iter: int = 200,
+                 n_iter_no_change : int = 10,
                  activation: str = 'relu'):
 
         self.t_ = None
@@ -35,26 +41,44 @@ class AgentTrainer:
         self.j_episodes = None
         self.market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
                                          factorDynamicsType=factorDynamicsType,
-                                         ticker=ticker, riskDriverType=riskDriverType, factorType=factorType)
+                                         ticker=ticker, riskDriverType=riskDriverType)
         self.shares_scale = shares_scale
+        self._trade_immediately = trade_immediately
+        dump(self._trade_immediately,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/trade_immediately.joblib')
+        self._predict_pnl_for_reward = predict_pnl_for_reward
+        self._average_across_models = average_across_models
+        dump(self._average_across_models,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
+        self._use_best_n_batch = use_best_n_batch
+        dump(self._use_best_n_batch,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
+
         self.environment = Environment(market=self.market)
-        self.agent = Agent(self.environment)
+        self.agent = Agent(self.environment,
+                           trade_immediately=self._trade_immediately,
+                           average_across_models=self._average_across_models,
+                           use_best_n_batch=self._use_best_n_batch)
 
         if train_benchmarking_GP_reward and not self.environment.observe_GP:
             self.environment.observe_GP = True
             self.environment.instantiate_market_benchmark_and_agent_GP()
 
+        self.factor_in_state = self.environment.factor_in_state
         self.observe_GP = self.environment.observe_GP
         self.GP_action_in_state = self.environment.GP_action_in_state
+        self.ttm_in_state = self.environment.ttm_in_state
+        self.price_in_state = self.environment.price_in_state
         self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
         self._plot_regressor = plot_regressor
         self._ann_architecture = ann_architecture
         self._early_stopping = early_stopping
         self._max_iter = max_iter
+        self._n_iter_no_change = n_iter_no_change
         self._activation = activation
 
-    def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.1, parallel_computing: bool = False,
+    def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
 
         self.j_episodes = j_episodes
@@ -87,7 +111,13 @@ class AgentTrainer:
         for n in range(self.n_batches):
             self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
 
-            eps = eps / 3
+            eps = max(eps/3, 10**-5)
+
+        n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
+        self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0])
+
+        dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
+        print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n + 1}')
 
     def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
 
@@ -112,6 +142,9 @@ class AgentTrainer:
 
         del self.market.simulations_trading[n]
 
+        self.reward_RL[n] /= (self.j_episodes * self.t_)
+        self.reward_GP[n] /= (self.j_episodes * self.t_)
+
         print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
         print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]} \n')
 
@@ -122,9 +155,6 @@ class AgentTrainer:
             self._store_grids_in_dict(j, n, q_grid, state_action_grid)
             self.reward_RL[n] += reward_RL_j
             self.reward_GP[n] += reward_GP_j
-
-        self.reward_RL[n] /= (self.j_episodes * self.t_)
-        self.reward_GP[n] /= (self.j_episodes * self.t_)
 
     def _create_batch_parallel(self, eps, n, n_cores):
 
@@ -185,7 +215,6 @@ class AgentTrainer:
 
             # Observe reward_RL and state at time t
             reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
-
             reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=state.current_action_GP, t=t)
 
             if self.train_benchmarking_GP_reward:
@@ -227,7 +256,8 @@ class AgentTrainer:
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        reward, next_state = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t)
+        next_state, reward = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t,
+                                                                            predict_pnl_for_reward=self._predict_pnl_for_reward)
 
         return reward, next_state
 
@@ -273,6 +303,12 @@ class AgentTrainer:
 
     def _make_regressor_plots(self, model, n, x_array, y_array):
 
+        dpi = plt.rcParams['figure.dpi']
+
+        inverse_state_shape = {}
+        for key, value in self.environment.state_shape.items():
+            inverse_state_shape[value] = key
+
         low_quant = 0.001
         high_quant = 0.999
         j_plot = np.random.randint(low=0,
@@ -280,18 +316,10 @@ class AgentTrainer:
                                    size=min(self.j_episodes * (self.t_ - 1), 10 ** 5))
         x_plot = x_array[j_plot, :]
         y_plot = y_array[j_plot]
-
-        # TODO: generalize to non-observable factors
         q_predicted = model.predict(x_plot)
-        current_factor_array = x_plot[:, 0]
-        current_rescaled_shares_array = x_plot[:, 1]
 
-        rescaled_trade_array = x_plot[:, -1]
-
-        dpi = plt.rcParams['figure.dpi']
-        fig = plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
-
-        ax1 = plt.subplot2grid((2, 3), (0, 0), rowspan=2)
+        # --------- Plotting y_plot vs q_predicted
+        plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
         xlim = [np.quantile(y_plot, low_quant), np.quantile(y_plot, 0.95)]
         ylim = [np.quantile(q_predicted, low_quant), np.quantile(q_predicted, 0.95)]
         plt.scatter(y_plot, q_predicted, s=1)
@@ -302,69 +330,40 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/figures/training/training_batch_%d_realized_vs_predicted_q.png' % n
+        plt.savefig(filename)
 
-        ax2 = plt.subplot2grid((2, 3), (0, 1))
-        plt.plot(current_factor_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-        plt.plot(current_factor_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-        xlim = [np.quantile(current_factor_array, low_quant), np.quantile(current_factor_array, high_quant)]
-        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
-        plt.xlim(xlim)
-        plt.ylim(ylim)
-        plt.xlabel('Current factor')
-        plt.ylabel('q')
-        plt.title('Realized (blue) / predicted (red) q')
-
-        ax3 = plt.subplot2grid((2, 3), (0, 2))
-        plt.plot(current_rescaled_shares_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-        plt.plot(current_rescaled_shares_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-        xlim = [np.quantile(current_rescaled_shares_array, low_quant),
-                np.quantile(current_rescaled_shares_array, high_quant)]
-        ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
-                max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
-        plt.xlim(xlim)
-        plt.ylim(ylim)
-        plt.xlabel('Current rescaled shares')
-        plt.ylabel('q')
-        plt.title('Realized (blue) / predicted (red) q')
-
-        ax4 = plt.subplot2grid((2, 3), (1, 1))
-        if self.GP_action_in_state:
-            rescaled_trade_GP_array = x_plot[:, 2]
-            plt.plot(rescaled_trade_GP_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-            plt.plot(rescaled_trade_GP_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-            xlim = [np.quantile(rescaled_trade_GP_array, low_quant),
-                    np.quantile(current_rescaled_shares_array, high_quant)]
+        # --------- Plotting detail of regressor
+        for idx, variable in inverse_state_shape.items():
+            plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
+            plt.plot(x_plot[:, idx], y_plot, '.', markersize=1, alpha=0.5, color='b')
+            plt.plot(x_plot[:, idx], q_predicted, '.', markersize=1, alpha=0.5, color='r')
+            xlim = [np.quantile(x_plot[:, idx], low_quant), np.quantile(x_plot[:, idx], high_quant)]
             ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                     max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
             plt.xlim(xlim)
             plt.ylim(ylim)
-            plt.xlabel('Rescaled trade GP')
+            plt.xlabel(variable)
             plt.ylabel('q')
             plt.title('Realized (blue) / predicted (red) q')
-        else:
-            plt.text(x=0, y=0, s='NA')
-            plt.xlim([-1, 1])
-            plt.ylim([-1, 1])
-            plt.xlabel('Rescaled trade GP')
-            plt.ylabel('q')
-            plt.title('Realized (blue) / predicted (red) q')
+            filename = os.path.dirname(os.path.dirname(__file__)) +\
+                       f'/figures/training/training_batch_{n}_{variable}.png'
+            plt.savefig(filename)
 
-        ax5 = plt.subplot2grid((2, 3), (1, 2))
-        plt.plot(rescaled_trade_array, y_plot, '.', markersize=1, alpha=0.5, color='b')
-        plt.plot(rescaled_trade_array, q_predicted, '.', markersize=1, alpha=0.5, color='r')
-        xlim = [np.quantile(rescaled_trade_array, low_quant), np.quantile(current_rescaled_shares_array, high_quant)]
+        plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
+        plt.plot(x_plot[:, -1], y_plot, '.', markersize=1, alpha=0.5, color='b')
+        plt.plot(x_plot[:, -1], q_predicted, '.', markersize=1, alpha=0.5, color='r')
+        xlim = [np.quantile(x_plot[:, -1], low_quant), np.quantile(x_plot[:, -1], high_quant)]
         ylim = [min(np.quantile(y_plot, low_quant), np.quantile(q_predicted, low_quant)),
                 max(np.quantile(y_plot, high_quant), np.quantile(q_predicted, high_quant))]
         plt.xlim(xlim)
         plt.ylim(ylim)
-        plt.xlabel('Rescaled trade')
+        plt.xlabel('action')
         plt.ylabel('q')
         plt.title('Realized (blue) / predicted (red) q')
-
-        plt.tight_layout()
-
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/figures/training/training_batch_%d.png' % n
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   f'/figures/training/training_batch_{n}_action.png'
         plt.savefig(filename)
 
     def _set_supervised_regressor_parameters(self):
@@ -374,10 +373,10 @@ class AgentTrainer:
 
         hidden_layer_sizes = self._ann_architecture
         max_iter = self._max_iter
-        n_iter_no_change = 10
-        alpha_ann = 0.001
+        n_iter_no_change = self._n_iter_no_change
+        alpha_ann = 0.0001
         early_stopping = self._early_stopping
-        validation_fraction = 0.05
+        validation_fraction = 0.1
         activation = self._activation
 
         return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation
@@ -416,7 +415,8 @@ def read_trading_parameters_training(ticker):
                '/data/data_source/settings/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
 
-    shares_scale = float(df_trad_params.loc['shares_scale'][0])
+    shares_scale = float(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/shares_scale.joblib'))
+
     j_episodes = int(df_trad_params.loc['j_episodes'][0])
     n_batches = int(df_trad_params.loc['n_batches'][0])
     t_ = int(df_trad_params.loc['t_'][0])

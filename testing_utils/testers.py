@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import os
 
+from joblib import load
 from tqdm import tqdm
 
 from benchmark_agents.agents import AgentMarkowitz, AgentGP
@@ -15,7 +16,7 @@ from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.agent_trainer import read_trading_parameters_training
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State, Action
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, FactorType, ModeType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType
 from testing_utils.hypothesis_testing import TTester
 
 
@@ -36,8 +37,8 @@ class Tester:
     def _read_parameters(self):
 
         # Trading parameters
-        riskDriverDynamicsType, factorDynamicsType, riskDriverType, factorType =\
-            read_trading_parameters_market(self._ticker)
+        riskDriverDynamicsType, factorDynamicsType, riskDriverType =\
+            read_trading_parameters_market()
 
         # Training parameters
         shares_scale, _, n_batches, _, parallel_computing, n_cores = read_trading_parameters_training(self._ticker)
@@ -45,7 +46,6 @@ class Tester:
         self._riskDriverDynamicsType = riskDriverDynamicsType
         self._factorDynamicsType = factorDynamicsType
         self._riskDriverType = riskDriverType
-        self._factorType = factorType
         self._shares_scale = shares_scale
         self._n_batches = n_batches
         self._parallel_computing = parallel_computing
@@ -58,7 +58,6 @@ class Tester:
                                               factorDynamicsType=FactorDynamicsType.AR,
                                               ticker=self._ticker,
                                               riskDriverType=RiskDriverType.PnL,
-                                              factorType=FactorType.Observable,
                                               modeType=ModeType.OutOfSample)
 
         agentMarkowitz = AgentMarkowitz(market_benchmark)
@@ -69,10 +68,16 @@ class Tester:
                                     factorDynamicsType=self._factorDynamicsType,
                                     ticker=self._ticker,
                                     riskDriverType=self._riskDriverType,
-                                    factorType=self._factorType,
                                     modeType=ModeType.OutOfSample)
         environment = Environment(market)
-        agentRL = Agent(environment)
+
+        trade_immediately = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/trade_immediately.joblib')
+        average_across_models = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
+        use_best_n_batch = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
+        agentRL = Agent(environment,
+                        trade_immediately=trade_immediately,
+                        average_across_models=average_across_models,
+                        use_best_n_batch=use_best_n_batch)
         agentRL.load_q_value_models(self._n_batches)
 
         self._agents = {'Markowitz': agentMarkowitz, 'GP': agentGP, 'RL': agentRL}
@@ -112,9 +117,10 @@ class Tester:
         price = price_series.loc[date]
         return factor, pnl, price
 
-    def _compute_outputs_for_time_t(self, agent_type, current_rescaled_shares, factor, price):
+    def _compute_outputs_for_time_t(self, agent_type, current_rescaled_shares, factor, price, ttm):
+
         if agent_type == 'RL':
-            state = State()
+            state = State(environment=self._environment)
 
             rescaled_trade_GP = self._agents['GP'].policy(current_factor=factor,
                                                           current_rescaled_shares=current_rescaled_shares,
@@ -127,7 +133,8 @@ class Tester:
                                          current_other_observable=None,
                                          shares_scale=self._shares_scale,
                                          current_price=price,
-                                         action_GP=action_GP)
+                                         action_GP=action_GP,
+                                         ttm=ttm)
             action = self._agents[agent_type].policy(state=state)
             rescaled_trade = action.rescaled_trade
 
@@ -182,6 +189,7 @@ class BackTester(Tester):
 
     def make_plots(self):
 
+        self._plot_time_series()
         self._plot_shares()
         self._plot_value()
         self._plot_cost()
@@ -220,6 +228,7 @@ class BackTester(Tester):
 
         # get time series
         factor_series, pnl_series, price_series = self._get_time_series()
+        self._price_series = price_series
 
         # get dates
         dates = factor_series.index
@@ -230,15 +239,20 @@ class BackTester(Tester):
 
             current_rescaled_shares = 0.
 
+            ttm = len(dates[:-1])
+
             for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy'):
+
                 factor, pnl, price = self._get_current_factor_pnl_price(date, dates, factor_series, pnl_series,
                                                                         price_series)
 
                 cost_trade, current_rescaled_shares, rescaled_trade, risk_trade = self._compute_outputs_for_time_t(
-                    agent_type, current_rescaled_shares, factor, price)
+                    agent_type, current_rescaled_shares, factor, price, ttm)
 
                 self._update_lists(cost, cost_trade, current_rescaled_shares, pnl, rescaled_trade, risk, risk_trade,
                                    strategy, trades, value)
+
+                ttm -= 1
 
             strategy = np.array(strategy)
             trades = np.array(trades)
@@ -255,13 +269,26 @@ class BackTester(Tester):
 
             self._sharpe_ratio_all[agent_type] = np.mean(pnl_net) / np.std(pnl_net) * np.sqrt(252)
 
-
     def _get_dates_plot(self):
         if self._use_assessment_period:
             dates = self._factor_pnl_and_price.index[self.t_assessment:-1]
         else:
             dates = self._factor_pnl_and_price.index[:-1]
         return dates
+
+    def _plot_time_series(self):
+
+        dates = self._get_dates_plot()
+
+        dpi = plt.rcParams['figure.dpi']
+        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+        plt.plot(dates, self._price_series.loc[dates], color='k')
+
+        plt.title(self._ticker)
+        plt.xlabel('Date')
+        plt.ylabel('Price [$]')
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+                    + '-time_series.png')
 
     def _plot_shares(self):
 
@@ -866,15 +893,19 @@ class SimulationTester(Tester):
         pnl_series_j = pnl_series_all_j.loc[j, :]
         price_series_j = price_series_all_j.loc[j, :]
 
+        ttm = len(dates[:-1])
+
         for date in dates[:-1]:
             factor, pnl, price = self._get_current_factor_pnl_price(date, dates, factor_series_j,
                                                                     pnl_series_j, price_series_j)
 
             cost_trade, current_rescaled_shares, rescaled_trade, risk_trade =\
-                self._compute_outputs_for_time_t(agent_type, current_rescaled_shares, factor, price)
+                self._compute_outputs_for_time_t(agent_type, current_rescaled_shares, factor, price, ttm)
 
             self._update_lists(cost_j, cost_trade, current_rescaled_shares, pnl, rescaled_trade, risk_j,
                                risk_trade, strategy_j, trades_j, value_j)
+
+            ttm -= 1
 
         return strategy_j, trades_j, value_j, cost_j, risk_j
 

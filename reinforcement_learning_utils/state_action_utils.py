@@ -1,9 +1,26 @@
 from enums import StrategyType
 
 
-class State:
+class Action:
 
     def __init__(self):
+        self.trade = None
+        self.shares_scale = None
+        self.rescaled_trade = None
+
+    def set_trading_attributes(self, rescaled_trade: float, shares_scale: float = 1):
+
+        self.rescaled_trade = rescaled_trade
+        self.shares_scale = shares_scale
+        self.trade = self.rescaled_trade * self.shares_scale
+
+
+class State:
+
+    def __init__(self, environment):
+
+        self.environment = environment
+
         self.next_other_observable = None
         self.next_price = None
         self.next_factor = None
@@ -14,9 +31,10 @@ class State:
         self.current_rescaled_shares = None
         self.current_factor = None
         self.shares_scale = None
+        self.ttm = None
 
     def set_trading_attributes(self, current_factor, current_rescaled_shares, current_other_observable, shares_scale,
-                               current_price, action_GP):
+                               current_price, action_GP, ttm):
 
         self.shares_scale = shares_scale
 
@@ -26,6 +44,7 @@ class State:
         self.current_shares = self.current_rescaled_shares * self.shares_scale
         self.current_price = current_price
         self.current_action_GP = action_GP
+        self.ttm = ttm
 
     def set_extra_trading_attributes(self, next_factor: float, next_price: float, next_other_observable: float):
 
@@ -33,11 +52,16 @@ class State:
         self.next_price = next_price
         self.next_other_observable = next_other_observable
 
+    def implement_trade(self, action: Action):
+
+        self.current_rescaled_shares += action.rescaled_trade
+        self.current_shares = self.current_rescaled_shares * self.shares_scale
+
 
 class ActionSpace:
 
     def __init__(self, state: State, strategyType: StrategyType = StrategyType.Unconstrained):
-    
+
         self.state = state
         self.strategyType = strategyType
         self.actions_interval = None
@@ -52,17 +76,3 @@ class ActionSpace:
             self.actions_interval = (- current_rescaled_shares, 1 - current_rescaled_shares)
         else:
             raise NameError(f'Invalid strategyType = {self.strategyType.value}')
-
-
-class Action:
-
-    def __init__(self):
-        self.trade = None
-        self.shares_scale = None
-        self.rescaled_trade = None
-
-    def set_trading_attributes(self, rescaled_trade: float, shares_scale: float = 1):
-
-        self.rescaled_trade = rescaled_trade
-        self.shares_scale = shares_scale
-        self.trade = self.rescaled_trade * self.shares_scale

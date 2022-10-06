@@ -5,14 +5,18 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import FactorType, EstimateInitializationType, StrategyType
+from enums import EstimateInitializationType, StrategyType
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
 
 class Agent:
 
-    def __init__(self, environment: Environment, optimizer: str = 'shgo'):
+    def __init__(self, environment: Environment,
+                 optimizer: str = 'shgo',
+                 average_across_models: bool = True,
+                 use_best_n_batch: bool = False,
+                 trade_immediately: bool = True):
 
         self.environment = environment
 
@@ -21,6 +25,11 @@ class Agent:
 
         self._q_value_models = []
         self._set_agent_attributes()
+
+        self._average_across_models = average_across_models
+        self._use_best_n_batch = use_best_n_batch
+
+        self._trade_immediately = trade_immediately
 
     def policy(self, state: State, eps: float = None):
 
@@ -32,6 +41,9 @@ class Agent:
         if np.abs(state.current_rescaled_shares + action.rescaled_trade) > 1:
             raise NameError(
                 f'Shares went out of bound!! \n  current_rescaled_shares: {state.current_rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
+
+        if self._trade_immediately:
+            state.implement_trade(action)
 
         return action
 
@@ -53,6 +65,12 @@ class Agent:
                  os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
 
     def load_q_value_models(self, n_batches: int):
+
+        if self._use_best_n_batch:
+            if self.best_n is None:
+                n_batches = 1
+            else:
+                n_batches = self.best_n
 
         for n in range(n_batches):
             q_value_model = load(
@@ -161,8 +179,13 @@ class Agent:
 
         qvl = 0.
 
-        for q_value_model in self._q_value_models:
-            qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
+        if self._average_across_models:
+            for q_value_model in self._q_value_models:
+                qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
+        else:
+            if len(self._q_value_models) > 0:
+                q_value_model = self._q_value_models[-1]
+                qvl = q_value_model.predict(q_value_model_input)
 
         return qvl
 
@@ -224,47 +247,46 @@ class Agent:
 
     def _extract_state_lst_trading(self, state):
 
-        if self.environment.factorType == FactorType.Observable:
+        state_shape = state.environment.state_shape
+        state_lst = [None] * len(state_shape)
 
-            current_factor = state.current_factor
-            current_rescaled_shares = state.current_rescaled_shares
+        # get info
+        current_rescaled_shares = state.current_rescaled_shares
+        current_factor = state.current_factor
+        ttm = state.ttm
+        current_price = state.current_price
+        try:
+            current_action_GP = state.current_action_GP
+        except:
+            current_action_GP = None
 
-            if self.environment.GP_action_in_state:
+        # fill list
+        state_lst[0] = current_rescaled_shares
 
-                current_action_GP = state.current_action_GP
-                current_rescaled_trade_GP = current_action_GP.rescaled_trade
-                state_lst = [current_factor, current_rescaled_shares, current_rescaled_trade_GP]
-
-            else:
-
-                state_lst = [current_factor, current_rescaled_shares]
-
-        elif self.environment.factorType == FactorType.Latent:
-
-            current_other_observable = state.current_other_observable
-            current_rescaled_shares = state.current_rescaled_shares
-
-            if self.environment.GP_action_in_state:
-
-                current_action_GP = state.current_action_GP
-                current_rescaled_trade_GP = current_action_GP.rescaled_trade
-                state_lst = [current_other_observable, current_rescaled_shares, current_rescaled_trade_GP]
-
-            else:
-                state_lst = [current_other_observable, current_rescaled_shares]
-
-        else:
-            raise NameError('Invalid factorType: ' + self.environment.factorType.value)
+        if self.environment.factor_in_state:
+            state_lst[state_shape['current_factor']] = current_factor
+        if self.environment.ttm_in_state:
+            state_lst[state_shape['ttm']] = ttm
+        if self.environment.price_in_state:
+            state_lst[state_shape['current_price']] = current_price
+        if self.environment.GP_action_in_state:
+            state_lst[state_shape['current_action_GP']] = current_action_GP
 
         return state_lst
 
     def _set_agent_attributes(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
-                   '/data/data_source/settings/settings.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
+
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
+        df_lam_kappa = df_lam_kappa.loc[self.environment.market.ticker]  # TODO: should it be self.environment.ticker?
+
         gamma = float(df_trad_params.loc['gamma'][0])
-        kappa = float(df_trad_params.loc['kappa'][0])
+        kappa = float(df_lam_kappa.loc['kappa'])
+
         estimateInitializationType = \
             EstimateInitializationType(str(df_trad_params.loc['estimateInitializationType'][0]))
         strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
@@ -279,3 +301,9 @@ class Agent:
         if self.estimateInitializationType == EstimateInitializationType.GP:
             self.environment.observe_GP = True
             self.environment.instantiate_market_benchmark_and_agent_GP()
+
+        try:
+            self.best_n = int(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib'))
+        except:
+            self.best_n = None
+            print('Notice: agent is not yet trained')

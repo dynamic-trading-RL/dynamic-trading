@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, FactorType, StrategyType
+from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, StrategyType
 from market_utils.market import Market, instantiate_market
 
 
@@ -28,9 +28,6 @@ class AgentBenchmark:
 
         if market.riskDriverType != RiskDriverType.PnL:
             raise NameError('riskDriverType for benchmark agent should be PnL')
-
-        if market.factorType != FactorType.Observable:
-            raise NameError('factorType for benchmark agent should be Observable')
 
     def compute_trading_cost(self, trade, current_factor, price):
 
@@ -56,10 +53,11 @@ class AgentBenchmark:
     def _read_trading_parameters(self):
 
         df_trad_params = self._get_df_trad_params()
+        df_lam_kappa = self._get_df_lam_kappa()
 
         gamma = float(df_trad_params.loc['gamma'][0])
-        kappa = float(df_trad_params.loc['kappa'][0])
         strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
+        kappa = float(df_lam_kappa.loc['kappa'])
 
         return gamma, kappa, strategyType
 
@@ -67,6 +65,13 @@ class AgentBenchmark:
         filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         return df_trad_params
+
+    def _get_df_lam_kappa(self):
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
+        df_lam_kappa = df_lam_kappa.loc[self.market.ticker]
+        return df_lam_kappa
 
     def _get_next_step_pnl_and_sig2(self, current_factor, price):
         pnl = self.market.next_step_pnl(factor=current_factor, price=price)
@@ -85,11 +90,12 @@ class AgentBenchmark:
 
     def _read_lam(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
-                   '/data/data_source/settings/settings.csv'
-        df_trad_params = pd.read_csv(filename, index_col=0)
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
+        df_lam_kappa = df_lam_kappa.loc[self.market.ticker]  # TODO: should it be self.environment.ticker?
 
-        lam = float(df_trad_params.loc['lam'][0])
+        lam = float(df_lam_kappa.loc['lam'])
 
         return lam
 
