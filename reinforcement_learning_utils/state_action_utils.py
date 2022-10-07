@@ -26,6 +26,7 @@ class State:
         self.next_factor = None
         self.current_action_GP = None
         self.current_price = None
+        self.current_pnl = None
         self.current_shares = None
         self.current_other_observable = None
         self.current_rescaled_shares = None
@@ -34,7 +35,7 @@ class State:
         self.ttm = None
 
     def set_trading_attributes(self, current_factor, current_rescaled_shares, current_other_observable, shares_scale,
-                               current_price, action_GP, ttm):
+                               current_price, current_pnl, action_GP, ttm):
 
         self.shares_scale = shares_scale
 
@@ -43,6 +44,7 @@ class State:
         self.current_other_observable = current_other_observable  # e.g. average of last  PnLs when factor is hidden
         self.current_shares = self.current_rescaled_shares * self.shares_scale
         self.current_price = current_price
+        self.current_pnl = current_pnl
         self.current_action_GP = action_GP
         self.ttm = ttm
 

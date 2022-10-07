@@ -255,6 +255,7 @@ class Agent:
         current_factor = state.current_factor
         ttm = state.ttm
         current_price = state.current_price
+        current_pnl = state.current_pnl
         try:
             current_action_GP = state.current_action_GP
         except:
@@ -269,6 +270,8 @@ class Agent:
             state_lst[state_shape['ttm']] = ttm
         if self.environment.price_in_state:
             state_lst[state_shape['current_price']] = current_price
+        if self.environment.pnl_in_state:
+            state_lst[state_shape['current_pnl']] = current_pnl
         if self.environment.GP_action_in_state:
             state_lst[state_shape['current_action_GP']] = current_action_GP
 
