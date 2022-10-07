@@ -52,6 +52,7 @@ class Environment:
                                      current_other_observable=current_other_observable,
                                      shares_scale=shares_scale,
                                      current_price=price,
+                                     current_pnl=pnl,
                                      action_GP=action_GP,
                                      ttm=ttm)
 
@@ -100,6 +101,7 @@ class Environment:
         next_factor = factor
         next_other_observable = 0.
         next_price = price
+        next_pnl = next_price - state.current_price
         next_ttm = self.t_ - t
 
         if self.observe_GP:
@@ -119,6 +121,7 @@ class Environment:
                                           current_other_observable=next_other_observable,
                                           shares_scale=shares_scale,
                                           current_price=next_price,
+                                          current_pnl=next_pnl,
                                           action_GP=next_action_GP,
                                           ttm=next_ttm)
 
@@ -198,7 +201,7 @@ class Environment:
             raise NameError('ttm_in_state in settings file must be either Yes or No')
         self.ttm_in_state = ttm_in_state
 
-        # price_in_state
+        # pnl_in_state
         if str(df_trad_params.loc['price_in_state'][0]) == 'Yes':
             price_in_state = True
         elif str(df_trad_params.loc['price_in_state'][0]) == 'No':
@@ -207,14 +210,31 @@ class Environment:
             raise NameError('price_in_state in settings file must be either Yes or No')
         self.price_in_state = price_in_state
 
+        # pnl_in_state
+        if str(df_trad_params.loc['pnl_in_state'][0]) == 'Yes':
+            pnl_in_state = True
+        elif str(df_trad_params.loc['pnl_in_state'][0]) == 'No':
+            pnl_in_state = False
+        else:
+            raise NameError('pnl_in_state in settings file must be either Yes or No')
+        self.pnl_in_state = pnl_in_state
+
         # state_shape
         # Define the structure of the state variable depending on the values assigned to
-        # self.factor_in_state, self.ttm_in_state, self.price_in_state, self.GP_action_in_state
+        # self.factor_in_state, self.ttm_in_state, self.pnl_in_state, self.GP_action_in_state
         # The most complete state is given by
         # (current_rescaled_shares, current_factor, ttm, current_price, current_action_GP)
 
-        bool_values = [self.factor_in_state, self.ttm_in_state, self.price_in_state, self.GP_action_in_state]
-        str_values = ['current_factor', 'ttm', 'current_price', 'current_action_GP']
+        bool_values = [self.factor_in_state,
+                       self.ttm_in_state,
+                       self.price_in_state,
+                       self.pnl_in_state,
+                       self.GP_action_in_state]
+        str_values = ['current_factor',
+                      'ttm',
+                      'current_price',
+                      'current_pnl',
+                      'current_action_GP']
         binary_values = [int(bool_value) for bool_value in bool_values]
 
         self.state_shape = {'current_rescaled_shares': 0}
