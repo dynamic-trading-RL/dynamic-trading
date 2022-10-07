@@ -31,6 +31,8 @@ class Agent:
 
         self._trade_immediately = trade_immediately
 
+        self._tol = 10**-10  # numerical tolerance for bound conditions requirements
+
     def policy(self, state: State, eps: float = None):
 
         if eps is None:
@@ -38,7 +40,7 @@ class Agent:
         else:
             action = self._eps_greedy_policy(state, eps)
 
-        if np.abs(state.current_rescaled_shares + action.rescaled_trade) > 1:
+        if np.abs(state.current_rescaled_shares + action.rescaled_trade) > 1 + self._tol:
             raise NameError(
                 f'Shares went out of bound!! \n  current_rescaled_shares: {state.current_rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
 
