@@ -22,6 +22,7 @@ class Agent:
 
         # available optimizers: ('basinhopping', 'brute', 'differential_evolution', 'dual_annealing', 'shgo', 'local')
         self._optimizer = optimizer
+        print(f'Using optimizer={self._optimizer}')
 
         self._q_value_models = []
         self._set_agent_attributes()
