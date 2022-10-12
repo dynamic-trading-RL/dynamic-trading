@@ -10,7 +10,7 @@ if __name__ == '__main__':
     ticker = read_ticker()
     scale = 1
     scale_f = 1
-    c = 0
+    c = None  # can be None, in this case, uses mean of the process
 
     # -------------------- Execution
     financialTimeSeries = FinancialTimeSeries(ticker=ticker)
