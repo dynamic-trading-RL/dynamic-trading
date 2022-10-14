@@ -1,9 +1,0 @@
-,info
-ticker,gold
-end_date,2020-12-15 00:00:00
-start_price,59.45
-len,4720
-out_of_sample_proportion_len,525
-window,5
-riskDriverType,PnL
-factorDefinitionType,MovingAverage
