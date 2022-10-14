@@ -28,7 +28,7 @@ class DynamicsCalibrator:
     def fit_all_dynamics_param(self, financialTimeSeries: FinancialTimeSeries,
                                scale: float = 1,
                                scale_f: float = 1,
-                               c: float = 0):
+                               c: float = None):
 
         self.financialTimeSeries = financialTimeSeries
         self._fit_all_risk_driver_dynamics_param(scale, c)
@@ -133,6 +133,9 @@ class DynamicsCalibrator:
 
         # regression data
         df_reg = self._prepare_df_reg(var_type)
+
+        if c is None:
+            c = df_reg[var_type].mean()
 
         ind_0 = df_reg['factor'] < c
         ind_1 = df_reg['factor'] >= c

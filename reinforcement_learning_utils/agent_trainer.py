@@ -116,7 +116,7 @@ class AgentTrainer:
         n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
         self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0])
 
-        dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
+        dump(self.best_n + 1, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
         print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n + 1}')
 
     def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
