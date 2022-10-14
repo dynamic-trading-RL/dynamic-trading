@@ -2,11 +2,11 @@ field,value
 ticker,WTI
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
-factor_ticker,VIX
+factor_ticker,
 factorDefinitionType,MovingAverage
 window,5
 factorDynamicsType,AR
-factorSourceType,Exogenous
+factorSourceType,Constructed
 factor_in_state,Yes
 ttm_in_state,No
 price_in_state,No
