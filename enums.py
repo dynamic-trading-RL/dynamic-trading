@@ -16,10 +16,16 @@ class FactorDynamicsType(Enum):
     AR_TARCH = 'AR_TARCH'
 
 
-class FactorDefinitionType(Enum):
+class FactorComputationType(Enum):
 
     MovingAverage = 'MovingAverage'
     StdMovingAverage = 'StdMovingAverage'
+
+
+class FactorTransformationType(Enum):
+    
+    Diff = 'Diff'
+    LogDiff = 'LogDiff'
 
 
 class RiskDriverType(Enum):

@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 
-from enums import FactorDefinitionType, RiskDriverType, FactorSourceType, ModeType
+from enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
 
 
 class FinancialTimeSeries:
@@ -18,14 +18,10 @@ class FinancialTimeSeries:
 
         # if window is None, then it is taken from financial_time_series_setting.csv
         self._set_settings_from_file(window)
-
-        self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
-        self.factorDefinitionType = FactorDefinitionType(self.info.loc['factorDefinitionType'][0])
-        self.window = int(self.info.loc['window'][0])
         self._set_asset_time_series(start_date=self.info.loc['start_date'][0],
                                     in_sample_proportion=float(self.info.loc['in_sample_proportion'][0]))
         self._set_risk_driver_time_series()
-        self._set_factor()
+        self._set_factor_time_series()
         self.time_series.dropna(inplace=True)
         self._set_info()
         self._print_info()
@@ -50,10 +46,20 @@ class FinancialTimeSeries:
                 raise NameError('financialTimeSeries was instantiated without window, therefore window must be '
                                 + 'written in time-series-info.csv')
 
-        if self.info.loc['factorSourceType'].item() == FactorSourceType.Exogenous.value:
+        if type(self.info.loc['factor_ticker'].item()) == str:
 
-            if self.info.loc['factor_ticker'].item() == '':
-                raise NameError('User specified factorSourceType = Exogenous but has not provided a factor_ticker')
+            self.factor_ticker = self.info.loc['factor_ticker'].item()
+            self.factorSourceType = FactorSourceType.Exogenous
+
+        else:
+
+            self.factorSourceType = FactorSourceType.Constructed
+
+
+        self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
+        self.factorComputationType = FactorComputationType(self.info.loc['factorComputationType'][0])
+        self.window = int(self.info.loc['window'][0])
+        self.factorTransformationType = FactorTransformationType(self.info.loc['factorTransformationType'].item())
 
     def _set_asset_time_series(self, start_date: str, in_sample_proportion: float):
 
@@ -102,41 +108,42 @@ class FinancialTimeSeries:
 
         if self.riskDriverType == RiskDriverType.PnL:
             self.time_series['risk-driver'] = self.time_series[self.ticker].diff()
+
         elif self.riskDriverType == RiskDriverType.Return:
             self.time_series['risk-driver'] = self.time_series[self.ticker].pct_change()
+
         else:
-            raise NameError('Invalid riskDriverType: ' + self.riskDriverType.value)
+            raise NameError(f'Invalid riskDriverType: {self.riskDriverType.value}')
 
-    def _set_factor(self):
+    def _set_factor_time_series(self):
 
-        if self.info.loc['factorSourceType'].item() == FactorSourceType.Constructed.value:
+        if self.factorSourceType == FactorSourceType.Constructed:
+            v = self.time_series[self.ticker]
 
-            x = self.time_series['risk-driver']
-
-            self._get_factor_time_series_from_x(x)
-
-        elif self.info.loc['factorSourceType'].item() == FactorSourceType.Exogenous.value:
-
-            factor_ticker = self.info.loc['factor_ticker'].item()
-            filename = \
-                os.path.dirname(os.path.dirname(__file__)) + \
-                '/data/data_source/market_data/' + factor_ticker + '.xlsx'
-            df = pd.read_excel(filename, index_col=0, parse_dates=True)
-
-            x = np.log(df.squeeze()).diff()
-
-            self._get_factor_time_series_from_x(x)
-
-            self.time_series['factor'].plot()
-
+        elif self.factorSourceType == FactorSourceType.Exogenous:
+            filename = os.path.dirname(os.path.dirname(__file__)) +\
+                       '/data/data_source/market_data/' + self.factor_ticker + '.xlsx'
+            v = pd.read_excel(filename, index_col=0, parse_dates=True)
         else:
             raise NameError('factorSourceType not correctly specified')
 
+        if self.factorTransformationType == FactorTransformationType.Diff:
+            pass
+        elif self.factorTransformationType == FactorTransformationType.LogDiff:
+            v = np.log(v)
+        else:
+            raise NameError('factorTransformationType not correctly specified')
+
+        x = v.diff()
+
+        self._get_factor_time_series_from_x(x)
+
     def _get_factor_time_series_from_x(self, x):
-        if self.factorDefinitionType == FactorDefinitionType.MovingAverage:
+
+        if self.factorComputationType == FactorComputationType.MovingAverage:
             self.time_series['factor'] = x.rolling(self.window).mean()
 
-        elif self.factorDefinitionType == FactorDefinitionType.StdMovingAverage:
+        elif self.factorComputationType == FactorComputationType.StdMovingAverage:
             all_stds = x.rolling(self.window).std()
             lower_bound = all_stds.quantile(0.1)
             den = x.rolling(self.window).std()
@@ -152,7 +159,7 @@ class FinancialTimeSeries:
                                         'out_of_sample_proportion_len',
                                         'window',
                                         'riskDriverType',
-                                        'factorDefinitionType'],
+                                        'factorComputationType'],
                                  data=[self.ticker,
                                        self.time_series.index[-1],
                                        self.time_series[self.ticker].iloc[-1],
@@ -160,7 +167,7 @@ class FinancialTimeSeries:
                                        self._out_of_sample_proportion_len,
                                        self.window,
                                        self.riskDriverType.value,
-                                       self.factorDefinitionType.value],
+                                       self.factorComputationType.value],
                                  columns=['info'])
 
 
@@ -174,4 +181,4 @@ def get_available_futures_tickers():
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    financialTimeSeries = FinancialTimeSeries('WTI', window=10)
+    financialTimeSeries = FinancialTimeSeries('WTI')

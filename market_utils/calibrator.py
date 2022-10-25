@@ -615,7 +615,7 @@ class AllSeriesDynamicsCalibrator:
         dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries)
         self.all_series_dynamics_calibrators[ticker] = dynamicsCalibrator
         self.riskDriverType = financialTimeSeries.riskDriverType
-        self.factorDefinitionType = financialTimeSeries.factorDefinitionType
+        self.factorComputationType = financialTimeSeries.factorComputationType
 
         self.average_price_per_contract[ticker] = financialTimeSeries.time_series[ticker].mean()
         self.std_price_changes[ticker] = financialTimeSeries.time_series[ticker].diff().std()
