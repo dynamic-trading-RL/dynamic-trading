@@ -13,7 +13,7 @@ if __name__ == '__main__':
     c = None  # can be None, in this case, uses mean of the process
 
     # -------------------- Execution
-    financialTimeSeries = FinancialTimeSeries(ticker=ticker)
+    financialTimeSeries = FinancialTimeSeries(ticker=ticker, modeType=ModeType.InSample)
 
     dynamicsCalibrator = DynamicsCalibrator()
     dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=scale, scale_f=scale_f, c=c)

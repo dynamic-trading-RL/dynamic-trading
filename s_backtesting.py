@@ -3,6 +3,7 @@ import numpy as np
 from gen_utils.utils import read_ticker
 from testing_utils.testers import BackTester
 import warnings
+
 warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':

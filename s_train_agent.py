@@ -5,6 +5,7 @@ from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 
@@ -29,8 +30,8 @@ if __name__ == '__main__':
     train_benchmarking_GP_reward = False
 
     plot_regressor = True
-    ann_architecture = (128, 64, 32, 16)
-    early_stopping = True
+    ann_architecture = (64, 32, 16)
+    early_stopping = False
     max_iter = 50
     n_iter_no_change = 10
 
