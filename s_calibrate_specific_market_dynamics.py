@@ -1,4 +1,4 @@
-
+from enums import ModeType
 from gen_utils.utils import read_ticker
 from market_utils.calibrator import DynamicsCalibrator
 from market_utils.financial_time_series import FinancialTimeSeries
