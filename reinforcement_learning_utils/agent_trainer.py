@@ -210,13 +210,13 @@ class AgentTrainer:
 
             # Observe reward_RL and state at time t
             reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
-            reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=state.current_action_GP, t=t)
+            reward_GP = self._get_reward_GP(j=j, n=n, state=state, action_GP=state.action_GP, t=t)
 
             if self.train_benchmarking_GP_reward:
 
                 if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
-                    action = state.current_action_GP
+                    action = state.action_GP
                     reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j,
                                                                                 t=t)
 

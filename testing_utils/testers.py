@@ -112,27 +112,27 @@ class Tester:
         next_date = dates[i_loc + 1]
         factor = factor_series.loc[date]
         pnl = pnl_series.loc[next_date]
-        current_pnl = pnl_series.loc[date]
+        pnl_0 = pnl_series.loc[date]
         price = price_series.loc[date]
-        return factor, pnl, price, current_pnl
+        return factor, pnl, price, pnl_0
 
-    def _compute_outputs_for_time_t(self, agent_type, current_rescaled_shares, factor, price, current_pnl, ttm):
+    def _compute_outputs_for_time_t(self, agent_type, rescaled_shares, factor, price, pnl_0, ttm):
 
         if agent_type == 'RL':
             state = State(environment=self._environment)
 
-            rescaled_trade_GP = self._agents['GP'].policy(current_factor=factor,
-                                                          current_rescaled_shares=current_rescaled_shares,
+            rescaled_trade_GP = self._agents['GP'].policy(factor=factor,
+                                                          rescaled_shares=rescaled_shares,
                                                           shares_scale=self._shares_scale)
             action_GP = Action()
             action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP, shares_scale=self._shares_scale)
 
-            state.set_trading_attributes(current_factor=factor,
-                                         current_rescaled_shares=current_rescaled_shares,
-                                         current_other_observable=None,
+            state.set_trading_attributes(factor=factor,
+                                         rescaled_shares=rescaled_shares,
+                                         other_observable=None,
                                          shares_scale=self._shares_scale,
-                                         current_price=price,
-                                         current_pnl=current_pnl,
+                                         price=price,
+                                         pnl=pnl_0,
                                          action_GP=action_GP,
                                          ttm=ttm)
             action = self._agents[agent_type].policy(state=state)
@@ -143,23 +143,23 @@ class Tester:
             risk_trade = self._environment.compute_trading_risk(state, sig2)
 
         else:
-            rescaled_trade = self._agents[agent_type].policy(current_factor=factor,
-                                                             current_rescaled_shares=current_rescaled_shares,
+            rescaled_trade = self._agents[agent_type].policy(factor=factor,
+                                                             rescaled_shares=rescaled_shares,
                                                              shares_scale=self._shares_scale)
             cost_trade = self._agents[agent_type].compute_trading_cost(trade=rescaled_trade * self._shares_scale,
-                                                                       current_factor=factor,
+                                                                       factor=factor,
                                                                        price=price)
             risk_trade =\
-                self._agents[agent_type].compute_trading_risk(current_factor=factor,
+                self._agents[agent_type].compute_trading_risk(factor=factor,
                                                               price=price,
-                                                              current_rescaled_shares=current_rescaled_shares,
+                                                              rescaled_shares=rescaled_shares,
                                                               shares_scale=self._shares_scale)
-        current_rescaled_shares += rescaled_trade
-        return cost_trade, current_rescaled_shares, rescaled_trade, risk_trade
+        rescaled_shares += rescaled_trade
+        return cost_trade, rescaled_shares, rescaled_trade, risk_trade
 
-    def _update_lists(self, cost, cost_trade, current_rescaled_shares, pnl, rescaled_trade, risk, risk_trade,
+    def _update_lists(self, cost, cost_trade, rescaled_shares, pnl, rescaled_trade, risk, risk_trade,
                       strategy, trades, value):
-        strategy.append(current_rescaled_shares * self._shares_scale)
+        strategy.append(rescaled_shares * self._shares_scale)
         trades.append(rescaled_trade * self._shares_scale)
         value.append(strategy[-1] * pnl)
         cost.append(cost_trade)
@@ -237,19 +237,19 @@ class BackTester(Tester):
 
             cost, risk, strategy, trades, value = self._initialize_output_list_for_agent()
 
-            current_rescaled_shares = 0.
+            rescaled_shares = 0.
 
             ttm = len(dates[:-1])
 
             for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy'):
 
-                factor, pnl, price, current_pnl = self._get_current_factor_pnl_price(date, dates, factor_series,
+                factor, pnl, price, pnl_0 = self._get_current_factor_pnl_price(date, dates, factor_series,
                                                                                      pnl_series, price_series)
 
-                cost_trade, current_rescaled_shares, rescaled_trade, risk_trade = self._compute_outputs_for_time_t(
-                    agent_type, current_rescaled_shares, factor, price, current_pnl, ttm)
+                cost_trade, rescaled_shares, rescaled_trade, risk_trade = self._compute_outputs_for_time_t(
+                    agent_type, rescaled_shares, factor, price, pnl_0, ttm)
 
-                self._update_lists(cost, cost_trade, current_rescaled_shares, pnl, rescaled_trade, risk, risk_trade,
+                self._update_lists(cost, cost_trade, rescaled_shares, pnl, rescaled_trade, risk, risk_trade,
                                    strategy, trades, value)
 
                 ttm -= 1
@@ -887,7 +887,7 @@ class SimulationTester(Tester):
 
         cost_j, risk_j, strategy_j, trades_j, value_j = self._initialize_output_list_for_agent()
 
-        current_rescaled_shares = 0.
+        rescaled_shares = 0.
 
         factor_series_j = factor_series_all_j.loc[j, :]
         pnl_series_j = pnl_series_all_j.loc[j, :]
@@ -896,13 +896,13 @@ class SimulationTester(Tester):
         ttm = len(dates[:-1])
 
         for date in dates[:-1]:
-            factor, pnl, price, current_pnl = self._get_current_factor_pnl_price(date, dates, factor_series_j,
+            factor, pnl, price, pnl_0 = self._get_current_factor_pnl_price(date, dates, factor_series_j,
                                                                                  pnl_series_j, price_series_j)
 
-            cost_trade, current_rescaled_shares, rescaled_trade, risk_trade =\
-                self._compute_outputs_for_time_t(agent_type, current_rescaled_shares, factor, price, current_pnl, ttm)
+            cost_trade, rescaled_shares, rescaled_trade, risk_trade =\
+                self._compute_outputs_for_time_t(agent_type, rescaled_shares, factor, price, pnl_0, ttm)
 
-            self._update_lists(cost_j, cost_trade, current_rescaled_shares, pnl, rescaled_trade, risk_j,
+            self._update_lists(cost_j, cost_trade, rescaled_shares, pnl, rescaled_trade, risk_j,
                                risk_trade, strategy_j, trades_j, value_j)
 
             ttm -= 1

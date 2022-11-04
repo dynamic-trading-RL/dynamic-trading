@@ -30,19 +30,19 @@ if __name__ == '__main__':
 
     for j in tqdm(range(j_episodes), desc='Computing trajectories of Markowitz strategy'):
 
-        current_rescaled_shares = 0.
+        rescaled_shares = 0.
 
         for t in range(t_):
 
-            current_factor = market.simulations['factor'][j, t]
+            factor = market.simulations['factor'][j, t]
 
-            rescaled_trade = agentMarkowitz.policy(current_factor=current_factor,
-                                                   current_rescaled_shares=current_rescaled_shares)
+            rescaled_trade = agentMarkowitz.policy(factor=factor,
+                                                   rescaled_shares=rescaled_shares)
 
-            current_rescaled_shares += rescaled_trade
+            rescaled_shares += rescaled_trade
 
             rescaled_trade_lst.append(rescaled_trade)
-            rescaled_shares_lst.append(current_rescaled_shares)
+            rescaled_shares_lst.append(rescaled_shares)
 
     shares_scale = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.99)
 

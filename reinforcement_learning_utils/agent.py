@@ -38,9 +38,9 @@ class Agent:
         else:
             action = self._eps_greedy_policy(state, eps)
 
-        if np.abs(state.current_rescaled_shares + action.rescaled_trade) > 1 + self._tol:
+        if np.abs(state.rescaled_shares + action.rescaled_trade) > 1 + self._tol:
             raise NameError(
-                f'Shares went out of bound!! \n  current_rescaled_shares: {state.current_rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
+                f'Shares went out of bound!! \n  rescaled_shares: {state.rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
 
         return action
 
@@ -108,10 +108,10 @@ class Agent:
 
             elif self.estimateInitializationType == EstimateInitializationType.GP:
 
-                rescaled_trade = self.environment.agent_GP.policy(current_factor=state.current_factor,
-                                                                  current_rescaled_shares=state.current_rescaled_shares,
+                rescaled_trade = self.environment.agent_GP.policy(factor=state.factor,
+                                                                  rescaled_shares=state.rescaled_shares,
                                                                   shares_scale=state.shares_scale,
-                                                                  price=state.current_price)
+                                                                  price=state.price)
                 action = Action()
                 action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
@@ -248,29 +248,29 @@ class Agent:
         state_lst = [None] * len(state_shape)
 
         # get info
-        current_rescaled_shares = state.current_rescaled_shares
-        current_factor = state.current_factor
+        rescaled_shares = state.rescaled_shares
+        factor = state.factor
         ttm = state.ttm
-        current_price = state.current_price
-        current_pnl = state.current_pnl
+        price = state.price
+        pnl = state.pnl
         try:
-            current_action_GP = state.current_action_GP
+            action_GP = state.action_GP
         except:
-            current_action_GP = None
+            action_GP = None
 
         # fill list
-        state_lst[0] = current_rescaled_shares
+        state_lst[0] = rescaled_shares
 
         if self.environment.factor_in_state:
-            state_lst[state_shape['current_factor']] = current_factor
+            state_lst[state_shape['factor']] = factor
         if self.environment.ttm_in_state:
             state_lst[state_shape['ttm']] = ttm
         if self.environment.price_in_state:
-            state_lst[state_shape['current_price']] = current_price
+            state_lst[state_shape['price']] = price
         if self.environment.pnl_in_state:
-            state_lst[state_shape['current_pnl']] = current_pnl
+            state_lst[state_shape['pnl']] = pnl
         if self.environment.GP_action_in_state:
-            state_lst[state_shape['current_action_GP']] = current_action_GP
+            state_lst[state_shape['action_GP']] = action_GP
 
         return state_lst
 

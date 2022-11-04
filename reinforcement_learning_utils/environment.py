@@ -30,15 +30,15 @@ class Environment:
 
         state = State(environment=self)
 
-        current_rescaled_shares = 0.
-        current_other_observable = 0.
+        rescaled_shares = 0.
+        other_observable = 0.
 
         pnl, factor, price = self._get_market_simulation_trading(n=n, j=j, t=0)
         ttm = self.t_
 
         if self.observe_GP:
-            rescaled_trade_GP = self.agent_GP.policy(current_factor=factor,
-                                                     current_rescaled_shares=current_rescaled_shares,
+            rescaled_trade_GP = self.agent_GP.policy(factor=factor,
+                                                     rescaled_shares=rescaled_shares,
                                                      shares_scale=shares_scale,
                                                      price=price)
             action_GP = Action()
@@ -47,12 +47,12 @@ class Environment:
         else:
             action_GP = None
 
-        state.set_trading_attributes(current_factor=factor,
-                                     current_rescaled_shares=current_rescaled_shares,
-                                     current_other_observable=current_other_observable,
+        state.set_trading_attributes(factor=factor,
+                                     rescaled_shares=rescaled_shares,
+                                     other_observable=other_observable,
                                      shares_scale=shares_scale,
-                                     current_price=price,
-                                     current_pnl=pnl,
+                                     price=price,
+                                     pnl=pnl,
                                      action_GP=action_GP,
                                      ttm=ttm)
 
@@ -72,17 +72,17 @@ class Environment:
 
     def _compute_trading_reward(self, state, action, next_state, predict_pnl_for_reward):
 
-        p_t = state.current_price
-        f_t = state.current_factor
+        p_t = state.price
+        f_t = state.factor
 
         if predict_pnl_for_reward:
             pnl_tp1 = self.market.next_step_pnl(factor=f_t, price=p_t)
         else:
-            p_tp1 = next_state.current_price
+            p_tp1 = next_state.price
             pnl_tp1 = p_tp1 - p_t
 
         a_t = action
-        n_t = next_state.current_shares
+        n_t = next_state.shares
         sig2 = self.market.next_step_sig2(factor=f_t, price=p_t)
         cost = self.compute_trading_cost(a_t, sig2)
 
@@ -92,21 +92,21 @@ class Environment:
 
     def _compute_trading_next_state(self, state: State, action: Action, n: int, j: int, t: int):
 
-        current_rescaled_shares = state.current_rescaled_shares
+        rescaled_shares = state.rescaled_shares
         shares_scale = state.shares_scale
 
-        next_rescaled_shares = current_rescaled_shares + action.rescaled_trade
+        next_rescaled_shares = rescaled_shares + action.rescaled_trade
 
         _, factor, price = self._get_market_simulation_trading(n=n, j=j, t=t)
         next_factor = factor
         next_other_observable = 0.
         next_price = price
-        next_pnl = next_price - state.current_price
+        next_pnl = next_price - state.price
         next_ttm = self.t_ - t
 
         if self.observe_GP:
-            next_rescaled_shares_GP = self.agent_GP.policy(current_factor=factor,
-                                                           current_rescaled_shares=current_rescaled_shares,
+            next_rescaled_shares_GP = self.agent_GP.policy(factor=factor,
+                                                           rescaled_shares=rescaled_shares,
                                                            shares_scale=shares_scale,
                                                            price=price)
             next_action_GP = Action()
@@ -116,12 +116,12 @@ class Environment:
             next_action_GP = None
 
         next_state = State(environment=self)
-        next_state.set_trading_attributes(current_factor=next_factor,
-                                          current_rescaled_shares=next_rescaled_shares,
-                                          current_other_observable=next_other_observable,
+        next_state.set_trading_attributes(factor=next_factor,
+                                          rescaled_shares=next_rescaled_shares,
+                                          other_observable=next_other_observable,
                                           shares_scale=shares_scale,
-                                          current_price=next_price,
-                                          current_pnl=next_pnl,
+                                          price=next_price,
+                                          pnl=next_pnl,
                                           action_GP=next_action_GP,
                                           ttm=next_ttm)
 
@@ -135,9 +135,9 @@ class Environment:
 
     def compute_trading_risk(self, state, sig2):
 
-        current_shares = state.current_shares
+        shares = state.shares
 
-        return 0.5 * current_shares * self.kappa * sig2 * current_shares
+        return 0.5 * shares * self.kappa * sig2 * shares
 
     def _get_market_simulation_trading(self, n: int, j: int, t: int):
 
@@ -223,21 +223,21 @@ class Environment:
         # Define the structure of the state variable depending on the values assigned to
         # self.factor_in_state, self.ttm_in_state, self.pnl_in_state, self.GP_action_in_state
         # The most complete state is given by
-        # (current_rescaled_shares, current_factor, ttm, current_price, current_action_GP)
+        # (rescaled_shares, factor, ttm, price, action_GP)
 
         bool_values = [self.factor_in_state,
                        self.ttm_in_state,
                        self.price_in_state,
                        self.pnl_in_state,
                        self.GP_action_in_state]
-        str_values = ['current_factor',
+        str_values = ['factor',
                       'ttm',
-                      'current_price',
-                      'current_pnl',
-                      'current_action_GP']
+                      'price',
+                      'pnl',
+                      'action_GP']
         binary_values = [int(bool_value) for bool_value in bool_values]
 
-        self.state_shape = {'current_rescaled_shares': 0}
+        self.state_shape = {'rescaled_shares': 0}
 
         count_prev = 0
         for i in range(len(bool_values)):
