@@ -5,6 +5,7 @@ from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 
@@ -18,7 +19,7 @@ if __name__ == '__main__':
     # if True, the agent implements the action a_t immediately at time t; else, at time t+1
     trade_immediately = True
     # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
-    predict_pnl_for_reward = False
+    predict_pnl_for_reward = True
     # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
     average_across_models = False
     # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
@@ -30,7 +31,7 @@ if __name__ == '__main__':
 
     plot_regressor = True
     ann_architecture = (64, 32, 16)
-    early_stopping = True
+    early_stopping = False
     max_iter = 50
     n_iter_no_change = 10
 

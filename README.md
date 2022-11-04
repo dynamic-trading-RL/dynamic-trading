@@ -9,10 +9,35 @@ Project requirements are listed in the requirements.txt file.
 The folder dynamic-trading/data/data_source/market_data contains all the relevant data used to fit market dynamics, in particular
 - futures_data.xlsx contains commodity futures time series taken into considerations
 - SP500.xlsx contains the S&P 500 time series, which could be used as predicting factor
+- VIX.xlsx contains the S&P 500 time series, which could be used as predicting factor
+- RV5.xlsx contains the S&p 500 5-minutes realized variance, which could be used as predicting factor
 
 If the user provides a ticker that is not listed among the names of the commodity futures, the code will try to download that ticker from Yahoo Finance.
 
-The folder dynamic-trading/data/data_source/settings contains the main settings that the code reads in order to fit the dynamics, train the agent and perform backtesting. Various options for the factor definition are available.
+The folder dynamic-trading/data/data_source/settings contains the main settings that the code reads in order to fit the dynamics, train the agent and perform backtesting. Various options for the factor definition are available. In particular:
+- ticker: specifies the ticker of the asset to be taken into consideration (e.g. 'WTI')
+- riskDriverDynamicsType: the dynamics for the variable 'x', can be 'Linear' or 'NonLinear' in the factor
+- riskDriverType: the nature of the variable 'x', can be 'PnL' or 'Return'
+- factor_ticker: the ticker of the factor; if not provided, then the factor is constructed starting from the asset, otherwise, it is loaded from the available data (e.g. 'VIX' or 'SP500')
+- factorComputationType: determines whether the factor is computed as a 'MovingAverage' or a 'StdMovingAverage'
+- window: the window for the moving average; if = 1, then no moving average transformation is applied
+- factorTransformationType: can be 'Diff' or 'LogDiff', and it determines whether the code needs to take the level or the log-level of the input series (e.g. the realized variance or the log-realized variance)
+- factorDynamicsType: can be 'AR', 'SETAR', 'GARCH', 'TARCH' or 'AR_TARCH'
+- factor_in_state: 'Yes' or 'No', determines whether the factor should be in the state variable
+- ttm_in_state: 'Yes' or 'No', determines whether the time to maturity should be in the state variable
+- price_in_state: 'Yes' or 'No', determines whether the price should be in the state variable
+- pnl_in_state: 'Yes' or 'No', determines whether the pnl should be in the state variable
+- GP_action_in_state: 'Yes' or 'No', determines whether the GP action should be in the state variable
+- strategyType: 'Unconstrained' or 'LongOnly', determines the strategy of the agent
+- estimateInitializationType: can be 'RandomUniform' (value function is initialized randomly and uniformly), 'RandomTruncNorm' (value function is initialized randomly and truncated normally) or 'GP' (agent follows GP if value function is not given)
+- gamma: discount factor in RL target
+- start_date: time series will start from here
+- in_sample_proportion: the proportion of the complete time series on which calibrating the dynamics (and hence the agent)
+- j_episodes: number of episodes within each batch
+- t_: length of each episode
+- n_batches: number of batches
+- parallel_computing: can be 'Yes' (uses parallel computing) or 'No' (do not use parallel computing)
+- n_cores: number of cores in case parallel_computing = 'Yes'
 
 ## Scripts
 The main scripts are the following.
