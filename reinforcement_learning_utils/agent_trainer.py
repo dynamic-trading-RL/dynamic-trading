@@ -24,7 +24,6 @@ class AgentTrainer:
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType, factorDynamicsType: FactorDynamicsType,
                  ticker: str,
                  riskDriverType: RiskDriverType, shares_scale: float = 1,
-                 trade_immediately: bool = True,
                  predict_pnl_for_reward: bool = False,
                  average_across_models: bool = True,
                  use_best_n_batch: bool = False,
@@ -43,9 +42,6 @@ class AgentTrainer:
                                          factorDynamicsType=factorDynamicsType,
                                          ticker=ticker, riskDriverType=riskDriverType)
         self.shares_scale = shares_scale
-        self._trade_immediately = trade_immediately
-        dump(self._trade_immediately,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/trade_immediately.joblib')
         self._predict_pnl_for_reward = predict_pnl_for_reward
         self._average_across_models = average_across_models
         dump(self._average_across_models,
@@ -56,7 +52,6 @@ class AgentTrainer:
 
         self.environment = Environment(market=self.market)
         self.agent = Agent(self.environment,
-                           trade_immediately=self._trade_immediately,
                            average_across_models=self._average_across_models,
                            use_best_n_batch=self._use_best_n_batch)
 

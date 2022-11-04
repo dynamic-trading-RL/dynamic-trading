@@ -54,11 +54,6 @@ class State:
         self.next_price = next_price
         self.next_other_observable = next_other_observable
 
-    def implement_trade(self, action: Action):
-
-        self.current_rescaled_shares += action.rescaled_trade
-        self.current_shares = self.current_rescaled_shares * self.shares_scale
-
 
 class ActionSpace:
 
