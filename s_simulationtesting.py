@@ -14,7 +14,7 @@ if __name__ == '__main__':
     ticker = read_ticker()
     j_ = 10000
     t_ = 50
-    j_trajectories_plot = 20
+    j_trajectories_plot = 10
 
     # -------------------- Execution
     simulationTester = SimulationTester(ticker=ticker)

@@ -30,8 +30,8 @@ if __name__ == '__main__':
     plot_regressor = True
     ann_architecture = (64, 32, 16)
     early_stopping = False
-    max_iter = 10
-    n_iter_no_change = 2
+    max_iter = 50
+    n_iter_no_change = 10
 
     eps_start = 0.03
 
