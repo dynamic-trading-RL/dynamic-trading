@@ -21,9 +21,6 @@ class State:
 
         self.environment = environment
 
-        self.next_other_observable = None
-        self.next_price = None
-        self.next_factor = None
         self.current_action_GP = None
         self.current_price = None
         self.current_pnl = None
@@ -47,12 +44,6 @@ class State:
         self.current_pnl = current_pnl
         self.current_action_GP = action_GP
         self.ttm = ttm
-
-    def set_extra_trading_attributes(self, next_factor: float, next_price: float, next_other_observable: float):
-
-        self.next_factor = next_factor
-        self.next_price = next_price
-        self.next_other_observable = next_other_observable
 
 
 class ActionSpace:
