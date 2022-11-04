@@ -1,12 +1,12 @@
 field,value
 ticker,WTI
-riskDriverDynamicsType,NonLinear
+riskDriverDynamicsType,Linear
 riskDriverType,PnL
-factor_ticker,RV5
+factor_ticker,
 factorComputationType,MovingAverage
-window,1
-factorTransformationType,LogDiff
-factorDynamicsType,AR_TARCH
+window,5
+factorTransformationType,Diff
+factorDynamicsType,AR
 factor_in_state,Yes
 ttm_in_state,No
 price_in_state,No

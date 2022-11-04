@@ -72,21 +72,21 @@ class Environment:
 
     def _compute_trading_reward(self, state, action, next_state, predict_pnl_for_reward):
 
-        current_shares = state.current_shares
-        current_price = state.current_price
-
-        current_factor = state.current_factor
+        p_t = state.current_price
+        f_t = state.current_factor
 
         if predict_pnl_for_reward:
-            pnl = self.market.next_step_pnl(factor=current_factor, price=current_price)
+            pnl_tp1 = self.market.next_step_pnl(factor=f_t, price=p_t)
         else:
-            next_price = next_state.current_price
-            pnl = next_price - current_price
+            p_tp1 = next_state.current_price
+            pnl_tp1 = p_tp1 - p_t
 
-        sig2 = self.market.next_step_sig2(factor=current_factor, price=current_price)
-        cost = self.compute_trading_cost(action, sig2)
+        a_t = action
+        n_t = next_state.current_shares
+        sig2 = self.market.next_step_sig2(factor=f_t, price=p_t)
+        cost = self.compute_trading_cost(a_t, sig2)
 
-        reward = self.gamma * (current_shares * pnl - 0.5 * self.kappa * current_shares * sig2 * current_shares) - cost
+        reward = self.gamma * (n_t * pnl_tp1 - 0.5 * self.kappa * n_t * sig2 * n_t) - cost
 
         return reward
 

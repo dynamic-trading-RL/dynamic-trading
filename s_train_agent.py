@@ -16,10 +16,8 @@ if __name__ == '__main__':
     # -------------------- Input parameters
     # todo: all of these inputs should be read from settings.csv via a dedicated function
 
-    # if True, the agent implements the action a_t immediately at time t; else, at time t+1
-    trade_immediately = True
     # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
-    predict_pnl_for_reward = True
+    predict_pnl_for_reward = False
     # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
     average_across_models = False
     # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
@@ -49,7 +47,6 @@ if __name__ == '__main__':
                                 factorDynamicsType=factorDynamicsType,
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
-                                trade_immediately=trade_immediately,
                                 predict_pnl_for_reward=predict_pnl_for_reward,
                                 average_across_models=average_across_models,
                                 use_best_n_batch=use_best_n_batch,

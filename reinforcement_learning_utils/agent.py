@@ -15,8 +15,7 @@ class Agent:
     def __init__(self, environment: Environment,
                  optimizer: str = 'shgo',
                  average_across_models: bool = True,
-                 use_best_n_batch: bool = False,
-                 trade_immediately: bool = True):
+                 use_best_n_batch: bool = False):
 
         self.environment = environment
 
@@ -30,8 +29,6 @@ class Agent:
         self._average_across_models = average_across_models
         self._use_best_n_batch = use_best_n_batch
 
-        self._trade_immediately = trade_immediately
-
         self._tol = 10**-10  # numerical tolerance for bound conditions requirements
 
     def policy(self, state: State, eps: float = None):
@@ -44,9 +41,6 @@ class Agent:
         if np.abs(state.current_rescaled_shares + action.rescaled_trade) > 1 + self._tol:
             raise NameError(
                 f'Shares went out of bound!! \n  current_rescaled_shares: {state.current_rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
-
-        if self._trade_immediately:
-            state.implement_trade(action)
 
         return action
 
