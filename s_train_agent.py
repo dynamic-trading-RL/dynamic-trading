@@ -17,7 +17,7 @@ if __name__ == '__main__':
     # todo: all of these inputs should be read from settings.csv via a dedicated function
 
     # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
-    predict_pnl_for_reward = True
+    predict_pnl_for_reward = False
     # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
     average_across_models = False
     # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
