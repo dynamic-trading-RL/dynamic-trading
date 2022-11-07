@@ -306,7 +306,7 @@ class AgentTrainer:
             model = GradientBoostingRegressor(random_state=789,
                                               loss='squared_error',
                                               alpha=0.9,  # for loss='quantile'
-                                              max_depth=10,
+                                              max_depth=int(np.log(len(y_array))),
                                               verbose=1).fit(x_array, y_array)
         else:
             raise NameError(f'Invalid supervisedRegressorType: {self._supervisedRegressorType}')
