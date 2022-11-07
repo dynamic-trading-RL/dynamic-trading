@@ -23,7 +23,7 @@ class FactorComputationType(Enum):
 
 
 class FactorTransformationType(Enum):
-    
+
     Diff = 'Diff'
     LogDiff = 'LogDiff'
 
@@ -57,3 +57,13 @@ class StrategyType(Enum):
 
     Unconstrained = 'Unconstrained'
     LongOnly = 'LongOnly'
+
+
+class OptimizerType(Enum):
+
+    basinhopping = 'basinhopping'
+    brute = 'brute'
+    differential_evolution = 'differential_evolution'
+    dual_annealing = 'dual_annealing'
+    shgo = 'shgo'
+    local = 'local'
