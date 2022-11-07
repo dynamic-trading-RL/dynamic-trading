@@ -28,11 +28,11 @@ if __name__ == '__main__':
     # than the one learned automatically
     train_benchmarking_GP_reward = False
     # which optimizer to use in greedy policy
-    optimizerType = OptimizerType.brute
+    optimizerType = OptimizerType.shgo
     # whether to make plots of regressor for the training phase
     plot_regressor = True
     # choose which model to use for supervised regression
-    supervisedRegressorType = SupervisedRegressorType.gradient_boosting
+    supervisedRegressorType = SupervisedRegressorType.ann
 
     # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
     eps_start = 0.03
