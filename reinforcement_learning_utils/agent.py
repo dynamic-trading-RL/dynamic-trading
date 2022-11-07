@@ -5,7 +5,7 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import EstimateInitializationType, StrategyType
+from enums import EstimateInitializationType, StrategyType, OptimizerType
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -13,15 +13,15 @@ from reinforcement_learning_utils.state_action_utils import ActionSpace, Action,
 class Agent:
 
     def __init__(self, environment: Environment,
-                 optimizer: str = 'shgo',
+                 optimizerType: OptimizerType = OptimizerType.shgo,
                  average_across_models: bool = True,
                  use_best_n_batch: bool = False):
 
         self.environment = environment
 
         # available optimizers: ('basinhopping', 'brute', 'differential_evolution', 'dual_annealing', 'shgo', 'local')
-        self._optimizer = optimizer
-        print(f'Using optimizer={self._optimizer}')
+        self._optimizerType = optimizerType
+        print(f'Using optimizer={self._optimizerType}')
 
         self._q_value_models = []
         self._set_agent_attributes()
@@ -202,11 +202,11 @@ class Agent:
         bounds = [(lower_bound, upper_bound)]
         x0 = self._get_trade_loc(lower_bound, upper_bound)
 
-        if self._optimizer == 'basinhopping':
+        if self._optimizerType == OptimizerType.basinhopping:
             res = basinhopping(func=func, x0=x0)
             return res.x[0]
 
-        elif self._optimizer == 'brute':
+        elif self._optimizerType == OptimizerType.brute:
 
             Ns = 4 * int(upper_bound * state.shares_scale - lower_bound * state.shares_scale)
             xx = np.linspace(lower_bound, upper_bound, Ns)
@@ -214,24 +214,24 @@ class Agent:
             x = xx[np.argmin(ff)]
             return x
 
-        elif self._optimizer == 'differential_evolution':
+        elif self._optimizerType == OptimizerType.differential_evolution:
             res = differential_evolution(func=func, bounds=bounds)
             return res.x[0]
 
-        elif self._optimizer == 'dual_annealing':
+        elif self._optimizerType == OptimizerType.dual_annealing:
             res = dual_annealing(func=func, bounds=bounds)
             return res.x[0]
 
-        elif self._optimizer == 'shgo':
+        elif self._optimizerType == OptimizerType.shgo:
             res = shgo(func=func, bounds=bounds)
             return res.x[0]
 
-        elif self._optimizer == 'local':
-            res = minimize(fun=func, bounds=bounds, x0=x0)
+        elif self._optimizerType == OptimizerType.local:
+            res = minimize(fun=func, bounds=bounds, x0=np.array(x0))
             return res.x[0]
 
         else:
-            raise NameError('Invalid optimizer: ' + self._optimizer)
+            raise NameError(f'Invalid optimizerType: {self._optimizerType}')
 
     def extract_q_value_model_input_trading(self, state, action):
 
