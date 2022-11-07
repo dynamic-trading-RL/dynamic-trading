@@ -1,6 +1,6 @@
 import numpy as np
 
-from enums import OptimizerType
+from enums import OptimizerType, SupervisedRegressorType
 from gen_utils.utils import read_ticker
 from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
@@ -29,13 +29,12 @@ if __name__ == '__main__':
     train_benchmarking_GP_reward = False
     # which optimizer to use in greedy policy
     optimizerType = OptimizerType.shgo
-
+    # whether to make plots of regressor for the training phase
     plot_regressor = True
-    ann_architecture = (64, 32, 16)
-    early_stopping = False
-    max_iter = 50
-    n_iter_no_change = 10
+    # choose which model to use for supervised regression
+    supervisedRegressorType = SupervisedRegressorType.ann
 
+    # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
     eps_start = 0.03
 
     # Market parameters
@@ -57,10 +56,7 @@ if __name__ == '__main__':
                                 shares_scale=shares_scale,
                                 train_benchmarking_GP_reward=train_benchmarking_GP_reward,
                                 plot_regressor=plot_regressor,
-                                ann_architecture=ann_architecture,
-                                early_stopping=early_stopping,
-                                max_iter=max_iter,
-                                n_iter_no_change=n_iter_no_change)
+                                supervisedRegressorType=supervisedRegressorType)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=eps_start)
 

@@ -5,12 +5,13 @@ import pandas as pd
 
 import numpy as np
 from joblib import load, dump
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.neural_network import MLPRegressor
 from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -30,9 +31,10 @@ class AgentTrainer:
                  use_best_n_batch: bool = False,
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
-                 ann_architecture: tuple = None,
-                 early_stopping: bool = True,
-                 max_iter: int = 200,
+                 supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
+                 ann_architecture: tuple = (64, 32, 16),
+                 early_stopping: bool = False,
+                 max_iter: int = 50,
                  n_iter_no_change : int = 10,
                  activation: str = 'relu'):
 
@@ -72,6 +74,9 @@ class AgentTrainer:
         self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
         self._plot_regressor = plot_regressor
+        self._supervisedRegressorType = supervisedRegressorType
+        print(f'Fitting a {supervisedRegressorType.value} regressor')
+
         self._ann_architecture = ann_architecture
         self._early_stopping = early_stopping
         self._max_iter = max_iter
@@ -287,14 +292,24 @@ class AgentTrainer:
 
     def _fit_supervised_regressor_model(self, alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping,
                                         validation_fraction, activation, x_array, y_array, n):
-        model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
-                             alpha=alpha_ann,
-                             max_iter=max_iter,
-                             n_iter_no_change=n_iter_no_change,
-                             early_stopping=early_stopping,
-                             validation_fraction=validation_fraction,
-                             activation=activation,
-                             verbose=1).fit(x_array, y_array)
+
+        if self._supervisedRegressorType == SupervisedRegressorType.ann:
+            model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
+                                 alpha=alpha_ann,
+                                 max_iter=max_iter,
+                                 n_iter_no_change=n_iter_no_change,
+                                 early_stopping=early_stopping,
+                                 validation_fraction=validation_fraction,
+                                 activation=activation,
+                                 verbose=1).fit(x_array, y_array)
+        elif self._supervisedRegressorType == SupervisedRegressorType.gradient_boosting:
+            model = GradientBoostingRegressor(random_state=789,
+                                              loss='squared_error',
+                                              alpha=0.9,  # for loss='quantile'
+                                              max_depth=10,
+                                              verbose=1).fit(x_array, y_array)
+        else:
+            raise NameError(f'Invalid supervisedRegressorType: {self._supervisedRegressorType}')
 
         if self._plot_regressor:
             self._make_regressor_plots(model, n, x_array, y_array)
@@ -367,9 +382,6 @@ class AgentTrainer:
         plt.savefig(filename)
 
     def _set_supervised_regressor_parameters(self):
-
-        if self._ann_architecture is None:
-            self._ann_architecture = (int(5 * 10 ** (-4) * self.j_episodes * self.t_),)
 
         hidden_layer_sizes = self._ann_architecture
         max_iter = self._max_iter
