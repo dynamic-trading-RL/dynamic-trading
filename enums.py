@@ -67,3 +67,8 @@ class OptimizerType(Enum):
     dual_annealing = 'dual_annealing'
     shgo = 'shgo'
     local = 'local'
+
+class SupervisedRegressorType(Enum):
+
+    ann = 'ann'
+    gradient_boosting = 'gradient_boosting'
