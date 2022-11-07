@@ -1,5 +1,6 @@
 import numpy as np
 
+from enums import OptimizerType
 from gen_utils.utils import read_ticker
 from market_utils.market import read_trading_parameters_market
 from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
@@ -26,6 +27,8 @@ if __name__ == '__main__':
     # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
     # than the one learned automatically
     train_benchmarking_GP_reward = False
+    # which optimizer to use in greedy policy
+    optimizerType = OptimizerType.shgo
 
     plot_regressor = True
     ann_architecture = (64, 32, 16)
@@ -48,6 +51,7 @@ if __name__ == '__main__':
                                 ticker=ticker,
                                 riskDriverType=riskDriverType,
                                 predict_pnl_for_reward=predict_pnl_for_reward,
+                                optimizerType=optimizerType,
                                 average_across_models=average_across_models,
                                 use_best_n_batch=use_best_n_batch,
                                 shares_scale=shares_scale,

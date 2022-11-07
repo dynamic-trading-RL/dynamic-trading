@@ -10,7 +10,7 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -25,6 +25,7 @@ class AgentTrainer:
                  ticker: str,
                  riskDriverType: RiskDriverType, shares_scale: float = 1,
                  predict_pnl_for_reward: bool = False,
+                 optimizerType: OptimizerType = OptimizerType.shgo,
                  average_across_models: bool = True,
                  use_best_n_batch: bool = False,
                  train_benchmarking_GP_reward: bool = False,
@@ -43,6 +44,9 @@ class AgentTrainer:
                                          ticker=ticker, riskDriverType=riskDriverType)
         self.shares_scale = shares_scale
         self._predict_pnl_for_reward = predict_pnl_for_reward
+        self._optimizerType = optimizerType
+        dump(self._optimizerType,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/optimizerType.joblib')
         self._average_across_models = average_across_models
         dump(self._average_across_models,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
@@ -52,6 +56,7 @@ class AgentTrainer:
 
         self.environment = Environment(market=self.market)
         self.agent = Agent(self.environment,
+                           optimizerType=self._optimizerType,
                            average_across_models=self._average_across_models,
                            use_best_n_batch=self._use_best_n_batch)
 

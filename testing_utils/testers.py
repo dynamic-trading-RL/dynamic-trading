@@ -71,9 +71,12 @@ class Tester:
                                     modeType=ModeType.OutOfSample)
         environment = Environment(market)
 
+        optimizerType = load(
+            os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/optimizerType.joblib')
         average_across_models = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
         use_best_n_batch = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
         agentRL = Agent(environment,
+                        optimizerType=optimizerType,
                         average_across_models=average_across_models,
                         use_best_n_batch=use_best_n_batch)
         agentRL.load_q_value_models(self._n_batches)
