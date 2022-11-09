@@ -1,2 +1,0 @@
-statistic:-8.862859
-pvalue:1.000000

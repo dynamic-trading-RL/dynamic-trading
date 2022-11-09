@@ -34,8 +34,8 @@ class AgentTrainer:
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
                  ann_architecture: tuple = (64, 32, 16),
                  early_stopping: bool = False,
-                 max_iter: int = 50,
-                 n_iter_no_change : int = 10,
+                 max_iter: int = 10,
+                 n_iter_no_change : int = 2,
                  activation: str = 'relu'):
 
         self.t_ = None
