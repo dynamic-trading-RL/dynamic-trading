@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # than the one learned automatically
     train_benchmarking_GP_reward = False
     # which optimizer to use in greedy policy
-    optimizerType = OptimizerType.local
+    optimizerType = OptimizerType.shgo
     # whether to make plots of regressor for the training phase
     plot_regressor = True
     # choose which model to use for supervised regression

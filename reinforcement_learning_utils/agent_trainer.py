@@ -118,11 +118,38 @@ class AgentTrainer:
 
             eps = max(eps/3, 10**-5)
 
-        n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
-        self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0])
+        # compute best batch  # todo: is this correct?
+        # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
+        # self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
+        average_cumulative_q_per_batch = self._average_cumulative_q_per_batch()
+        self.best_n = int(np.argmax(average_cumulative_q_per_batch)) + 1
 
-        dump(self.best_n + 1, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
+        dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
         print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n + 1}')
+        print(f'For each batch n, E[sum_t q(s^n_t, a^n_t)] is given by: {average_cumulative_q_per_batch}')
+
+    def _average_cumulative_q_per_batch(self):
+
+        average_cumulative_q_per_batch = []
+
+        for n in range(self.n_batches):
+
+            q_grid_n = self.q_grid_dict[n]
+
+            average_cumulative_q_per_batch_n = 0.
+
+            for j in range(self.j_episodes):
+                q_grid_nj = q_grid_n[j]
+
+                q_grid_nj_cumsum = np.sum(q_grid_nj)
+
+                average_cumulative_q_per_batch_n += q_grid_nj_cumsum
+
+            average_cumulative_q_per_batch_n /= self.j_episodes
+
+            average_cumulative_q_per_batch.append(average_cumulative_q_per_batch_n)
+
+        return average_cumulative_q_per_batch
 
     def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
 
