@@ -13,12 +13,12 @@ price_in_state,No
 pnl_in_state,No
 GP_action_in_state,No
 strategyType,Unconstrained
-estimateInitializationType,RandomUniform
+estimateInitializationType,RandomTruncNorm
 gamma,0.9999
 start_date,'2004-01-01'
 in_sample_proportion,0.9
-j_episodes,15000
+j_episodes,25000
 t_,50
-n_batches,5
+n_batches,1
 parallel_computing,Yes
 n_cores,40
