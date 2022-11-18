@@ -20,5 +20,5 @@ in_sample_proportion,0.9
 j_episodes,25000
 t_,50
 n_batches,1
-parallel_computing,Yes
+parallel_computing,No
 n_cores,40
