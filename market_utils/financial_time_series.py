@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
-from market_utils.calibrator import get_available_futures_tickers
+from gen_utils.utils import get_available_futures_tickers
 
 
 class FinancialTimeSeries:

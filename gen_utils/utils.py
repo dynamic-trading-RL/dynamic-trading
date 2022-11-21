@@ -9,3 +9,10 @@ def read_ticker():
     ticker = str(df_trad_params.loc['ticker'][0])
 
     return ticker
+
+
+def get_available_futures_tickers():
+    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'WTI-spot', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter',
+           'nickel', 'silver', 'sugar', 'tin', 'unleaded', 'zinc']
+
+    return lst

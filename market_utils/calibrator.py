@@ -9,6 +9,7 @@ from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
 from enums import RiskDriverDynamicsType, FactorDynamicsType
+from gen_utils.utils import get_available_futures_tickers
 from market_utils.financial_time_series import FinancialTimeSeries
 
 import warnings
@@ -579,16 +580,16 @@ class AllSeriesDynamicsCalibrator:
     def _get_best_factorDynamicsType_and_resid_impl(self, all_factor_params, all_factor_resids, ticker):
 
         abs_epsi_autocorr_best = None
-        abs_epsi_autocorr_best_lag1 = 1.
+        abs_epsi_autocorr_best_norm = np.inf
 
         factorDynamics_best = None
         for factorDynamicsType in FactorDynamicsType:
 
             abs_epsi_autocorr = all_factor_params[factorDynamicsType]['abs_epsi_autocorr']
 
-            if np.abs(abs_epsi_autocorr[1]) <= np.abs(abs_epsi_autocorr_best_lag1):
+            if np.linalg.norm(abs_epsi_autocorr) <= np.abs(abs_epsi_autocorr_best_norm):
                 abs_epsi_autocorr_best = abs_epsi_autocorr
-                abs_epsi_autocorr_best_lag1 = abs_epsi_autocorr_best[1]
+                abs_epsi_autocorr_best_norm = np.linalg.norm(abs_epsi_autocorr)
 
                 factorDynamics_best = factorDynamicsType
 
@@ -627,13 +628,6 @@ def build_filename_calibrations(riskDriverType, ticker, var_type):
                ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
 
     return filename
-
-
-def get_available_futures_tickers():
-    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'WTI-spot', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter',
-           'nickel', 'silver', 'sugar', 'tin', 'unleaded', 'zinc']
-
-    return lst
 
 
 def get_futures_data_filename():
