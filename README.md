@@ -7,7 +7,7 @@ Project requirements are listed in the requirements.txt file.
 
 ## Data
 The folder dynamic-trading/data/data_source/market_data contains all the relevant data used to fit market dynamics, in particular
-- futures_data.xlsx contains commodity futures time series taken into considerations
+- assets_data.xlsx contains commodity futures time series taken into considerations
 - SP500.xlsx contains the S&P 500 time series, which could be used as predicting factor
 - VIX.xlsx contains the S&P 500 time series, which could be used as predicting factor
 - RV5.xlsx contains the S&p 500 5-minutes realized variance, which could be used as predicting factor

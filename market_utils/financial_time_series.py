@@ -3,6 +3,7 @@ import os
 import numpy as np
 
 from enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
+from market_utils.calibrator import get_available_futures_tickers
 
 
 class FinancialTimeSeries:
@@ -66,7 +67,7 @@ class FinancialTimeSeries:
         if self.ticker in get_available_futures_tickers():
 
             time_series = pd.read_excel(os.path.dirname(os.path.dirname(__file__))
-                                        + '/data/data_source/market_data/futures_data.xlsx',
+                                        + '/data/data_source/market_data/assets_data.xlsx',
                                         sheet_name=self.ticker, index_col=0).fillna(method='pad')
 
         else:
@@ -170,12 +171,6 @@ class FinancialTimeSeries:
                                        self.factorComputationType.value],
                                  columns=['info'])
 
-
-def get_available_futures_tickers():
-    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter', 'nickel',
-           'silver', 'sugar', 'tin', 'unleaded', 'zinc']
-
-    return lst
 
 
 # ------------------------------ TESTS ---------------------------------------------------------------------------------

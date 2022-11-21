@@ -630,14 +630,14 @@ def build_filename_calibrations(riskDriverType, ticker, var_type):
 
 
 def get_available_futures_tickers():
-    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter', 'nickel',
-           'silver', 'sugar', 'tin', 'unleaded', 'zinc']
+    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'WTI-spot', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter',
+           'nickel', 'silver', 'sugar', 'tin', 'unleaded', 'zinc']
 
     return lst
 
 
 def get_futures_data_filename():
-    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/market_data/futures_data.xlsx'
+    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/market_data/assets_data.xlsx'
     return filename
 
 
