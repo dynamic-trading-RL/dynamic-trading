@@ -802,11 +802,15 @@ class SimulationTester(Tester):
 
                 p = mp.Pool(self._n_cores)
 
-                outputs = list(tqdm(p.imap(func=compute_outputs_iter_j_partial,
-                                           iterable=j_index,
-                                           chunksize=int(self.j_ / self._n_cores)),
-                                    total=self.j_,
-                                    desc='Computing simulations of ' + agent_type + ' strategy'))
+                # TODO: define once and for all which of these three approaches is fastest
+                # outputs = list(tqdm(p.imap(func=compute_outputs_iter_j_partial,
+                #                            iterable=j_index,
+                #                            chunksize=int(self.j_ / self._n_cores)),
+                #                     total=self.j_,
+                #                     desc='Computing simulations of ' + agent_type + ' strategy'))
+
+                outputs = p.map(compute_outputs_iter_j_partial, j_index)
+
 
                 p.close()
                 p.join()
