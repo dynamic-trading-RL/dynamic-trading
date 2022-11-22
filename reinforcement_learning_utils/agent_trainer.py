@@ -32,7 +32,7 @@ class AgentTrainer:
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
-                 ann_architecture: tuple = (64, 32, 16),
+                 ann_architecture: tuple = (64, 32, 8),
                  early_stopping: bool = False,
                  max_iter: int = 10,
                  n_iter_no_change : int = 2,
