@@ -145,8 +145,8 @@ import matplotlib.pyplot as plt
 
 f_min = df_reg['f'].quantile(0.0005)
 f_max = df_reg['f'].quantile(0.9995)
-x_min = df_reg['r'].quantile(0.0005)
-x_max = df_reg['r'].quantile(0.9995)
+x_min = df_reg['r'].quantile(0.10)
+x_max = df_reg['r'].quantile(0.90)
 
 def next_step(f, mu_u_0, mu_u_1, B_0, B_1, c):
 
@@ -158,19 +158,23 @@ def next_step(f, mu_u_0, mu_u_1, B_0, B_1, c):
 next_step = np.vectorize(next_step)
 
 plt.figure()
-plt.plot(np.linspace(f_min, f_max),
-         next_step(np.linspace(f_min, f_max), mu_u_0, mu_u_1, B_0, B_1, c),
+plt.plot(np.linspace(f_min, 0, endpoint=False),
+         next_step(np.linspace(f_min, 0, endpoint=False), mu_u_0, mu_u_1, B_0, B_1, c),
          'k', label='non linear prediction')
+plt.plot(np.linspace(0, f_max),
+         next_step(np.linspace(0, f_max), mu_u_0, mu_u_1, B_0, B_1, c),
+         'k')
 plt.plot(np.linspace(f_min, f_max),
          mu_u + B * np.linspace(f_min, f_max),
          'r', label='linear prediction')
-plt.scatter(df_reg['f'], df_reg['r'], s=1, label='sample')
-plt.title('Linear vs non linear prediction')
+# plt.scatter(df_reg['f'], df_reg['r'], s=1, label='sample')
+# plt.title('Linear vs non linear prediction')
 plt.xlabel('$f_t$')
 plt.ylabel('$x_{t+1}$')
 plt.legend()
 plt.xlim([f_min, f_max])
 plt.ylim([x_min, x_max])
+plt.savefig('figures/fit/mkt-nonlin-structure.png')
 
 
 # ------------------ FACTORS
@@ -190,14 +194,15 @@ res_ar = pd.DataFrame(index=['mu', 'B', 'sig2'],
                       data=[mu_ar, 1 - Phi_ar, Omega_ar],
                       columns=['param'])
 
+plt.figure()
 plt.plot(epsi_ar, '.', color='c', markersize=2.0)
 plt.xlabel('date')
 plt.ylabel('$\epsilon_t$')
-plt.title('Residuals')
+plt.savefig('figures/fit/mkt-ar-resid.png')
+# plt.title('Residuals')
 
 fig = sm.qqplot(epsi_ar[1:-1], fit=True, line="45")
-plt.show()
-
+plt.savefig('figures/fit/mkt-ar-resid_qqplot.png')
 
 # SETAR on factors
 ind_0 = df['f'] < c
@@ -217,6 +222,9 @@ Omega_ar_1 = res_ar_1.sigma2 / scale_f**2
 epsi_ar_1 = df['f'].loc[ind_1].iloc[1:] / scale_f -\
     Phi_ar_1*df['f'].loc[ind_1].iloc[:-1] / scale_f - mu_ar_1
 
+epsi_setar = pd.concat([epsi_ar_0, epsi_ar_1], axis=0)
+epsi_setar.sort_index(inplace=True)
+
 with open('reports/' + ticker + '-factor_SETAR_0.txt', 'w+') as fh:
     fh.write(res_ar_0.summary().as_text())
 
@@ -230,6 +238,16 @@ res_setar = pd.DataFrame(index=['mu_0', 'B_0', 'sig2_0',
                                mu_ar_1, 1 - Phi_ar_1, Omega_ar_1,
                                c],
                          columns=['param'])
+
+plt.figure()
+plt.plot(epsi_setar, '.', color='c', markersize=2.0)
+plt.xlabel('date')
+plt.ylabel('$\epsilon_t$')
+plt.savefig('figures/fit/mkt-setar-resid.png')
+# plt.title('Residuals')
+
+fig = sm.qqplot(epsi_setar.dropna(), fit=True, line="45")
+plt.savefig('figures/fit/mkt-setar-resid_qqplot.png')
 
 
 # GARCH(1, 1) on factors
@@ -249,6 +267,16 @@ with open('reports/' + ticker + '-factor_GARCH.txt', 'w+') as fh:
 res_garch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'beta'],
                          data=[mu_garch, omega_garch, alpha_garch, beta_garch],
                          columns=['param'])
+
+plt.figure()
+plt.plot(epsi_garch, '.', color='c', markersize=2.0)
+plt.xlabel('date')
+plt.ylabel('$e_t$')
+plt.savefig('figures/fit/mkt-garch-resid.png')
+# plt.title('Residuals')
+
+fig = sm.qqplot(epsi_garch.dropna(), fit=True, line="45")
+plt.savefig('figures/fit/mkt-garch-resid_qqplot.png')
 
 
 # TARCH(1, 1, 1) on factors
@@ -270,6 +298,16 @@ res_tarch = pd.DataFrame(index=['mu', 'omega', 'alpha', 'gamma', 'beta', 'c'],
                          data=[mu_tarch, omega_tarch, alpha_tarch, gamma_tarch,
                                beta_tarch, 0],
                          columns=['param'])
+
+plt.figure()
+plt.plot(epsi_tarch, '.', color='c', markersize=2.0)
+plt.xlabel('date')
+plt.ylabel('$e_t$')
+plt.savefig('figures/fit/mkt-tarch-resid.png')
+# plt.title('Residuals')
+
+fig = sm.qqplot(epsi_tarch.dropna(), fit=True, line="45")
+plt.savefig('figures/fit/mkt-tarch-resid_qqplot.png')
 
 
 # AR-TARCH(1, 1, 1) on factors
@@ -299,12 +337,18 @@ res_ar_tarch = pd.DataFrame(index=['mu', 'B', 'omega', 'alpha', 'gamma',
 plt.plot(df['f'])
 plt.xlabel('date')
 plt.ylabel('$f_t$')
-plt.title('Factor time series')
+# plt.title('Factor time series')
 
+
+plt.figure()
 plt.plot(epsi_ar_tarch, '.', color='c', markersize=2.0)
 plt.xlabel('date')
 plt.ylabel('$e_t$')
-plt.title('Residuals')
+plt.savefig('figures/fit/mkt-artarch-resid.png')
+# plt.title('Residuals')
+
+fig = sm.qqplot(epsi_tarch.dropna(), fit=True, line="45")
+plt.savefig('figures/fit/mkt-artarch-resid_qqplot.png')
 
 
 
