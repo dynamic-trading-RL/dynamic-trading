@@ -23,7 +23,7 @@ if __name__ == '__main__':
     average_across_models = True
     # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
     # provided the best reward in the training phase
-    use_best_n_batch = True
+    use_best_n_batch = False
     # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
     # than the one learned automatically
     train_benchmarking_GP_reward = False
