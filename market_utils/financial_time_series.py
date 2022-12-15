@@ -85,7 +85,8 @@ class FinancialTimeSeries:
         first_valid_loc = time_series.first_valid_index()
         last_valid_loc = time_series.last_valid_index()
         date_range = pd.date_range(first_valid_loc, last_valid_loc)
-        time_series = time_series.reindex(date_range, method='pad')
+        time_series = time_series.reindex(date_range)
+        time_series.dropna(inplace=True)
         self._start_date = time_series.index[0]
 
         time_series.columns = [self.ticker]
