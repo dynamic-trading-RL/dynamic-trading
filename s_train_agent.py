@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # todo: all of these inputs should be read from settings.csv via a dedicated function
 
     # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
-    predict_pnl_for_reward = False
+    predict_pnl_for_reward = True
     # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
     average_across_models = True
     # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     supervisedRegressorType = SupervisedRegressorType.ann
 
     # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
-    eps_start = 0.03
+    eps_start = 0.01
 
     # Market parameters
     ticker = read_ticker()

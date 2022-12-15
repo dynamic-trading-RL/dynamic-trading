@@ -44,7 +44,7 @@ if __name__ == '__main__':
             rescaled_trade_lst.append(rescaled_trade)
             rescaled_shares_lst.append(rescaled_shares)
 
-    shares_scale = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.99)
+    shares_scale = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.95)
 
     print(f'shares_scale = {shares_scale}')
 

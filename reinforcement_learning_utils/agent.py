@@ -172,15 +172,21 @@ class Agent:
 
     def _q_value_trading(self, state: State, action: Action):
 
-        q_value_model_input = self.extract_q_value_model_input_trading(state, action)
+        if len(self._q_value_models) == 0:
 
-        qvl = 0.
+            qvl = np.random.randn()  # todo: is it ok for this to be random? it was such in previous implementations
+                                     #  (and it worked)
 
-        if self._average_across_models:
-            for q_value_model in self._q_value_models:
-                qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
         else:
-            if len(self._q_value_models) > 0:
+
+            q_value_model_input = self.extract_q_value_model_input_trading(state, action)
+
+            qvl = 0.
+
+            if self._average_across_models:
+                for q_value_model in self._q_value_models:
+                    qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
+            else:
                 q_value_model = self._q_value_models[-1]
                 qvl = q_value_model.predict(q_value_model_input)
 
