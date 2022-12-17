@@ -11,7 +11,8 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType, \
+    InitialEstimateType
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -32,6 +33,7 @@ class AgentTrainer:
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
+                 initialEstimateType: InitialEstimateType = InitialEstimateType.zero,
                  ann_architecture: tuple = (64, 32, 8),
                  early_stopping: bool = False,
                  max_iter: int = 10,
@@ -60,7 +62,8 @@ class AgentTrainer:
         self.agent = Agent(self.environment,
                            optimizerType=self._optimizerType,
                            average_across_models=self._average_across_models,
-                           use_best_n_batch=self._use_best_n_batch)
+                           use_best_n_batch=self._use_best_n_batch,
+                           initialEstimateType=initialEstimateType)
 
         if train_benchmarking_GP_reward and not self.environment.observe_GP:
             self.environment.observe_GP = True

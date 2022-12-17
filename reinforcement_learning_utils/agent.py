@@ -5,7 +5,7 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import EstimateInitializationType, StrategyType, OptimizerType
+from enums import EstimateInitializationType, StrategyType, OptimizerType, InitialEstimateType
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -15,7 +15,8 @@ class Agent:
     def __init__(self, environment: Environment,
                  optimizerType: OptimizerType = OptimizerType.shgo,
                  average_across_models: bool = True,
-                 use_best_n_batch: bool = False):
+                 use_best_n_batch: bool = False,
+                 initialEstimateType: InitialEstimateType = InitialEstimateType.zero):
 
         self.environment = environment
 
@@ -28,6 +29,7 @@ class Agent:
 
         self._average_across_models = average_across_models
         self._use_best_n_batch = use_best_n_batch
+        self._initialEstimateType = initialEstimateType
 
         self._tol = 10**-10  # numerical tolerance for bound conditions requirements
 
@@ -174,8 +176,11 @@ class Agent:
 
         if len(self._q_value_models) == 0:
 
-            qvl = np.random.randn()  # todo: is it ok for this to be random? it was such in previous implementations
-                                     #  (and it worked)
+            if self._initialEstimateType == InitialEstimateType.random:
+                qvl = np.random.randn()
+
+            elif self._initialEstimateType == InitialEstimateType.zero:
+                qvl = 0.
 
         else:
 

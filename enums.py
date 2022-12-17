@@ -68,7 +68,13 @@ class OptimizerType(Enum):
     shgo = 'shgo'
     local = 'local'
 
+
 class SupervisedRegressorType(Enum):
 
     ann = 'ann'
     gradient_boosting = 'gradient_boosting'
+
+class InitialEstimateType(Enum):
+
+    zero = 'zero'
+    random = 'random'
