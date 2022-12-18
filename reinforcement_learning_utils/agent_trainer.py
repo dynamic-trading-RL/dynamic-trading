@@ -128,7 +128,7 @@ class AgentTrainer:
         self.best_n = int(np.argmax(average_cumulative_q_per_batch)) + 1
 
         dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
-        print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n + 1}')
+        print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n}')
         print(f'For each batch n, E[sum_t q(s^n_t, a^n_t)] is given by: {average_cumulative_q_per_batch}')
 
     def _average_cumulative_q_per_batch(self):
