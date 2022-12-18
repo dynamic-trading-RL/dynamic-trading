@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # todo: all of these inputs should be read from settings.csv via a dedicated function
 
     # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
-    initialEstimateType = InitialEstimateType.zero
+    initialEstimateType = InitialEstimateType.random
     # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
     predict_pnl_for_reward = True
     # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
