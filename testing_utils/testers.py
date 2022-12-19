@@ -172,7 +172,7 @@ class Tester:
 
 class BackTester(Tester):
 
-    def __init__(self, ticker: str, split_strategy: bool = False):
+    def __init__(self, ticker: str, split_strategy: bool = True):
 
         super().__init__(ticker)
         self._split_strategy = split_strategy
