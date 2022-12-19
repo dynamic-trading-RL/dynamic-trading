@@ -10,11 +10,14 @@ if __name__ == '__main__':
 
     np.random.seed(789)
 
+    # If true, then the traders split their strategy into sub-periods of the same length used to calibrate the RL agent
+    split_strategy = True
+
     # -------------------- Input parameters
     ticker = read_ticker()
 
     # -------------------- Execution
-    backtester = BackTester(ticker=ticker)
+    backtester = BackTester(ticker=ticker, split_strategy=split_strategy)
     backtester.execute_backtesting()
     backtester.make_plots()
 

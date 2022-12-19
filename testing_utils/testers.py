@@ -41,13 +41,14 @@ class Tester:
             read_trading_parameters_market()
 
         # Training parameters
-        shares_scale, _, n_batches, _, parallel_computing, n_cores = read_trading_parameters_training(self._ticker)
+        shares_scale, _, n_batches, t_, parallel_computing, n_cores = read_trading_parameters_training(self._ticker)
 
         self._riskDriverDynamicsType = riskDriverDynamicsType
         self._factorDynamicsType = factorDynamicsType
         self._riskDriverType = riskDriverType
         self._shares_scale = shares_scale
         self._n_batches = n_batches
+        self._t_ = t_
         self._parallel_computing = parallel_computing
         self._n_cores = n_cores
 
@@ -171,9 +172,10 @@ class Tester:
 
 class BackTester(Tester):
 
-    def __init__(self, ticker: str):
+    def __init__(self, ticker: str, split_strategy: bool = False):
 
         super().__init__(ticker)
+        self._split_strategy = split_strategy
         self._read_out_of_sample_proportion_len()
 
     def execute_backtesting(self):
@@ -246,8 +248,8 @@ class BackTester(Tester):
 
             for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy'):
 
-                factor, pnl, price, pnl_0 = self._get_current_factor_pnl_price(date, dates, factor_series,
-                                                                                     pnl_series, price_series)
+                factor, pnl, price, pnl_0 = self._get_current_factor_pnl_price(date, dates, factor_series, pnl_series,
+                                                                               price_series)
 
                 cost_trade, rescaled_shares, rescaled_trade, risk_trade = self._compute_outputs_for_time_t(
                     agent_type, rescaled_shares, factor, price, pnl_0, ttm)
