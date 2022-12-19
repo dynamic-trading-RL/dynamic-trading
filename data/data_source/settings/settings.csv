@@ -2,10 +2,10 @@ field,value
 ticker,WTI-spot
 riskDriverDynamicsType,Linear
 riskDriverType,PnL
-factor_ticker,
+factor_ticker,RV5
 factorComputationType,MovingAverage
 window,5
-factorTransformationType,Diff
+factorTransformationType,LogDiff
 factorDynamicsType,AR
 factor_in_state,Yes
 ttm_in_state,No
