@@ -50,6 +50,8 @@ class AgentBenchmark:
         self.kappa = kappa
         self.strategyType = strategyType
 
+        self.cost_is_quadratic = True
+
     def _read_trading_parameters(self):
 
         df_trad_params = self._get_df_trad_params()
@@ -127,7 +129,12 @@ class AgentMarkowitz(AgentBenchmark):
         return rescaled_trade
 
     def _get_markowitz_trade(self, shares, pnl, sig2):
-        trade = (self.kappa * sig2) ** (-1) * pnl - shares
+
+        if self.cost_is_quadratic:
+            trade = ((self.kappa * self.gamma + self.lam) * sig2) ** (-1) * (self.gamma * pnl + self.lam*sig2*shares)\
+                    - shares
+        else:
+            trade = (self.kappa * sig2) ** (-1) * pnl - shares
 
         trade = self._update_trade_by_strategyType(shares, trade)
 
