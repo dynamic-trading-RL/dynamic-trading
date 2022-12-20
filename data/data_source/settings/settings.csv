@@ -11,13 +11,14 @@ factor_in_state,Yes
 ttm_in_state,No
 price_in_state,No
 pnl_in_state,No
+average_past_pnl_in_state,No
 GP_action_in_state,No
 strategyType,Unconstrained
 estimateInitializationType,RandomUniform
 gamma,0.9999
 start_date,
 end_date,
-in_sample_proportion,0.8
+in_sample_proportion,0.9
 j_episodes,15000
 t_,50
 n_batches,6

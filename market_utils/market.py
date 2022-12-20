@@ -234,6 +234,11 @@ class Market:
         else:
             raise NameError('Invalid riskDriverType: ' + self.riskDriverType.value)
 
+        self.simulations['average_past_pnl'] =\
+            np.array(pd.DataFrame(self.simulations['pnl']).rolling(window=self.financialTimeSeries.window,
+                                                                   min_periods=1,
+                                                                   axis=1).mean())
+
     def _simulate_price(self):
 
         self._get_price_from_pnl()

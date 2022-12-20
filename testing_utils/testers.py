@@ -109,8 +109,9 @@ class Tester:
     def _get_time_series(self):
         factor_series = self._factor_pnl_and_price['factor']
         pnl_series = self._factor_pnl_and_price['pnl']
+        average_past_pnl_series = self._factor_pnl_and_price['average_past_pnl']
         price_series = self._factor_pnl_and_price['price']
-        return factor_series, pnl_series, price_series
+        return factor_series, pnl_series, average_past_pnl_series, price_series
 
     def _initialize_output_list_for_agent(self):
         strategy = []
@@ -120,16 +121,17 @@ class Tester:
         risk = []
         return cost, risk, strategy, trades, value
 
-    def _get_current_factor_pnl_price(self, date, dates, factor_series, pnl_series, price_series):
+    def _get_current_factor_pnl_price(self, date, dates, factor_series, pnl_series, average_past_pnl_series, price_series):
         i_loc = dates.get_loc(date)
         next_date = dates[i_loc + 1]
         factor = factor_series.loc[date]
         pnl = pnl_series.loc[next_date]
         pnl_0 = pnl_series.loc[date]
+        average_past_pnl_0 = average_past_pnl_series.loc[date]
         price = price_series.loc[date]
-        return factor, pnl, price, pnl_0
+        return factor, pnl, price, pnl_0, average_past_pnl_0
 
-    def _compute_outputs_for_time_t(self, agent_type, rescaled_shares, factor, price, pnl_0, ttm):
+    def _compute_outputs_for_time_t(self, agent_type, rescaled_shares, factor, price, pnl_0, average_past_pnl_0, ttm):
 
         if agent_type == 'RL':
             state = State(environment=self._environment)
@@ -146,6 +148,7 @@ class Tester:
                                          shares_scale=self._shares_scale,
                                          price=price,
                                          pnl=pnl_0,
+                                         average_past_pnl=average_past_pnl_0,
                                          action_GP=action_GP,
                                          ttm=ttm)
             action = self._agents[agent_type].policy(state=state)
@@ -242,8 +245,9 @@ class BackTester(Tester):
 
         factor_series = self._market.financialTimeSeries.time_series['factor'].iloc[-length:].copy()
         pnl_series = self._market.financialTimeSeries.time_series['pnl'].copy()
+        average_past_pnl_series = self._market.financialTimeSeries.time_series['average_past_pnl'].copy()
         price_series = self._market.financialTimeSeries.time_series[self._ticker].copy()
-        factor_pnl_and_price = pd.concat([factor_series, pnl_series, price_series], axis=1)
+        factor_pnl_and_price = pd.concat([factor_series, pnl_series, average_past_pnl_series, price_series], axis=1)
         factor_pnl_and_price.rename(columns={self._ticker: 'price'}, inplace=True)
         factor_pnl_and_price.dropna(inplace=True)
 
@@ -258,19 +262,22 @@ class BackTester(Tester):
         self._initialize_output_dicts()
 
         # get time series
-        factor_series, pnl_series, price_series = self._get_time_series()
+        factor_series, pnl_series, average_past_pnl_series, price_series = self._get_time_series()
         self._price_series = price_series
 
         # get dates
         dates = factor_series.index
 
         # compute strategies on complete time series
-        self._compute_strategies_on_complete_time_series(dates, factor_series, pnl_series, price_series)
+        self._compute_strategies_on_complete_time_series(dates, factor_series, pnl_series, average_past_pnl_series,
+                                                         price_series)
 
         # compute strategies on different chunks of time series
-        self._compute_strategies_on_chunks_time_series(dates, factor_series, pnl_series, price_series)
+        self._compute_strategies_on_chunks_time_series(dates, factor_series, pnl_series, average_past_pnl_series,
+                                                       price_series)
 
-    def _compute_strategies_on_chunks_time_series(self, dates, factor_series, pnl_series, price_series):
+    def _compute_strategies_on_chunks_time_series(self, dates, factor_series, pnl_series, average_past_pnl_series,
+                                                  price_series):
         # todo: this function and the corresponding on complete time series should be heavily unified
 
         self._dates_chunks_list = self._get_dates_chunks_list(dates)
@@ -298,12 +305,12 @@ class BackTester(Tester):
 
                 for date in dates_chunk[:-1]:
 
-                    factor, pnl, price, pnl_0 = self._get_current_factor_pnl_price(date, dates, factor_series,
-                                                                                   pnl_series,
-                                                                                   price_series)
+                    factor, pnl, price, pnl_0, average_past_pnl_0 =\
+                        self._get_current_factor_pnl_price(date, dates, factor_series, pnl_series,
+                                                           average_past_pnl_series, price_series)
 
                     cost_trade, rescaled_shares, rescaled_trade, risk_trade = self._compute_outputs_for_time_t(
-                        agent_type, rescaled_shares, factor, price, pnl_0, ttm)
+                        agent_type, rescaled_shares, factor, price, pnl_0, average_past_pnl_0, ttm)
 
                     self._update_lists(cost, cost_trade, rescaled_shares, pnl, rescaled_trade, risk, risk_trade,
                                        strategy, trades, value)
@@ -327,7 +334,8 @@ class BackTester(Tester):
 
                 chunk_id += 1
 
-    def _compute_strategies_on_complete_time_series(self, dates, factor_series, pnl_series, price_series):
+    def _compute_strategies_on_complete_time_series(self, dates, factor_series, pnl_series, average_past_pnl_series,
+                                                    price_series):
         for agent_type in self._agents.keys():
 
             cost, risk, strategy, trades, value = self._initialize_output_list_for_agent()
@@ -337,11 +345,12 @@ class BackTester(Tester):
             ttm = len(dates[:-1])
 
             for date in tqdm(dates[:-1], desc='Computing ' + agent_type + ' strategy'):
-                factor, pnl, price, pnl_0 = self._get_current_factor_pnl_price(date, dates, factor_series, pnl_series,
-                                                                               price_series)
+                factor, pnl, price, pnl_0, average_past_pnl_0 =\
+                    self._get_current_factor_pnl_price(date, dates, factor_series, pnl_series, average_past_pnl_series,
+                                                       price_series)
 
                 cost_trade, rescaled_shares, rescaled_trade, risk_trade = self._compute_outputs_for_time_t(
-                    agent_type, rescaled_shares, factor, price, pnl_0, ttm)
+                    agent_type, rescaled_shares, factor, price, pnl_0, average_past_pnl_0, ttm)
 
                 self._update_lists(cost, cost_trade, rescaled_shares, pnl, rescaled_trade, risk, risk_trade,
                                    strategy, trades, value)
@@ -1014,7 +1023,7 @@ class SimulationTester(Tester):
         start_date = self._market.financialTimeSeries.info.loc['end_date'].item()
         dates = pd.date_range(start=start_date, periods=self.t_)
 
-        for data_type in ('factor', 'pnl', 'price'):
+        for data_type in ('factor', 'pnl', 'average_past_pnl', 'price'):
             sims = pd.DataFrame(data=self._environment.market.simulations[data_type], columns=dates)
             sims.index.name = 'simulation'
             sims = pd.melt(sims, var_name='date', ignore_index=False)
@@ -1032,7 +1041,8 @@ class SimulationTester(Tester):
         self._initialize_output_dicts()
 
         # get time series
-        factor_series_all_j, pnl_series_all_j, price_series_all_j = self._get_time_series()
+        factor_series_all_j, pnl_series_all_j, average_past_pnl_series_all_j, price_series_all_j =\
+            self._get_time_series()
 
         # get dates
         dates = factor_series_all_j.index.get_level_values('date').unique()
@@ -1049,6 +1059,7 @@ class SimulationTester(Tester):
                 compute_outputs_iter_j_partial = partial(self._compute_outputs_iter_j,
                                                          factor_series_all_j=factor_series_all_j,
                                                          pnl_series_all_j=pnl_series_all_j,
+                                                         average_past_pnl_series_all_j=average_past_pnl_series_all_j,
                                                          price_series_all_j=price_series_all_j,
                                                          dates=dates,
                                                          agent_type=agent_type)
@@ -1072,8 +1083,9 @@ class SimulationTester(Tester):
 
                 for j in tqdm(j_index, desc='Computing simulations of ' + agent_type + ' strategy'):
                     strategy_j, trades_j, value_j, cost_j, risk_j =\
-                        self._compute_outputs_iter_j(j, factor_series_all_j, pnl_series_all_j, price_series_all_j,
-                                                     dates, agent_type)
+                        self._compute_outputs_iter_j(j, factor_series_all_j, pnl_series_all_j,
+                                                     average_past_pnl_series_all_j, price_series_all_j, dates,
+                                                     agent_type)
 
                     strategy.append(strategy_j)
                     trades.append(trades_j)
@@ -1136,7 +1148,8 @@ class SimulationTester(Tester):
             self._means[agent_type]['wealth_net_risk'] = values.mean()
             self._stds[agent_type]['wealth_net_risk'] = values.std()
 
-    def _compute_outputs_iter_j(self, j, factor_series_all_j, pnl_series_all_j, price_series_all_j, dates, agent_type):
+    def _compute_outputs_iter_j(self, j, factor_series_all_j, pnl_series_all_j, average_past_pnl_series_all_j,
+                                price_series_all_j, dates, agent_type):
 
         cost_j, risk_j, strategy_j, trades_j, value_j = self._initialize_output_list_for_agent()
 
@@ -1144,16 +1157,18 @@ class SimulationTester(Tester):
 
         factor_series_j = factor_series_all_j.loc[j, :]
         pnl_series_j = pnl_series_all_j.loc[j, :]
+        average_past_pnl_series_j = average_past_pnl_series_all_j.loc[j, :]
         price_series_j = price_series_all_j.loc[j, :]
 
         ttm = len(dates[:-1])
 
         for date in dates[:-1]:
-            factor, pnl, price, pnl_0 = self._get_current_factor_pnl_price(date, dates, factor_series_j,
-                                                                                 pnl_series_j, price_series_j)
+            factor, pnl, price, pnl_0, average_past_pnl_0 =\
+                self._get_current_factor_pnl_price(date, dates, factor_series_j, pnl_series_j,
+                                                   average_past_pnl_series_j, price_series_j)
 
             cost_trade, rescaled_shares, rescaled_trade, risk_trade =\
-                self._compute_outputs_for_time_t(agent_type, rescaled_shares, factor, price, pnl_0, ttm)
+                self._compute_outputs_for_time_t(agent_type, rescaled_shares, factor, price, pnl_0, average_past_pnl_0, ttm)
 
             self._update_lists(cost_j, cost_trade, rescaled_shares, pnl, rescaled_trade, risk_j,
                                risk_trade, strategy_j, trades_j, value_j)

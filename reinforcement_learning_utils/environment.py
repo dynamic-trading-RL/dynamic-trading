@@ -33,7 +33,7 @@ class Environment:
         rescaled_shares = 0.
         other_observable = 0.
 
-        pnl, factor, price = self._get_market_simulation_trading(n=n, j=j, t=0)
+        pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=0)
         ttm = self.t_
 
         if self.observe_GP:
@@ -53,6 +53,7 @@ class Environment:
                                      shares_scale=shares_scale,
                                      price=price,
                                      pnl=pnl,
+                                     average_past_pnl=average_past_pnl,
                                      action_GP=action_GP,
                                      ttm=ttm)
 
@@ -97,11 +98,12 @@ class Environment:
 
         next_rescaled_shares = rescaled_shares + action.rescaled_trade
 
-        _, factor, price = self._get_market_simulation_trading(n=n, j=j, t=t)
+        pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=t)
         next_factor = factor
         next_other_observable = 0.
         next_price = price
-        next_pnl = next_price - state.price
+        next_pnl = pnl
+        next_average_past_pnl = average_past_pnl
         next_ttm = self.t_ - t
 
         if self.observe_GP:
@@ -122,6 +124,7 @@ class Environment:
                                           shares_scale=shares_scale,
                                           price=next_price,
                                           pnl=next_pnl,
+                                          average_past_pnl=next_average_past_pnl,
                                           action_GP=next_action_GP,
                                           ttm=next_ttm)
 
@@ -143,7 +146,8 @@ class Environment:
 
         return (self.market.simulations_trading[n]['pnl'][j, t],
                 self.market.simulations_trading[n]['factor'][j, t],
-                self.market.simulations_trading[n]['price'][j, t])
+                self.market.simulations_trading[n]['price'][j, t],
+                self.market.simulations_trading[n]['average_past_pnl'][j, t])
 
     def _set_attributes(self):
 
@@ -201,7 +205,7 @@ class Environment:
             raise NameError('ttm_in_state in settings file must be either Yes or No')
         self.ttm_in_state = ttm_in_state
 
-        # pnl_in_state
+        # price_in_state
         if str(df_trad_params.loc['price_in_state'][0]) == 'Yes':
             price_in_state = True
         elif str(df_trad_params.loc['price_in_state'][0]) == 'No':
@@ -219,21 +223,32 @@ class Environment:
             raise NameError('pnl_in_state in settings file must be either Yes or No')
         self.pnl_in_state = pnl_in_state
 
+        # average_past_pnl_in_state
+        if str(df_trad_params.loc['average_past_pnl_in_state'][0]) == 'Yes':
+            average_past_pnl_in_state = True
+        elif str(df_trad_params.loc['average_past_pnl_in_state'][0]) == 'No':
+            average_past_pnl_in_state = False
+        else:
+            raise NameError('average_past_pnl_in_state in settings file must be either Yes or No')
+        self.average_past_pnl_in_state = average_past_pnl_in_state
+
         # state_shape
         # Define the structure of the state variable depending on the values assigned to
         # self.factor_in_state, self.ttm_in_state, self.pnl_in_state, self.GP_action_in_state
         # The most complete state is given by
-        # (rescaled_shares, factor, ttm, price, action_GP)
+        # (rescaled_shares, factor, ttm, price, pnl, average_past_pnl, action_GP)
 
         bool_values = [self.factor_in_state,
                        self.ttm_in_state,
                        self.price_in_state,
                        self.pnl_in_state,
+                       self.average_past_pnl_in_state,
                        self.GP_action_in_state]
         str_values = ['factor',
                       'ttm',
                       'price',
                       'pnl',
+                      'average_past_pnl',
                       'action_GP']
         binary_values = [int(bool_value) for bool_value in bool_values]
 

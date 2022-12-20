@@ -24,6 +24,7 @@ class State:
         self.action_GP = None
         self.price = None
         self.pnl = None
+        self.average_past_pnl = None
         self.shares = None
         self.other_observable = None
         self.rescaled_shares = None
@@ -32,7 +33,7 @@ class State:
         self.ttm = None
 
     def set_trading_attributes(self, factor, rescaled_shares, other_observable, shares_scale,
-                               price, pnl, action_GP, ttm):
+                               price, pnl, average_past_pnl, action_GP, ttm):
 
         self.shares_scale = shares_scale
 
@@ -42,6 +43,7 @@ class State:
         self.shares = self.rescaled_shares * self.shares_scale
         self.price = price
         self.pnl = pnl
+        self.average_past_pnl = average_past_pnl
         self.action_GP = action_GP
         self.ttm = ttm
 

@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     # -------------------- Input parameters
     ticker = read_ticker()
-    j_ = 10000
+    j_ = 10
     t_ = 50
     j_trajectories_plot = 10
 
