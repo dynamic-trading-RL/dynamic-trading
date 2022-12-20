@@ -121,7 +121,7 @@ class AgentTrainer:
 
             eps = max(eps/3, 10**-5)
 
-        # compute best batch  # todo: is this correct?
+        # compute best batch  # todo: is this correct? discuss with SH and PP
         # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
         # self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
         average_cumulative_q_per_batch = self._average_cumulative_q_per_batch()
