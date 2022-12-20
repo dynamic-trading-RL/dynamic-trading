@@ -15,7 +15,8 @@ GP_action_in_state,No
 strategyType,Unconstrained
 estimateInitializationType,RandomUniform
 gamma,0.9999
-start_date,'1988-05-10'
+start_date,
+end_date,
 in_sample_proportion,0.9
 j_episodes,15000
 t_,50
