@@ -294,11 +294,10 @@ class AgentTrainer:
     def _sarsa_updating_formula(self, state: State, action: Action, next_state: State, next_action: Action,
                                 reward: float):
 
-        q = self.agent.q_value(state=state, action=action) +\
-            self._alpha_sarsa * (reward
-                                 + self.environment.gamma * self.agent.q_value(state=next_state, action=next_action)
-                                 )
+        q_prec = self.agent.q_value(state=state, action=action)
+        q_new = self.agent.q_value(state=next_state, action=next_action)
 
+        q = q_prec + self._alpha_sarsa * (reward + self.environment.gamma * q_new - q_prec)
 
         return q
 
