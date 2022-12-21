@@ -20,6 +20,7 @@ class FinancialTimeSeries:
         # if window is None, then it is taken from financial_time_series_setting.csv
         self._set_settings_from_file(window)
         self._set_asset_time_series(start_date=self.info.loc['start_date'][0],
+                                    end_date=self.info.loc['end_date'][0],
                                     in_sample_proportion=float(self.info.loc['in_sample_proportion'][0]))
         self._set_risk_driver_time_series()
         self._set_factor_time_series()
@@ -62,7 +63,7 @@ class FinancialTimeSeries:
         self.window = int(self.info.loc['window'][0])
         self.factorTransformationType = FactorTransformationType(self.info.loc['factorTransformationType'].item())
 
-    def _set_asset_time_series(self, start_date: str, in_sample_proportion: float):
+    def _set_asset_time_series(self, start_date: str, end_date: str, in_sample_proportion: float):
 
         if self.ticker in get_available_futures_tickers():
 
@@ -77,8 +78,17 @@ class FinancialTimeSeries:
             end_date = '2022-05-23'
             time_series = yf.download(self.ticker, end=end_date)['Adj Close'].to_frame()
 
-        start_date = pd.to_datetime(start_date)
+        if pd.isna(start_date):
+            start_date = time_series.index[0]
+        else:
+            start_date = pd.to_datetime(start_date)
         time_series = time_series.loc[time_series.index >= start_date]
+
+        if pd.isna(end_date):
+            end_date = time_series.index[-1]
+        else:
+            end_date = pd.to_datetime(end_date)
+        time_series = time_series.loc[time_series.index <= end_date]
 
         time_series.index = pd.to_datetime(time_series.index)
 
@@ -105,6 +115,7 @@ class FinancialTimeSeries:
             raise NameError(f'Invalid modeType: {self.modeType.value}')
 
         self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
+        self.time_series.insert(len(self.time_series.columns), 'average_past_pnl', self.time_series['pnl'].rolling(window=self.window, min_periods=1).mean())
 
     def _set_risk_driver_time_series(self):
 

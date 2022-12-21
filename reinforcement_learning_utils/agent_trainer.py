@@ -37,8 +37,10 @@ class AgentTrainer:
                  ann_architecture: tuple = (64, 32, 8),
                  early_stopping: bool = False,
                  max_iter: int = 10,
-                 n_iter_no_change : int = 2,
-                 activation: str = 'relu'):
+                 n_iter_no_change: int = 2,
+                 activation: str = 'relu',
+                 alpha_sarsa: float = 1.,
+                 decrease_eps: bool = True):
 
         self.t_ = None
         self.n_batches = None
@@ -85,6 +87,8 @@ class AgentTrainer:
         self._max_iter = max_iter
         self._n_iter_no_change = n_iter_no_change
         self._activation = activation
+        self._alpha_sarsa = alpha_sarsa
+        self._decrease_eps = decrease_eps
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
@@ -119,9 +123,10 @@ class AgentTrainer:
         for n in tqdm(range(self.n_batches), desc='Generating batches'):
             self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
 
-            eps = max(eps/3, 10**-5)
+            if self._decrease_eps:
+                eps = max(eps/3, 10**-5)
 
-        # compute best batch  # todo: is this correct?
+        # compute best batch  # todo: is this correct? discuss with SH and PP
         # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
         # self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
         average_cumulative_q_per_batch = self._average_cumulative_q_per_batch()
@@ -254,7 +259,8 @@ class AgentTrainer:
             next_action = self.agent.policy(state=next_state, eps=eps)
 
             # Observe next point on value function grid
-            q = self._sarsa_updating_formula(next_state=next_state, next_action=next_action, reward=reward_RL)
+            q = self._sarsa_updating_formula(state=state, action=action, next_state=next_state, next_action=next_action,
+                                             reward=reward_RL)
 
             # Store point estimate
             state_action_grid.append([state, action])
@@ -283,9 +289,14 @@ class AgentTrainer:
 
         return reward, next_state
 
-    def _sarsa_updating_formula(self, next_state: State, next_action: Action, reward: float):
+    def _sarsa_updating_formula(self, state: State, action: Action, next_state: State, next_action: Action,
+                                reward: float):
 
-        q = reward + self.environment.gamma * self.agent.q_value(state=next_state, action=next_action)
+        q = self.agent.q_value(state=state, action=action) +\
+            self._alpha_sarsa * (reward
+                                 + self.environment.gamma * self.agent.q_value(state=next_state, action=next_action)
+                                 )
+
 
         return q
 
@@ -439,7 +450,7 @@ class AgentTrainer:
                             + 'but only %d market paths have been simulated.' % (j + 1, self.j_episodes + 1))
 
 
-def read_trading_parameters_training(ticker):
+def read_trading_parameters_training():
     filename = os.path.dirname(os.path.dirname(__file__)) + \
                '/data/data_source/settings/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
@@ -458,6 +469,84 @@ def read_trading_parameters_training(ticker):
         parallel_computing = False
         n_cores = None
     else:
-        raise NameError('Invalid value for parameter parallel_computing in ' + ticker + '_trading_parameters.csv')
+        raise NameError('Invalid value for parameter parallel_computing in settings.csv')
 
-    return shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores
+    # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
+    initialEstimateType = InitialEstimateType(df_trad_params.loc['initialEstimateType'][0])
+
+    # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
+    if df_trad_params.loc['predict_pnl_for_reward'][0] == 'Yes':
+        predict_pnl_for_reward = True
+    elif df_trad_params.loc['predict_pnl_for_reward'][0] == 'No':
+        predict_pnl_for_reward = False
+    else:
+        raise NameError('Invalid value for parameter predict_pnl_for_reward in settings.csv')
+
+    # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
+    if df_trad_params.loc['average_across_models'][0] == 'Yes':
+        average_across_models = True
+    elif df_trad_params.loc['average_across_models'][0] == 'No':
+        average_across_models = False
+    else:
+        raise NameError('Invalid value for parameter average_across_models in settings.csv')
+
+    # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
+    # provided the best reward in the training phase
+    if df_trad_params.loc['use_best_n_batch'][0] == 'Yes':
+        use_best_n_batch = True
+    elif df_trad_params.loc['use_best_n_batch'][0] == 'No':
+        use_best_n_batch = False
+    else:
+        raise NameError('Invalid value for parameter use_best_n_batch in settings.csv')
+
+    # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
+    # than the one learned automatically
+    if df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'Yes':
+        train_benchmarking_GP_reward = True
+    elif df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'No':
+        train_benchmarking_GP_reward = False
+    else:
+        raise NameError('Invalid value for parameter train_benchmarking_GP_reward in settings.csv')
+
+    # which optimizer to use in greedy policy
+    optimizerType = OptimizerType(df_trad_params.loc['optimizerType'][0])
+
+    # choose which model to use for supervised regression
+    supervisedRegressorType = SupervisedRegressorType(df_trad_params.loc['supervisedRegressorType'][0])
+
+    # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
+    eps_start = float(df_trad_params.loc['eps_start'][0])
+
+    ann_architecture = []
+    ann_architecture_str = df_trad_params.loc['ann_architecture'][0]
+    ann_architecture_str_split = ann_architecture_str.split(';')
+    for layer in ann_architecture_str_split:
+        ann_architecture.append(int(layer))
+    ann_architecture = tuple(ann_architecture)
+
+    if df_trad_params.loc['early_stopping'][0] == 'Yes':
+        early_stopping = True
+    elif df_trad_params.loc['early_stopping'][0] == 'No':
+        early_stopping = False
+    else:
+        raise NameError('Invalid value for parameter early_stopping in settings.csv')
+
+    max_iter = int(df_trad_params.loc['max_iter'][0])
+
+    n_iter_no_change = int(df_trad_params.loc['n_iter_no_change'][0])
+
+    activation = str(df_trad_params.loc['activation'][0])
+
+    alpha_sarsa = float(df_trad_params.loc['alpha_sarsa'][0])
+
+    if df_trad_params.loc['decrease_eps'][0] == 'Yes':
+        decrease_eps = True
+    elif df_trad_params.loc['decrease_eps'][0] == 'No':
+        decrease_eps = False
+    else:
+        raise NameError('Invalid value for parameter decrease_eps in settings.csv')
+
+    return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialEstimateType,
+            predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
+            optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter,
+            n_iter_no_change, activation, alpha_sarsa, decrease_eps)

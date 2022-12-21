@@ -264,6 +264,7 @@ class Agent:
         ttm = state.ttm
         price = state.price
         pnl = state.pnl
+        average_past_pnl = state.average_past_pnl
         try:
             action_GP = state.action_GP
         except:
@@ -280,6 +281,8 @@ class Agent:
             state_lst[state_shape['price']] = price
         if self.environment.pnl_in_state:
             state_lst[state_shape['pnl']] = pnl
+        if self.environment.average_past_pnl_in_state:
+            state_lst[state_shape['average_past_pnl']] = average_past_pnl
         if self.environment.GP_action_in_state:
             state_lst[state_shape['action_GP']] = action_GP
 

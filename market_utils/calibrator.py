@@ -59,7 +59,10 @@ class DynamicsCalibrator:
         self.all_dynamics_resid_dict['risk-driver'] = {}
 
         for riskDriverDynamicsType in RiskDriverDynamicsType:
-            self._fit_risk_driver_dynamics_param(riskDriverDynamicsType, scale, c)
+            try:
+                self._fit_risk_driver_dynamics_param(riskDriverDynamicsType, scale, c)
+            except:
+                print(f'Could not fit {riskDriverDynamicsType} for {self.financialTimeSeries.ticker}')
 
     def _fit_all_factor_dynamics_param(self, scale_f: float, c: float):
 
@@ -68,7 +71,10 @@ class DynamicsCalibrator:
         self.all_dynamics_resid_dict['factor'] = {}
 
         for factorDynamicsType in FactorDynamicsType:
-            self._fit_factor_dynamics_param(factorDynamicsType, scale_f, c)
+            try:
+                self._fit_factor_dynamics_param(factorDynamicsType, scale_f, c)
+            except:
+                print(f'Could not fit {factorDynamicsType} for {self.financialTimeSeries.ticker}')
 
     def _fit_risk_driver_dynamics_param(self, riskDriverDynamicsType: RiskDriverDynamicsType, scale: float, c: float):
 
@@ -364,21 +370,25 @@ class DynamicsCalibrator:
 
         for dynamicsType, param_dict in self.all_dynamics_param_dict[var_type].items():
 
-            # parameters
-            worksheet = workbook.add_worksheet(dynamicsType.value)
-            writer.sheets[dynamicsType.value] = worksheet
-            df_params_out = pd.DataFrame.from_dict(data=param_dict,
-                                                   orient='index',
-                                                   columns=['param'])
-            df_params_out.to_excel(writer, sheet_name=dynamicsType.value)
+            try:
+                # parameters
+                worksheet = workbook.add_worksheet(dynamicsType.value)
+                writer.sheets[dynamicsType.value] = worksheet
+                df_params_out = pd.DataFrame.from_dict(data=param_dict,
+                                                       orient='index',
+                                                       columns=['param'])
+                df_params_out.to_excel(writer, sheet_name=dynamicsType.value)
 
-            # reports
-            for i in range(len(self.all_dynamics_model_dict[var_type][dynamicsType])):
-                model = self.all_dynamics_model_dict[var_type][dynamicsType][i]
-                filename = self._set_report_filename(dynamicsType, i, var_type)
+                # reports
+                for i in range(len(self.all_dynamics_model_dict[var_type][dynamicsType])):
+                    model = self.all_dynamics_model_dict[var_type][dynamicsType][i]
+                    filename = self._set_report_filename(dynamicsType, i, var_type)
 
-                with open(filename, 'w+') as fh:
-                    fh.write(model.summary().as_text())
+                    with open(filename, 'w+') as fh:
+                        fh.write(model.summary().as_text())
+
+            except:
+                continue
 
         writer.close()
 
@@ -424,8 +434,8 @@ class AllSeriesDynamicsCalibrator:
     def fit_all_series_dynamics(self):
 
         for ticker in tqdm(get_available_futures_tickers(), 'Fitting all time series'):
-            self._set_dynamicsCalibrator(ticker)
 
+            self._set_dynamicsCalibrator(ticker)
             self._get_best_factorDynamicsType_and_resid(ticker)
 
     def print_all_series_dynamics_results(self):

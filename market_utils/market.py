@@ -234,6 +234,11 @@ class Market:
         else:
             raise NameError('Invalid riskDriverType: ' + self.riskDriverType.value)
 
+        self.simulations['average_past_pnl'] =\
+            np.array(pd.DataFrame(self.simulations['pnl']).rolling(window=self.financialTimeSeries.window,
+                                                                   min_periods=1,
+                                                                   axis=1).mean())
+
     def _simulate_price(self):
 
         self._get_price_from_pnl()
@@ -379,8 +384,9 @@ def read_trading_parameters_market():
     filename = os.path.dirname(os.path.dirname(__file__)) +\
                '/data/data_source/settings/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
+    ticker =df_trad_params.loc['ticker'][0]
     riskDriverDynamicsType = RiskDriverDynamicsType(df_trad_params.loc['riskDriverDynamicsType'][0])
     factorDynamicsType = FactorDynamicsType(df_trad_params.loc['factorDynamicsType'][0])
     riskDriverType = RiskDriverType(df_trad_params.loc['riskDriverType'][0])
 
-    return riskDriverDynamicsType, factorDynamicsType, riskDriverType
+    return ticker, riskDriverDynamicsType, factorDynamicsType, riskDriverType

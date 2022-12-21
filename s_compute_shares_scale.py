@@ -12,11 +12,10 @@ if __name__ == '__main__':
 
     np.random.seed(789)
 
-    ticker = read_ticker()
     j_episodes = 10000
     t_ = 50
 
-    riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
+    ticker, riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
     market = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
                                 factorDynamicsType=FactorDynamicsType.AR,
                                 ticker=ticker,
@@ -44,7 +43,7 @@ if __name__ == '__main__':
             rescaled_trade_lst.append(rescaled_trade)
             rescaled_shares_lst.append(rescaled_shares)
 
-    shares_scale = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.95)
+    shares_scale = 1.5 * np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.95)
 
     print(f'shares_scale = {shares_scale}')
 
