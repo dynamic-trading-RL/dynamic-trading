@@ -34,8 +34,9 @@ optimizerType,shgo
 supervisedRegressorType,ann
 ann_architecture,"64;32;8"
 early_stopping,No
-max_iter,10
-n_iter_no_change,2
+max_iter,20
+n_iter_no_change,5
 activation,relu
 eps_start,0.01
+decrease_eps,Yes
 j_oos,10000

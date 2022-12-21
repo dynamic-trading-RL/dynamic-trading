@@ -39,7 +39,8 @@ class AgentTrainer:
                  max_iter: int = 10,
                  n_iter_no_change: int = 2,
                  activation: str = 'relu',
-                 alpha_sarsa: float = 1.):
+                 alpha_sarsa: float = 1.,
+                 decrease_eps: bool = True):
 
         self.t_ = None
         self.n_batches = None
@@ -87,6 +88,7 @@ class AgentTrainer:
         self._n_iter_no_change = n_iter_no_change
         self._activation = activation
         self._alpha_sarsa = alpha_sarsa
+        self._decrease_eps = decrease_eps
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
@@ -121,7 +123,8 @@ class AgentTrainer:
         for n in tqdm(range(self.n_batches), desc='Generating batches'):
             self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
 
-            eps = max(eps/3, 10**-5)
+            if self._decrease_eps:
+                eps = max(eps/3, 10**-5)
 
         # compute best batch  # todo: is this correct? discuss with SH and PP
         # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
@@ -536,7 +539,14 @@ def read_trading_parameters_training():
 
     alpha_sarsa = float(df_trad_params.loc['alpha_sarsa'][0])
 
+    if df_trad_params.loc['decrease_eps'][0] == 'Yes':
+        decrease_eps = True
+    elif df_trad_params.loc['decrease_eps'][0] == 'No':
+        decrease_eps = False
+    else:
+        raise NameError('Invalid value for parameter decrease_eps in settings.csv')
+
     return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
             optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter,
-            n_iter_no_change, activation, alpha_sarsa)
+            n_iter_no_change, activation, alpha_sarsa, decrease_eps)
