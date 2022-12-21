@@ -24,3 +24,11 @@ t_,50
 n_batches,6
 parallel_computing,Yes
 n_cores,40
+initialEstimateType,random
+predict_pnl_for_reward,Yes
+average_across_models,Yes
+use_best_n_batch,Yes
+train_benchmarking_GP_reward,No
+optimizerType,shgo
+supervisedRegressorType,ann
+eps_start,0.01

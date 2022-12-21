@@ -460,4 +460,52 @@ def read_trading_parameters_training(ticker):
     else:
         raise NameError('Invalid value for parameter parallel_computing in ' + ticker + '_trading_parameters.csv')
 
-    return shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores
+    # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
+    initialEstimateType = InitialEstimateType(df_trad_params.loc['initialEstimateType'][0])
+
+    # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
+    if df_trad_params.loc['predict_pnl_for_reward'][0] == 'Yes':
+        predict_pnl_for_reward = True
+    elif df_trad_params.loc['predict_pnl_for_reward'][0] == 'No':
+        predict_pnl_for_reward = False
+    else:
+        raise NameError('Invalid value for parameter predict_pnl_for_reward in ' + ticker + '_trading_parameters.csv')
+
+    # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
+    if df_trad_params.loc['average_across_models'][0] == 'Yes':
+        average_across_models = True
+    elif df_trad_params.loc['average_across_models'][0] == 'No':
+        average_across_models = False
+    else:
+        raise NameError('Invalid value for parameter average_across_models in ' + ticker + '_trading_parameters.csv')
+
+    # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
+    # provided the best reward in the training phase
+    if df_trad_params.loc['use_best_n_batch'][0] == 'Yes':
+        use_best_n_batch = True
+    elif df_trad_params.loc['use_best_n_batch'][0] == 'No':
+        use_best_n_batch = False
+    else:
+        raise NameError('Invalid value for parameter use_best_n_batch in ' + ticker + '_trading_parameters.csv')
+
+    # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
+    # than the one learned automatically
+    if df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'Yes':
+        train_benchmarking_GP_reward = True
+    elif df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'No':
+        train_benchmarking_GP_reward = False
+    else:
+        raise NameError('Invalid value for parameter train_benchmarking_GP_reward in ' + ticker + '_trading_parameters.csv')
+
+    # which optimizer to use in greedy policy
+    optimizerType = OptimizerType(df_trad_params.loc['optimizerType'][0])
+
+    # choose which model to use for supervised regression
+    supervisedRegressorType = SupervisedRegressorType(df_trad_params.loc['supervisedRegressorType'][0])
+
+    # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
+    eps_start = float(df_trad_params.loc['eps_start'][0])
+
+    return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialEstimateType,
+            predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
+            optimizerType, supervisedRegressorType, eps_start)
