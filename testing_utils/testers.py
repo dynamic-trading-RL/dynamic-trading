@@ -40,7 +40,7 @@ class Tester:
             read_trading_parameters_market()
 
         # Training parameters
-        (shares_scale, _, n_batches, t_, parallel_computing, n_cores, _, _, _, _, _, _, _, _) =\
+        (shares_scale, _, n_batches, t_, parallel_computing, n_cores, _, _, _, _, _, _, _, _, _, _, _, _, _) =\
             read_trading_parameters_training()
 
         self._ticker = ticker

@@ -37,7 +37,7 @@ class AgentTrainer:
                  ann_architecture: tuple = (64, 32, 8),
                  early_stopping: bool = False,
                  max_iter: int = 10,
-                 n_iter_no_change : int = 2,
+                 n_iter_no_change: int = 2,
                  activation: str = 'relu'):
 
         self.t_ = None
@@ -506,6 +506,27 @@ def read_trading_parameters_training():
     # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
     eps_start = float(df_trad_params.loc['eps_start'][0])
 
+    ann_architecture = []
+    ann_architecture_str = df_trad_params.loc['ann_architecture'][0]
+    ann_architecture_str_split = ann_architecture_str.split(';')
+    for layer in ann_architecture_str_split:
+        ann_architecture.append(int(layer))
+    ann_architecture = tuple(ann_architecture)
+
+    if df_trad_params.loc['early_stopping'][0] == 'Yes':
+        early_stopping = True
+    elif df_trad_params.loc['early_stopping'][0] == 'No':
+        early_stopping = False
+    else:
+        raise NameError('Invalid value for parameter early_stopping in settings.csv')
+
+    max_iter = int(df_trad_params.loc['max_iter'][0])
+
+    n_iter_no_change = int(df_trad_params.loc['n_iter_no_change'][0])
+
+    activation = str(df_trad_params.loc['activation'][0])
+
     return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
-            optimizerType, supervisedRegressorType, eps_start)
+            optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter,
+            n_iter_no_change, activation)

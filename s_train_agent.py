@@ -21,7 +21,8 @@ if __name__ == '__main__':
     # Training parameters
     (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores,
      initialEstimateType, predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
-     optimizerType, supervisedRegressorType, eps_start) = read_trading_parameters_training()
+     optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter, n_iter_no_change,
+     activation) = read_trading_parameters_training()
 
     # -------------------- Execution
     agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
@@ -35,7 +36,12 @@ if __name__ == '__main__':
                                 shares_scale=shares_scale,
                                 train_benchmarking_GP_reward=train_benchmarking_GP_reward,
                                 supervisedRegressorType=supervisedRegressorType,
-                                initialEstimateType=initialEstimateType)
+                                initialEstimateType=initialEstimateType,
+                                ann_architecture=ann_architecture,
+                                early_stopping=early_stopping,
+                                max_iter=max_iter,
+                                n_iter_no_change=n_iter_no_change,
+                                activation=activation)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=eps_start)
 

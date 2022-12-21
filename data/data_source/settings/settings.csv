@@ -31,5 +31,10 @@ use_best_n_batch,Yes
 train_benchmarking_GP_reward,No
 optimizerType,shgo
 supervisedRegressorType,ann
+ann_architecture,"64;32;8"
+early_stopping,No
+max_iter,10
+n_iter_no_change,2
+activation,relu
 eps_start,0.01
 j_oos,10000
