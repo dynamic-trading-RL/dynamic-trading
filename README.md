@@ -29,7 +29,7 @@ The folder dynamic-trading/data/data_source/settings contains the main settings 
 - pnl_in_state: 'Yes' or 'No', determines whether the pnl should be in the state variable
 - GP_action_in_state: 'Yes' or 'No', determines whether the GP action should be in the state variable
 - strategyType: 'Unconstrained' or 'LongOnly', determines the strategy of the agent
-- estimateInitializationType: can be 'RandomUniform' (value function is initialized randomly and uniformly), 'RandomTruncNorm' (value function is initialized randomly and truncated normally) or 'GP' (agent follows GP if value function is not given)
+- randomActionType: can be 'RandomUniform' (value function is initialized randomly and uniformly), 'RandomTruncNorm' (value function is initialized randomly and truncated normally) or 'GP' (agent follows GP if value function is not given)
 - gamma: discount factor in RL target
 - start_date: time series will start from here
 - in_sample_proportion: the proportion of the complete time series on which calibrating the dynamics (and hence the agent)

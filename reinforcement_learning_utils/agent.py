@@ -5,7 +5,7 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import EstimateInitializationType, StrategyType, OptimizerType, InitialEstimateType
+from enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -16,7 +16,7 @@ class Agent:
                  optimizerType: OptimizerType = OptimizerType.shgo,
                  average_across_models: bool = True,
                  use_best_n_batch: bool = False,
-                 initialEstimateType: InitialEstimateType = InitialEstimateType.zero):
+                 initialQvalueEstimateType: InitialQvalueEstimateType = InitialQvalueEstimateType.zero):
 
         self.environment = environment
 
@@ -29,7 +29,7 @@ class Agent:
 
         self._average_across_models = average_across_models
         self._use_best_n_batch = use_best_n_batch
-        self._initialEstimateType = initialEstimateType
+        self._initialQvalueEstimateType = initialQvalueEstimateType
 
         self._tol = 10**-10  # numerical tolerance for bound conditions requirements
 
@@ -103,12 +103,12 @@ class Agent:
 
         if len(self._q_value_models) == 0:  # We are at batch 0: use initialization
 
-            if self.estimateInitializationType in (EstimateInitializationType.RandomUniform,
-                                                   EstimateInitializationType.RandomTruncNorm):
+            if self.randomActionType in (RandomActionType.RandomUniform,
+                                                   RandomActionType.RandomTruncNorm):
 
                 action = self._random_action(state)
 
-            elif self.estimateInitializationType == EstimateInitializationType.GP:
+            elif self.randomActionType == RandomActionType.GP:
 
                 rescaled_trade = self.environment.agent_GP.policy(factor=state.factor,
                                                                   rescaled_shares=state.rescaled_shares,
@@ -118,7 +118,7 @@ class Agent:
                 action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
             else:
-                raise NameError('Invalid estimateInitializationType: ' + self.estimateInitializationType.value)
+                raise NameError('Invalid randomActionType: ' + self.randomActionType.value)
 
         else:
             rescaled_trade = self._optimize_q_value_trading(state)
@@ -131,13 +131,13 @@ class Agent:
 
         lower_bound, upper_bound = self._get_action_bounds_trading(state)
 
-        if self.estimateInitializationType == EstimateInitializationType.RandomUniform:
+        if self.randomActionType == RandomActionType.RandomUniform:
 
             rescaled_trade = lower_bound + (upper_bound - lower_bound) * np.random.rand()
 
         else:
 
-            # TODO: We are implying a preference for EstimateInitializationType.RandomTruncNorm, in that this is chosen
+            # TODO: We are implying a preference for randomActionType.RandomTruncNorm, in that this is chosen
             #  by default even if the initialization is set to GP. Make a better structuring of this part.
 
             loc = self._get_trade_loc(lower_bound, upper_bound)
@@ -176,10 +176,10 @@ class Agent:
 
         if len(self._q_value_models) == 0:
 
-            if self._initialEstimateType == InitialEstimateType.random:
-                qvl = np.random.randn()
+            if self._initialQvalueEstimateType == InitialQvalueEstimateType.random:
+                qvl = state.average_past_pnl*state.shares * np.random.randn()
 
-            elif self._initialEstimateType == InitialEstimateType.zero:
+            elif self._initialQvalueEstimateType == InitialQvalueEstimateType.zero:
                 qvl = 0.
 
         else:
@@ -301,18 +301,18 @@ class Agent:
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_lam_kappa.loc['kappa'])
 
-        estimateInitializationType = \
-            EstimateInitializationType(str(df_trad_params.loc['estimateInitializationType'][0]))
+        randomActionType = \
+            RandomActionType(str(df_trad_params.loc['randomActionType'][0]))
         strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
 
         self.gamma = gamma
         self.kappa = kappa
-        self.estimateInitializationType = estimateInitializationType
+        self.randomActionType = randomActionType
         self.strategyType = strategyType
 
         self.environment.get_trading_parameters_from_agent(self.gamma, self.kappa)
 
-        if self.estimateInitializationType == EstimateInitializationType.GP:
+        if self.randomActionType == RandomActionType.GP:
             self.environment.observe_GP = True
             self.environment.instantiate_market_benchmark_and_agent_GP()
 

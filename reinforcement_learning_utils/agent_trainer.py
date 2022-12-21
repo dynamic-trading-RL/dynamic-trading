@@ -12,7 +12,7 @@ import multiprocessing as mp
 from functools import partial
 
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType, \
-    InitialEstimateType
+    InitialQvalueEstimateType
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -33,14 +33,15 @@ class AgentTrainer:
                  train_benchmarking_GP_reward: bool = False,
                  plot_regressor: bool = True,
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
-                 initialEstimateType: InitialEstimateType = InitialEstimateType.zero,
+                 initialQvalueEstimateType: InitialQvalueEstimateType = InitialQvalueEstimateType.zero,
                  ann_architecture: tuple = (64, 32, 8),
                  early_stopping: bool = False,
                  max_iter: int = 10,
                  n_iter_no_change: int = 2,
                  activation: str = 'relu',
                  alpha_sarsa: float = 1.,
-                 decrease_eps: bool = True):
+                 decrease_eps: bool = True,
+                 random_initial_state: bool = True):
 
         self.t_ = None
         self.n_batches = None
@@ -60,12 +61,12 @@ class AgentTrainer:
         dump(self._use_best_n_batch,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
 
-        self.environment = Environment(market=self.market)
+        self.environment = Environment(market=self.market, random_initial_state=random_initial_state)
         self.agent = Agent(self.environment,
                            optimizerType=self._optimizerType,
                            average_across_models=self._average_across_models,
                            use_best_n_batch=self._use_best_n_batch,
-                           initialEstimateType=initialEstimateType)
+                           initialQvalueEstimateType=initialQvalueEstimateType)
 
         if train_benchmarking_GP_reward and not self.environment.observe_GP:
             self.environment.observe_GP = True
@@ -89,6 +90,7 @@ class AgentTrainer:
         self._activation = activation
         self._alpha_sarsa = alpha_sarsa
         self._decrease_eps = decrease_eps
+        self._random_initial_state = random_initial_state
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
@@ -472,7 +474,7 @@ def read_trading_parameters_training():
         raise NameError('Invalid value for parameter parallel_computing in settings.csv')
 
     # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
-    initialEstimateType = InitialEstimateType(df_trad_params.loc['initialEstimateType'][0])
+    initialQvalueEstimateType = InitialQvalueEstimateType(df_trad_params.loc['initialQvalueEstimateType'][0])
 
     # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
     if df_trad_params.loc['predict_pnl_for_reward'][0] == 'Yes':
@@ -546,7 +548,14 @@ def read_trading_parameters_training():
     else:
         raise NameError('Invalid value for parameter decrease_eps in settings.csv')
 
-    return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialEstimateType,
+    if df_trad_params.loc['random_initial_state'][0] == 'Yes':
+        random_initial_state = True
+    elif df_trad_params.loc['random_initial_state'][0] == 'No':
+        random_initial_state = False
+    else:
+        raise NameError('Invalid value for parameter random_initial_state in settings.csv')
+
+    return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialQvalueEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
             optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter,
-            n_iter_no_change, activation, alpha_sarsa, decrease_eps)
+            n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state)

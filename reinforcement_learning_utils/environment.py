@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import os
 
@@ -9,13 +10,14 @@ from market_utils.market import Market, instantiate_market
 
 class Environment:
 
-    def __init__(self, market: Market):
+    def __init__(self, market: Market, random_initial_state: bool = True):
 
         self.kappa = None
         self.gamma = None
         self.agent_GP = None
         self.market_benchmark = None
         self.market = market
+        self._random_initial_state = random_initial_state
         self._set_attributes()
 
     def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int, predict_pnl_for_reward: bool):
@@ -30,10 +32,15 @@ class Environment:
 
         state = State(environment=self)
 
-        rescaled_shares = 0.
-        other_observable = 0.
+        if self._random_initial_state:
+            rescaled_shares = -1 + 2*np.random.rand()
+            other_observable = 0.
+            pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=-1)
+        else:
+            rescaled_shares = 0.
+            other_observable = 0.
+            pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=0)
 
-        pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=0)
         ttm = self.t_
 
         if self.observe_GP:

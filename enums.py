@@ -46,7 +46,7 @@ class ModeType(Enum):
     OutOfSample = 'OutOfSample'
 
 
-class EstimateInitializationType(Enum):
+class RandomActionType(Enum):
 
     RandomUniform = 'RandomUniform'
     RandomTruncNorm = 'RandomTruncNorm'
@@ -74,7 +74,7 @@ class SupervisedRegressorType(Enum):
     ann = 'ann'
     gradient_boosting = 'gradient_boosting'
 
-class InitialEstimateType(Enum):
+class InitialQvalueEstimateType(Enum):
 
     zero = 'zero'
     random = 'random'
