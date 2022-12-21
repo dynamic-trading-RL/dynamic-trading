@@ -22,12 +22,11 @@ from testing_utils.hypothesis_testing import TTester
 
 class Tester:
 
-    def __init__(self, ticker, use_assessment_period: bool = False, assessment_proportion: float = 0.1):
+    def __init__(self, use_assessment_period: bool = False, assessment_proportion: float = 0.1):
 
         # TODO: evaluating the introduction of the concept of assessment period
 
         self._factor_pnl_and_price = None
-        self._ticker = ticker
         self._use_assessment_period = use_assessment_period
         self._assessment_proportion = assessment_proportion
         self._read_parameters()
@@ -37,12 +36,14 @@ class Tester:
     def _read_parameters(self):
 
         # Trading parameters
-        riskDriverDynamicsType, factorDynamicsType, riskDriverType =\
+        ticker, riskDriverDynamicsType, factorDynamicsType, riskDriverType =\
             read_trading_parameters_market()
 
         # Training parameters
-        shares_scale, _, n_batches, t_, parallel_computing, n_cores = read_trading_parameters_training(self._ticker)
+        (shares_scale, _, n_batches, t_, parallel_computing, n_cores, _, _, _, _, _, _, _, _) =\
+            read_trading_parameters_training()
 
+        self._ticker = ticker
         self._riskDriverDynamicsType = riskDriverDynamicsType
         self._factorDynamicsType = factorDynamicsType
         self._riskDriverType = riskDriverType
@@ -184,9 +185,9 @@ class Tester:
 
 class BackTester(Tester):
 
-    def __init__(self, ticker: str, split_strategy: bool = True):
+    def __init__(self, split_strategy: bool = True):
 
-        super().__init__(ticker)
+        super().__init__()
         self._split_strategy = split_strategy
         self._read_out_of_sample_proportion_len()
 
@@ -691,9 +692,9 @@ class SimulationTester(Tester):
 
     # TODO: Finalize implementation of this class
 
-    def __init__(self, ticker: str):
+    def __init__(self):
 
-        super().__init__(ticker)
+        super().__init__()
         self.t_ = None
         self.j_ = None
 
@@ -1176,6 +1177,18 @@ class SimulationTester(Tester):
             ttm -= 1
 
         return strategy_j, trades_j, value_j, cost_j, risk_j
+
+
+def read_out_of_sample_parameters():
+
+    filename = os.path.dirname(os.path.dirname(__file__)) + \
+               '/data/data_source/settings/settings.csv'
+    df_trad_params = pd.read_csv(filename, index_col=0)
+
+    j_oos = int(df_trad_params.loc['j_oos'][0])
+    t_ = int(df_trad_params.loc['t_'][0])
+
+    return j_oos, t_
 
 
 if __name__ == '__main__':

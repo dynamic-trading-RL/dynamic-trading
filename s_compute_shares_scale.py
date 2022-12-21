@@ -12,11 +12,10 @@ if __name__ == '__main__':
 
     np.random.seed(789)
 
-    ticker = read_ticker()
     j_episodes = 10000
     t_ = 50
 
-    riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
+    ticker, riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
     market = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
                                 factorDynamicsType=FactorDynamicsType.AR,
                                 ticker=ticker,

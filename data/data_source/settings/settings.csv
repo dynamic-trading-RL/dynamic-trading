@@ -32,3 +32,4 @@ train_benchmarking_GP_reward,No
 optimizerType,shgo
 supervisedRegressorType,ann
 eps_start,0.01
+j_oos,10000

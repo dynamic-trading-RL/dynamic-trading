@@ -439,7 +439,7 @@ class AgentTrainer:
                             + 'but only %d market paths have been simulated.' % (j + 1, self.j_episodes + 1))
 
 
-def read_trading_parameters_training(ticker):
+def read_trading_parameters_training():
     filename = os.path.dirname(os.path.dirname(__file__)) + \
                '/data/data_source/settings/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
@@ -458,7 +458,7 @@ def read_trading_parameters_training(ticker):
         parallel_computing = False
         n_cores = None
     else:
-        raise NameError('Invalid value for parameter parallel_computing in ' + ticker + '_trading_parameters.csv')
+        raise NameError('Invalid value for parameter parallel_computing in settings.csv')
 
     # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
     initialEstimateType = InitialEstimateType(df_trad_params.loc['initialEstimateType'][0])
@@ -469,7 +469,7 @@ def read_trading_parameters_training(ticker):
     elif df_trad_params.loc['predict_pnl_for_reward'][0] == 'No':
         predict_pnl_for_reward = False
     else:
-        raise NameError('Invalid value for parameter predict_pnl_for_reward in ' + ticker + '_trading_parameters.csv')
+        raise NameError('Invalid value for parameter predict_pnl_for_reward in settings.csv')
 
     # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
     if df_trad_params.loc['average_across_models'][0] == 'Yes':
@@ -477,7 +477,7 @@ def read_trading_parameters_training(ticker):
     elif df_trad_params.loc['average_across_models'][0] == 'No':
         average_across_models = False
     else:
-        raise NameError('Invalid value for parameter average_across_models in ' + ticker + '_trading_parameters.csv')
+        raise NameError('Invalid value for parameter average_across_models in settings.csv')
 
     # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
     # provided the best reward in the training phase
@@ -486,7 +486,7 @@ def read_trading_parameters_training(ticker):
     elif df_trad_params.loc['use_best_n_batch'][0] == 'No':
         use_best_n_batch = False
     else:
-        raise NameError('Invalid value for parameter use_best_n_batch in ' + ticker + '_trading_parameters.csv')
+        raise NameError('Invalid value for parameter use_best_n_batch in settings.csv')
 
     # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
     # than the one learned automatically
@@ -495,7 +495,7 @@ def read_trading_parameters_training(ticker):
     elif df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'No':
         train_benchmarking_GP_reward = False
     else:
-        raise NameError('Invalid value for parameter train_benchmarking_GP_reward in ' + ticker + '_trading_parameters.csv')
+        raise NameError('Invalid value for parameter train_benchmarking_GP_reward in settings.csv')
 
     # which optimizer to use in greedy policy
     optimizerType = OptimizerType(df_trad_params.loc['optimizerType'][0])

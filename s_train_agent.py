@@ -16,13 +16,12 @@ if __name__ == '__main__':
 
     # -------------------- Input parameters
     # Market parameters
-    ticker = read_ticker()
-    riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
+    ticker, riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
 
     # Training parameters
     (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores,
      initialEstimateType, predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
-     optimizerType, supervisedRegressorType, eps_start) = read_trading_parameters_training(ticker)
+     optimizerType, supervisedRegressorType, eps_start) = read_trading_parameters_training()
 
     # -------------------- Execution
     agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
