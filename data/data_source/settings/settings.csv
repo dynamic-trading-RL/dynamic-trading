@@ -25,6 +25,7 @@ n_batches,6
 parallel_computing,Yes
 n_cores,40
 initialEstimateType,random
+alpha_sarsa,1
 predict_pnl_for_reward,Yes
 average_across_models,Yes
 use_best_n_batch,Yes

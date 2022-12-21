@@ -38,7 +38,8 @@ class AgentTrainer:
                  early_stopping: bool = False,
                  max_iter: int = 10,
                  n_iter_no_change: int = 2,
-                 activation: str = 'relu'):
+                 activation: str = 'relu',
+                 alpha_sarsa: float = 1.):
 
         self.t_ = None
         self.n_batches = None
@@ -85,6 +86,7 @@ class AgentTrainer:
         self._max_iter = max_iter
         self._n_iter_no_change = n_iter_no_change
         self._activation = activation
+        self._alpha_sarsa = alpha_sarsa
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
@@ -254,7 +256,8 @@ class AgentTrainer:
             next_action = self.agent.policy(state=next_state, eps=eps)
 
             # Observe next point on value function grid
-            q = self._sarsa_updating_formula(next_state=next_state, next_action=next_action, reward=reward_RL)
+            q = self._sarsa_updating_formula(state=state, action=action, next_state=next_state, next_action=next_action,
+                                             reward=reward_RL)
 
             # Store point estimate
             state_action_grid.append([state, action])
@@ -283,9 +286,14 @@ class AgentTrainer:
 
         return reward, next_state
 
-    def _sarsa_updating_formula(self, next_state: State, next_action: Action, reward: float):
+    def _sarsa_updating_formula(self, state: State, action: Action, next_state: State, next_action: Action,
+                                reward: float):
 
-        q = reward + self.environment.gamma * self.agent.q_value(state=next_state, action=next_action)
+        q = self.agent.q_value(state=state, action=action) +\
+            self._alpha_sarsa * (reward
+                                 + self.environment.gamma * self.agent.q_value(state=next_state, action=next_action)
+                                 )
+
 
         return q
 
@@ -526,7 +534,9 @@ def read_trading_parameters_training():
 
     activation = str(df_trad_params.loc['activation'][0])
 
+    alpha_sarsa = float(df_trad_params.loc['alpha_sarsa'][0])
+
     return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
             optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter,
-            n_iter_no_change, activation)
+            n_iter_no_change, activation, alpha_sarsa)
