@@ -717,6 +717,8 @@ class SimulationTester(Tester):
 
     def make_plots(self, j_trajectories_plot):
 
+        # todo: should also plot average cumulative returns with dispersion
+
         self._plot_shares(j_trajectories_plot)
         self._plot_value()
         self._plot_value_diff()
