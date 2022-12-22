@@ -177,7 +177,7 @@ class Agent:
         if len(self._q_value_models) == 0:
 
             if self._initialQvalueEstimateType == InitialQvalueEstimateType.random:
-                qvl = state.average_past_pnl*state.shares * np.random.randn()
+                qvl = np.random.randn()
 
             elif self._initialQvalueEstimateType == InitialQvalueEstimateType.zero:
                 qvl = 0.
