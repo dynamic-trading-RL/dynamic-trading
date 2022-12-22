@@ -73,6 +73,7 @@ class SupervisedRegressorType(Enum):
 
     ann = 'ann'
     gradient_boosting = 'gradient_boosting'
+    polynomial_regression = 'polynomial_regression'
 
 class InitialQvalueEstimateType(Enum):
 

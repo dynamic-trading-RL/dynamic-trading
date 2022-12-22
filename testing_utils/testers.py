@@ -40,8 +40,8 @@ class Tester:
             read_trading_parameters_market()
 
         # Training parameters
-        (shares_scale, _, n_batches, t_, parallel_computing, n_cores, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) =\
-            read_trading_parameters_training()
+        (shares_scale, _, n_batches, t_, parallel_computing, n_cores,
+         _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) = read_trading_parameters_training()
 
         self._ticker = ticker
         self._riskDriverDynamicsType = riskDriverDynamicsType
@@ -77,10 +77,14 @@ class Tester:
             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/optimizerType.joblib')
         average_across_models = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
         use_best_n_batch = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
+        supervisedRegressorType = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/supervisedRegressorType.joblib')
+        polynomial_regression_degree = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
         agentRL = Agent(environment,
                         optimizerType=optimizerType,
                         average_across_models=average_across_models,
-                        use_best_n_batch=use_best_n_batch)
+                        use_best_n_batch=use_best_n_batch,
+                        supervisedRegressorType=supervisedRegressorType,
+                        polynomial_regression_degree=polynomial_regression_degree)
         agentRL.load_q_value_models(self._n_batches)
 
         self._agents = {'Markowitz': agentMarkowitz, 'GP': agentGP, 'RL': agentRL}

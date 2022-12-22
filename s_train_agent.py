@@ -20,7 +20,8 @@ if __name__ == '__main__':
     (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores,
      initialQvalueEstimateType, predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
      optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter, n_iter_no_change,
-     activation, alpha_sarsa, decrease_eps, random_initial_state) = read_trading_parameters_training()
+     activation, alpha_sarsa, decrease_eps, random_initial_state, polynomial_regression_degree) =\
+        read_trading_parameters_training()
 
     # -------------------- Execution
     agentTrainer = AgentTrainer(riskDriverDynamicsType=riskDriverDynamicsType,
@@ -42,7 +43,8 @@ if __name__ == '__main__':
                                 activation=activation,
                                 alpha_sarsa=alpha_sarsa,
                                 decrease_eps=decrease_eps,
-                                random_initial_state=random_initial_state)
+                                random_initial_state=random_initial_state,
+                                polynomial_regression_degree=polynomial_regression_degree)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=eps_start)
 

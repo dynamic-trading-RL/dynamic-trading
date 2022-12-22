@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from sklearn.preprocessing import PolynomialFeatures
 
 
 def read_ticker():
@@ -16,3 +17,12 @@ def get_available_futures_tickers():
            'nickel', 'silver', 'sugar', 'tin', 'unleaded', 'zinc']
 
     return lst
+
+
+def instantiate_polynomialFeatures(degree):
+
+    poly = PolynomialFeatures(degree=degree,
+                              interaction_only=False,
+                              include_bias=True)
+
+    return poly

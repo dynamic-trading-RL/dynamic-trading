@@ -5,7 +5,8 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType
+from enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType, SupervisedRegressorType
+from gen_utils.utils import instantiate_polynomialFeatures
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -16,7 +17,9 @@ class Agent:
                  optimizerType: OptimizerType = OptimizerType.shgo,
                  average_across_models: bool = True,
                  use_best_n_batch: bool = False,
-                 initialQvalueEstimateType: InitialQvalueEstimateType = InitialQvalueEstimateType.zero):
+                 initialQvalueEstimateType: InitialQvalueEstimateType = InitialQvalueEstimateType.zero,
+                 supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
+                 polynomial_regression_degree: int = 2):
 
         self.environment = environment
 
@@ -30,6 +33,8 @@ class Agent:
         self._average_across_models = average_across_models
         self._use_best_n_batch = use_best_n_batch
         self._initialQvalueEstimateType = initialQvalueEstimateType
+        self._supervisedRegressorType = supervisedRegressorType
+        self._polynomial_regression_degree = polynomial_regression_degree
 
         self._tol = 10**-10  # numerical tolerance for bound conditions requirements
 
@@ -185,6 +190,10 @@ class Agent:
         else:
 
             q_value_model_input = self.extract_q_value_model_input_trading(state, action)
+
+            if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+                poly = instantiate_polynomialFeatures(degree=self._polynomial_regression_degree)
+                q_value_model_input = poly.fit_transform(q_value_model_input)
 
             qvl = 0.
 

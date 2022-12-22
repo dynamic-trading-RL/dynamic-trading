@@ -206,8 +206,10 @@ class Environment:
         # ttm_in_state
         if str(df_trad_params.loc['ttm_in_state'][0]) == 'Yes':
             ttm_in_state = True
+            self._add_absorbing_state = True
         elif str(df_trad_params.loc['GP_action_in_state'][0]) == 'No':
             ttm_in_state = False
+            self._add_absorbing_state = True
         else:
             raise NameError('ttm_in_state in settings file must be either Yes or No')
         self.ttm_in_state = ttm_in_state

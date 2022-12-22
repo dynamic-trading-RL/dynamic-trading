@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from joblib import load, dump
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPRegressor
 from tqdm import tqdm
 import multiprocessing as mp
@@ -13,6 +14,7 @@ from functools import partial
 
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType, \
     InitialQvalueEstimateType
+from gen_utils.utils import instantiate_polynomialFeatures
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -41,7 +43,8 @@ class AgentTrainer:
                  activation: str = 'relu',
                  alpha_sarsa: float = 1.,
                  decrease_eps: bool = True,
-                 random_initial_state: bool = True):
+                 random_initial_state: bool = True,
+                 polynomial_regression_degree: int = 1):
 
         self.t_ = None
         self.n_batches = None
@@ -62,11 +65,7 @@ class AgentTrainer:
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
 
         self.environment = Environment(market=self.market, random_initial_state=random_initial_state)
-        self.agent = Agent(self.environment,
-                           optimizerType=self._optimizerType,
-                           average_across_models=self._average_across_models,
-                           use_best_n_batch=self._use_best_n_batch,
-                           initialQvalueEstimateType=initialQvalueEstimateType)
+        self._add_absorbing_state = self.environment._add_absorbing_state
 
         if train_benchmarking_GP_reward and not self.environment.observe_GP:
             self.environment.observe_GP = True
@@ -82,6 +81,8 @@ class AgentTrainer:
         self._plot_regressor = plot_regressor
         self._supervisedRegressorType = supervisedRegressorType
         print(f'Fitting a {supervisedRegressorType.value} regressor')
+        dump(self._supervisedRegressorType,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/supervisedRegressorType.joblib')
 
         self._ann_architecture = ann_architecture
         self._early_stopping = early_stopping
@@ -91,6 +92,17 @@ class AgentTrainer:
         self._alpha_sarsa = alpha_sarsa
         self._decrease_eps = decrease_eps
         self._random_initial_state = random_initial_state
+        self._polynomial_regression_degree = polynomial_regression_degree
+        dump(self._polynomial_regression_degree,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
+
+        self.agent = Agent(self.environment,
+                           optimizerType=self._optimizerType,
+                           average_across_models=self._average_across_models,
+                           use_best_n_batch=self._use_best_n_batch,
+                           initialQvalueEstimateType=initialQvalueEstimateType,
+                           supervisedRegressorType=self._supervisedRegressorType,
+                           polynomial_regression_degree=self._polynomial_regression_degree)
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
@@ -126,7 +138,7 @@ class AgentTrainer:
             self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
 
             if self._decrease_eps:
-                eps = max(eps/3, 10**-5)
+                eps = max(eps / 3, 10 ** -5)
 
         # compute best batch  # todo: is this correct? discuss with SH and PP
         # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
@@ -165,7 +177,7 @@ class AgentTrainer:
 
         self._check_n(n)
 
-        self.market.simulate_market_trading(n, self.j_episodes, self.t_)  # TODO: should go to dedicated method
+        self.market.simulate_market_trading(n, self.j_episodes, self.t_ + 2)  # TODO: should go to dedicated method
 
         self.state_action_grid_dict[n] = {}
         self.q_grid_dict[n] = {}
@@ -205,7 +217,7 @@ class AgentTrainer:
         p = mp.Pool(n_cores)
 
         episodes = p.map(func=generate_single_episode, iterable=range(self.j_episodes),
-                         chunksize=int(self.j_episodes/n_cores))
+                         chunksize=int(self.j_episodes / n_cores))
 
         p.close()
         p.join()
@@ -240,7 +252,16 @@ class AgentTrainer:
         # Choose action at t = 0
         action = self.agent.policy(state=state, eps=eps)
 
-        for t in range(1, self.t_):
+        for t in range(1, self.t_ + 2):
+
+            if t == self.t_ + 1:
+                if self._add_absorbing_state:
+                    q = 0
+                    state_action_grid.append([state, action])
+                    q_grid.append(q)
+                    continue
+                else:
+                    continue
 
             # Observe reward_RL and state at time t
             reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
@@ -251,8 +272,8 @@ class AgentTrainer:
                 if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
                     action = state.action_GP
-                    reward_RL, next_state = self._get_reward_next_state_trading(state=state, action=action, n=n, j=j,
-                                                                                t=t)
+                    reward_RL, next_state =\
+                        self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
 
             reward_RL_j += reward_RL
             reward_GP_j += reward_GP
@@ -337,6 +358,11 @@ class AgentTrainer:
                                               alpha=0.9,  # only used if loss='quantile'
                                               max_depth=int(np.log(len(y_array))),
                                               verbose=1).fit(x_array, y_array)
+        elif self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            poly = instantiate_polynomialFeatures(degree=self._polynomial_regression_degree)
+            poly_features = poly.fit_transform(x_array)
+            model = LinearRegression(fit_intercept=False).fit(poly_features, y_array)
+            print(f'Score: {model.score(poly_features, y_array): .2f}')
         else:
             raise NameError(f'Invalid supervisedRegressorType: {self._supervisedRegressorType}')
 
@@ -358,9 +384,16 @@ class AgentTrainer:
         j_plot = np.random.randint(low=0,
                                    high=self.j_episodes * (self.t_ - 1),
                                    size=min(self.j_episodes * (self.t_ - 1), 10 ** 5))
+
         x_plot = x_array[j_plot, :]
         y_plot = y_array[j_plot]
-        q_predicted = model.predict(x_plot)
+
+        if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            poly = instantiate_polynomialFeatures(self._polynomial_regression_degree)
+            x_plot_poly = poly.fit_transform(x_plot)
+            q_predicted = model.predict(x_plot_poly)
+        else:
+            q_predicted = model.predict(x_plot)
 
         # --------- Plotting y_plot vs q_predicted
         plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
@@ -374,7 +407,7 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
+        filename = os.path.dirname(os.path.dirname(__file__)) + \
                    '/figures/training/training_batch_%d_realized_vs_predicted_q.png' % n
         plt.savefig(filename)
 
@@ -391,7 +424,7 @@ class AgentTrainer:
             plt.xlabel(variable)
             plt.ylabel('q')
             plt.title('Realized (blue) / predicted (red) q')
-            filename = os.path.dirname(os.path.dirname(__file__)) +\
+            filename = os.path.dirname(os.path.dirname(__file__)) + \
                        f'/figures/training/training_batch_{n}_{variable}.png'
             plt.savefig(filename)
 
@@ -406,7 +439,7 @@ class AgentTrainer:
         plt.xlabel('action')
         plt.ylabel('q')
         plt.title('Realized (blue) / predicted (red) q')
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
+        filename = os.path.dirname(os.path.dirname(__file__)) + \
                    f'/figures/training/training_batch_{n}_action.png'
         plt.savefig(filename)
 
@@ -425,8 +458,8 @@ class AgentTrainer:
     def _prepare_data_for_supervised_regressor_fit(self, n):
         x_grid = []
         y_grid = []
-        for j in range(self.j_episodes):
-            for t in range(self.t_ - 1):
+        for j in self.state_action_grid_dict[n].keys():
+            for t in range(len(self.state_action_grid_dict[n][j])):
                 state = self.state_action_grid_dict[n][j][t][0]
                 action = self.state_action_grid_dict[n][j][t][1]
 
@@ -554,7 +587,9 @@ def read_trading_parameters_training():
     else:
         raise NameError('Invalid value for parameter random_initial_state in settings.csv')
 
+    polynomial_regression_degree = int(df_trad_params.loc['polynomial_regression_degree'][0])
+
     return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialQvalueEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
             optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter,
-            n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state)
+            n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state, polynomial_regression_degree)
