@@ -38,6 +38,7 @@ early_stopping,No
 max_iter,20
 n_iter_no_change,5
 activation,relu
+polynomial_regression_degree,1
 eps_start,0.01
 decrease_eps,No
 j_oos,10000
