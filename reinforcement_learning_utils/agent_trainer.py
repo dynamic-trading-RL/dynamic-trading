@@ -334,7 +334,7 @@ class AgentTrainer:
         elif self._supervisedRegressorType == SupervisedRegressorType.gradient_boosting:
             model = GradientBoostingRegressor(random_state=789,
                                               loss='squared_error',
-                                              alpha=0.9,  # for loss='quantile'
+                                              alpha=0.9,  # only used if loss='quantile'
                                               max_depth=int(np.log(len(y_array))),
                                               verbose=1).fit(x_array, y_array)
         else:
