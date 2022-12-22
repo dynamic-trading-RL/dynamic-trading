@@ -359,6 +359,7 @@ class AgentTrainer:
                                               max_depth=int(np.log(len(y_array))),
                                               verbose=1).fit(x_array, y_array)
         elif self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            # todo: should also provide a derivative (in a) to the global optimizer
             poly = instantiate_polynomialFeatures(degree=self._polynomial_regression_degree)
             poly_features = poly.fit_transform(x_array)
             model = LinearRegression(fit_intercept=False).fit(poly_features, y_array)
