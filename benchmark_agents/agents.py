@@ -50,16 +50,14 @@ class AgentBenchmark:
         self.kappa = kappa
         self.strategyType = strategyType
 
-        self.cost_is_quadratic = True
-
     def _read_trading_parameters(self):
 
         df_trad_params = self._get_df_trad_params()
         df_lam_kappa = self._get_df_lam_kappa()
 
         gamma = float(df_trad_params.loc['gamma'][0])
-        strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
         kappa = float(df_lam_kappa.loc['kappa'])
+        strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
 
         return gamma, kappa, strategyType
 
@@ -116,11 +114,11 @@ class AgentMarkowitz(AgentBenchmark):
 
     def __init__(self, market: Market):
         super().__init__(market)
+        self._set_specific_markowitz_attributes()
 
     def policy(self, factor: float, rescaled_shares: float, shares_scale: float = 1,
                price: float = None):
-        shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares,
-                                                                          price, shares_scale)
+        shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares, price, shares_scale)
 
         trade = self._get_markowitz_trade(shares, pnl, sig2)
 
@@ -130,7 +128,7 @@ class AgentMarkowitz(AgentBenchmark):
 
     def _get_markowitz_trade(self, shares, pnl, sig2):
 
-        if self.cost_is_quadratic:
+        if self.use_quadratic_cost_in_markowitz:
             trade = ((self.kappa * self.gamma + self.lam) * sig2) ** (-1) * (self.gamma * pnl + self.lam*sig2*shares)\
                     - shares
         else:
@@ -139,6 +137,19 @@ class AgentMarkowitz(AgentBenchmark):
         trade = self._update_trade_by_strategyType(shares, trade)
 
         return trade
+
+    def _set_specific_markowitz_attributes(self):
+
+        df_trad_params = self._get_df_trad_params()
+
+        if str(df_trad_params.loc['use_quadratic_cost_in_markowitz'][0]) == 'Yes':
+            use_quadratic_cost_in_markowitz = True
+        elif str(df_trad_params.loc['use_quadratic_cost_in_markowitz'][0]) == 'No':
+            use_quadratic_cost_in_markowitz = False
+        else:
+            raise NameError('Invalid value for parameter use_quadratic_cost_in_markowitz in settings.csv')
+
+        self.use_quadratic_cost_in_markowitz = use_quadratic_cost_in_markowitz
 
 
 class AgentGP(AgentBenchmark):

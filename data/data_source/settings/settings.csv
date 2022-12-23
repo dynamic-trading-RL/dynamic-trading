@@ -4,6 +4,7 @@ alpha_sarsa,0.75
 ann_architecture,"64;32;8"
 average_across_models,Yes
 average_past_pnl_in_state,Yes
+use_quadratic_cost_in_markowitz,No
 decrease_eps,No
 early_stopping,No
 end_date,
