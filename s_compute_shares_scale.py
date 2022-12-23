@@ -43,7 +43,10 @@ if __name__ == '__main__':
             rescaled_trade_lst.append(rescaled_trade)
             rescaled_shares_lst.append(rescaled_shares)
 
-    shares_scale = 1.5 * np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.95)
+    if agentMarkowitz.use_quadratic_cost_in_markowitz:
+        shares_scale = 3 * np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.95)
+    else:
+        shares_scale = np.quantile(a=np.abs(np.array(rescaled_shares_lst)), q=0.95)
 
     print(f'shares_scale = {shares_scale}')
 

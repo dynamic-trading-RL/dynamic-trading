@@ -6,7 +6,7 @@ from joblib import dump, load
 from scipy.stats import truncnorm
 
 from enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType, SupervisedRegressorType
-from gen_utils.utils import instantiate_polynomialFeatures
+from gen_utils.utils import instantiate_polynomialFeatures, find_polynomial_minimum
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
@@ -193,12 +193,15 @@ class Agent:
 
             if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
                 poly = instantiate_polynomialFeatures(degree=self._polynomial_regression_degree)
+
                 q_value_model_input = poly.fit_transform(q_value_model_input)
 
-            qvl = 0.
-
             if self._average_across_models:
-                for q_value_model in self._q_value_models:
+
+                q_value_model = self._q_value_models[0]
+                qvl = q_value_model.predict(q_value_model_input)
+
+                for q_value_model in self._q_value_models[1:]:
                     qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
             else:
                 q_value_model = self._q_value_models[-1]
@@ -210,6 +213,64 @@ class Agent:
 
         lower_bound, upper_bound = self._get_action_bounds_trading(state)
 
+        if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+
+            x_optimal = self._optimize_polynomial_q_value_trading(state, lower_bound, upper_bound)
+
+        else:
+
+            x_optimal = self._optimize_general_q_value_trading(state, lower_bound, upper_bound)
+
+        return x_optimal
+
+    def _optimize_polynomial_q_value_trading(self, state, lower_bound, upper_bound):
+
+        # todo: this can be heavily optimized
+
+        # compute complete list of polynomial coefficients
+        q_value_model = self._q_value_models[0]
+        coef = q_value_model.coef_
+        for q_value_model in self._q_value_models[1:]:
+            coef = 0.5 * (coef + q_value_model.coef_)
+
+        # compute complete list of polynomial variables names
+        poly = instantiate_polynomialFeatures(self._polynomial_regression_degree)
+        fake_action = Action()
+        fake_action.set_trading_attributes(rescaled_trade=1)
+        q_value_model_input = self.extract_q_value_model_input_trading(state, fake_action)
+        action_name = f'x{q_value_model_input.shape[1] - 1}'
+        poly.fit(q_value_model_input)
+        q_value_model_input = poly.fit_transform(q_value_model_input)
+        variables_names = poly.get_feature_names_out()
+        for i in range(len(variables_names)):
+            if action_name not in variables_names[i]:
+                variables_names[i] += f' {action_name}^0'
+            if action_name in variables_names[i] and f'{action_name}^' not in variables_names[i]:
+                variables_names[i] = variables_names[i].replace(action_name, f'{action_name}^1')
+
+        # aggregate all terms multiplying action^d
+        aggregate_coef = []
+        for d in range(self._polynomial_regression_degree + 1):
+
+            # get positions of variables names that are multiplying action^d
+            positions_d = [i for i in range(len(variables_names)) if f'{action_name}^{d}' in variables_names[i]]
+
+            # get coefficient of action^d
+            coef_d = np.sum(coef[positions_d]*q_value_model_input[0, positions_d])
+
+            aggregate_coef.append(coef_d)
+
+        aggregate_coef = - np.array(aggregate_coef)  # we want to find the maximum
+
+        x_optimal = find_polynomial_minimum(coef=aggregate_coef, bounds=(lower_bound, upper_bound))
+
+        return x_optimal
+
+    def _optimize_general_q_value_trading(self, state, lower_bound, upper_bound):
+
+        x0 = self._get_trade_loc(lower_bound, upper_bound)
+        bounds = [(lower_bound, upper_bound)]
+
         def func(rescaled_trade):
 
             action = Action()
@@ -219,39 +280,37 @@ class Agent:
 
             return - qvl
 
-        bounds = [(lower_bound, upper_bound)]
-        x0 = self._get_trade_loc(lower_bound, upper_bound)
-
         if self._optimizerType == OptimizerType.basinhopping:
             res = basinhopping(func=func, x0=x0)
-            return res.x[0]
+            x_optimal = res.x[0]
 
         elif self._optimizerType == OptimizerType.brute:
 
             Ns = 4 * int(upper_bound * state.shares_scale - lower_bound * state.shares_scale)
             xx = np.linspace(lower_bound, upper_bound, Ns)
             ff = np.array([func(x) for x in xx])
-            x = xx[np.argmin(ff)]
-            return x
+            x_optimal = xx[np.argmin(ff)]
 
         elif self._optimizerType == OptimizerType.differential_evolution:
             res = differential_evolution(func=func, bounds=bounds)
-            return res.x[0]
+            x_optimal = res.x[0]
 
         elif self._optimizerType == OptimizerType.dual_annealing:
             res = dual_annealing(func=func, bounds=bounds)
-            return res.x[0]
+            x_optimal = res.x[0]
 
         elif self._optimizerType == OptimizerType.shgo:
             res = shgo(func=func, bounds=bounds)
-            return res.x[0]
+            x_optimal = res.x[0]
 
         elif self._optimizerType == OptimizerType.local:
             res = minimize(fun=func, bounds=bounds, x0=np.array(x0))
-            return res.x[0]
+            x_optimal = res.x[0]
 
         else:
             raise NameError(f'Invalid optimizerType: {self._optimizerType}')
+
+        return x_optimal
 
     def extract_q_value_model_input_trading(self, state, action):
 

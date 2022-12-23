@@ -316,6 +316,10 @@ class AgentTrainer:
                                 reward: float):
 
         q_prec = self.agent.q_value(state=state, action=action)
+
+        if next_action.rescaled_trade is None:
+            a = 1
+
         q_new = self.agent.q_value(state=next_state, action=next_action)
 
         q = q_prec + self._alpha_sarsa * (reward + self.environment.gamma * q_new - q_prec)

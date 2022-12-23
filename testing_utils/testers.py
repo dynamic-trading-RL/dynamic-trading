@@ -1203,5 +1203,3 @@ if __name__ == '__main__':
     simulationTester.execute_simulation_testing(8, 5)
 
     simulationTester.make_plots(j_trajectories_plot=4)
-
-    a = 1

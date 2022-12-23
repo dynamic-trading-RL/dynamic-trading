@@ -29,7 +29,10 @@ def instantiate_polynomialFeatures(degree):
 
     return poly
 
+
 def find_polynomial_minimum(coef, bounds):
+
+    x_optim_when_error = 0.
 
     if len(coef) < 2:
         raise NameError('Polynomial must be of degree >= 2')
@@ -39,6 +42,9 @@ def find_polynomial_minimum(coef, bounds):
     dp2 = p.deriv(m=2)
 
     stationary_points = dp.roots()
+    if np.iscomplex(stationary_points).any():
+        return x_optim_when_error
+
     stationary_points = stationary_points[stationary_points >= bounds[0]]
     stationary_points = stationary_points[stationary_points <= bounds[1]]
 
@@ -47,11 +53,14 @@ def find_polynomial_minimum(coef, bounds):
     for i in range(len(stationary_points)):
         stationary_points_hessian[i] = dp2(stationary_points[i])
 
-    minimal_points = stationary_points[stationary_points_hessian < 0]
+    minimal_points = stationary_points[stationary_points_hessian > 0]
 
-    x_optim = minimal_points[0]
-    for i in range(len(minimal_points)):
-        if p(minimal_points[i]) >= p(x_optim):
-            x_optim = minimal_points[i]
+    if len(minimal_points) > 0:
+        x_optim = minimal_points[0]
+        for i in range(len(minimal_points)):
+            if p(minimal_points[i]) >= p(x_optim):
+                x_optim = minimal_points[i]
+    else:
+        x_optim = x_optim_when_error
 
     return x_optim
