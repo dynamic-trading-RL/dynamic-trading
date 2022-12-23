@@ -282,17 +282,17 @@ class Agent:
         # fill list
         state_lst[0] = rescaled_shares
 
-        if self.environment.factor_in_state:
+        if self.environment.state_factor:
             state_lst[state_shape['factor']] = factor
-        if self.environment.ttm_in_state:
+        if self.environment.state_ttm:
             state_lst[state_shape['ttm']] = ttm
-        if self.environment.price_in_state:
+        if self.environment.state_price:
             state_lst[state_shape['price']] = price
-        if self.environment.pnl_in_state:
+        if self.environment.state_pnl:
             state_lst[state_shape['pnl']] = pnl
-        if self.environment.average_past_pnl_in_state:
+        if self.environment.state_average_past_pnl:
             state_lst[state_shape['average_past_pnl']] = average_past_pnl
-        if self.environment.GP_action_in_state:
+        if self.environment.state_GP_action:
             state_lst[state_shape['action_GP']] = action_GP
 
         return state_lst

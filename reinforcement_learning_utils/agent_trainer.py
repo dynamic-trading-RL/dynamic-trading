@@ -71,11 +71,11 @@ class AgentTrainer:
             self.environment.observe_GP = True
             self.environment.instantiate_market_benchmark_and_agent_GP()
 
-        self.factor_in_state = self.environment.factor_in_state
+        self.state_factor = self.environment.state_factor
         self.observe_GP = self.environment.observe_GP
-        self.GP_action_in_state = self.environment.GP_action_in_state
-        self.ttm_in_state = self.environment.ttm_in_state
-        self.pnl_in_state = self.environment.pnl_in_state
+        self.state_GP_action = self.environment.state_GP_action
+        self.state_ttm = self.environment.state_ttm
+        self.state_pnl = self.environment.state_pnl
         self.train_benchmarking_GP_reward = train_benchmarking_GP_reward
 
         self._plot_regressor = plot_regressor

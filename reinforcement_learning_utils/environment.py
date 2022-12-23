@@ -180,79 +180,79 @@ class Environment:
         lam = float(df_lam_kappa.loc['lam'])
         self.lam = lam
 
-        # factor_in_state
-        if str(df_trad_params.loc['factor_in_state'][0]) == 'Yes':
-            factor_in_state = True
-        elif str(df_trad_params.loc['factor_in_state'][0]) == 'No':
-            factor_in_state = False
+        # state_factor
+        if str(df_trad_params.loc['state_factor'][0]) == 'Yes':
+            state_factor = True
+        elif str(df_trad_params.loc['state_factor'][0]) == 'No':
+            state_factor = False
         else:
-            raise NameError('factor_in_state in settings file must be either Yes or No')
-        self.factor_in_state = factor_in_state
+            raise NameError('state_factor in settings file must be either Yes or No')
+        self.state_factor = state_factor
 
-        # GP_action_in_state and observe_GP
-        if str(df_trad_params.loc['GP_action_in_state'][0]) == 'Yes':
-            GP_action_in_state = True
+        # state_GP_action and observe_GP
+        if str(df_trad_params.loc['state_GP_action'][0]) == 'Yes':
+            state_GP_action = True
             observe_GP = True
-        elif str(df_trad_params.loc['GP_action_in_state'][0]) == 'No':
-            GP_action_in_state = False
+        elif str(df_trad_params.loc['state_GP_action'][0]) == 'No':
+            state_GP_action = False
             observe_GP = False
         else:
-            raise NameError('GP_action_in_state in settings file must be either Yes or No')
-        self.GP_action_in_state = GP_action_in_state
+            raise NameError('state_GP_action in settings file must be either Yes or No')
+        self.state_GP_action = state_GP_action
         self.observe_GP = observe_GP
         if self.observe_GP:
             self.instantiate_market_benchmark_and_agent_GP()
 
-        # ttm_in_state
-        if str(df_trad_params.loc['ttm_in_state'][0]) == 'Yes':
-            ttm_in_state = True
+        # state_ttm
+        if str(df_trad_params.loc['state_ttm'][0]) == 'Yes':
+            state_ttm = True
             self._add_absorbing_state = True
-        elif str(df_trad_params.loc['GP_action_in_state'][0]) == 'No':
-            ttm_in_state = False
+        elif str(df_trad_params.loc['state_GP_action'][0]) == 'No':
+            state_ttm = False
             self._add_absorbing_state = True
         else:
-            raise NameError('ttm_in_state in settings file must be either Yes or No')
-        self.ttm_in_state = ttm_in_state
+            raise NameError('state_ttm in settings file must be either Yes or No')
+        self.state_ttm = state_ttm
 
-        # price_in_state
-        if str(df_trad_params.loc['price_in_state'][0]) == 'Yes':
-            price_in_state = True
-        elif str(df_trad_params.loc['price_in_state'][0]) == 'No':
-            price_in_state = False
+        # state_price
+        if str(df_trad_params.loc['state_price'][0]) == 'Yes':
+            state_price = True
+        elif str(df_trad_params.loc['state_price'][0]) == 'No':
+            state_price = False
         else:
-            raise NameError('price_in_state in settings file must be either Yes or No')
-        self.price_in_state = price_in_state
+            raise NameError('state_price in settings file must be either Yes or No')
+        self.state_price = state_price
 
-        # pnl_in_state
-        if str(df_trad_params.loc['pnl_in_state'][0]) == 'Yes':
-            pnl_in_state = True
-        elif str(df_trad_params.loc['pnl_in_state'][0]) == 'No':
-            pnl_in_state = False
+        # state_pnl
+        if str(df_trad_params.loc['state_pnl'][0]) == 'Yes':
+            state_pnl = True
+        elif str(df_trad_params.loc['state_pnl'][0]) == 'No':
+            state_pnl = False
         else:
-            raise NameError('pnl_in_state in settings file must be either Yes or No')
-        self.pnl_in_state = pnl_in_state
+            raise NameError('state_pnl in settings file must be either Yes or No')
+        self.state_pnl = state_pnl
 
-        # average_past_pnl_in_state
-        if str(df_trad_params.loc['average_past_pnl_in_state'][0]) == 'Yes':
-            average_past_pnl_in_state = True
-        elif str(df_trad_params.loc['average_past_pnl_in_state'][0]) == 'No':
-            average_past_pnl_in_state = False
+        # state_average_past_pnl
+        if str(df_trad_params.loc['state_average_past_pnl'][0]) == 'Yes':
+            state_average_past_pnl = True
+        elif str(df_trad_params.loc['state_average_past_pnl'][0]) == 'No':
+            state_average_past_pnl = False
         else:
-            raise NameError('average_past_pnl_in_state in settings file must be either Yes or No')
-        self.average_past_pnl_in_state = average_past_pnl_in_state
+            raise NameError('state_average_past_pnl in settings file must be either Yes or No')
+        self.state_average_past_pnl = state_average_past_pnl
 
         # state_shape
         # Define the structure of the state variable depending on the values assigned to
-        # self.factor_in_state, self.ttm_in_state, self.pnl_in_state, self.GP_action_in_state
+        # self.state_factor, self.state_ttm, self.state_pnl, self.state_GP_action
         # The most complete state is given by
         # (rescaled_shares, factor, ttm, price, pnl, average_past_pnl, action_GP)
 
-        bool_values = [self.factor_in_state,
-                       self.ttm_in_state,
-                       self.price_in_state,
-                       self.pnl_in_state,
-                       self.average_past_pnl_in_state,
-                       self.GP_action_in_state]
+        bool_values = [self.state_factor,
+                       self.state_ttm,
+                       self.state_price,
+                       self.state_pnl,
+                       self.state_average_past_pnl,
+                       self.state_GP_action]
         str_values = ['factor',
                       'ttm',
                       'price',

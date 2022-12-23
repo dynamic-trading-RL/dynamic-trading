@@ -23,11 +23,11 @@ The folder dynamic-trading/data/data_source/settings contains the main settings 
 - window: the window for the moving average; if = 1, then no moving average transformation is applied
 - factorTransformationType: can be 'Diff' or 'LogDiff', and it determines whether the code needs to take the level or the log-level of the input series (e.g. the realized variance or the log-realized variance)
 - factorDynamicsType: can be 'AR', 'SETAR', 'GARCH', 'TARCH' or 'AR_TARCH'
-- factor_in_state: 'Yes' or 'No', determines whether the factor should be in the state variable
-- ttm_in_state: 'Yes' or 'No', determines whether the time to maturity should be in the state variable
-- price_in_state: 'Yes' or 'No', determines whether the price should be in the state variable
-- pnl_in_state: 'Yes' or 'No', determines whether the pnl should be in the state variable
-- GP_action_in_state: 'Yes' or 'No', determines whether the GP action should be in the state variable
+- state_factor: 'Yes' or 'No', determines whether the factor should be in the state variable
+- state_ttm: 'Yes' or 'No', determines whether the time to maturity should be in the state variable
+- state_price: 'Yes' or 'No', determines whether the price should be in the state variable
+- state_pnl: 'Yes' or 'No', determines whether the pnl should be in the state variable
+- state_GP_action: 'Yes' or 'No', determines whether the GP action should be in the state variable
 - strategyType: 'Unconstrained' or 'LongOnly', determines the strategy of the agent
 - randomActionType: can be 'RandomUniform' (value function is initialized randomly and uniformly), 'RandomTruncNorm' (value function is initialized randomly and truncated normally) or 'GP' (agent follows GP if value function is not given)
 - gamma: discount factor in RL target
