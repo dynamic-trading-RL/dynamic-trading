@@ -141,14 +141,14 @@ class AgentTrainer:
                 eps = max(eps / 3, 10 ** -5)
 
         # compute best batch  # todo: is this correct? discuss with SH and PP
-        # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
-        # self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
-        average_cumulative_q_per_batch = self._average_cumulative_q_per_batch()
-        self.best_n = int(np.argmax(average_cumulative_q_per_batch)) + 1
+        n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
+        self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
+        # average_cumulative_q_per_batch = self._average_cumulative_q_per_batch()
+        # self.best_n = int(np.argmax(average_cumulative_q_per_batch)) + 1
 
         dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
         print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n}')
-        print(f'For each batch n, E[sum_t q(s^n_t, a^n_t)] is given by: {average_cumulative_q_per_batch}')
+        # print(f'For each batch n, E[sum_t q(s^n_t, a^n_t)] is given by: {average_cumulative_q_per_batch}')
 
     def _average_cumulative_q_per_batch(self):
 
