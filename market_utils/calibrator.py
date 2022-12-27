@@ -646,7 +646,7 @@ def get_futures_data_filename():
 
 
 def read_futures_data_by_ticker(filename, ticker):
-    time_series = pd.read_excel(filename, sheet_name=ticker, index_col=0).fillna(method='pad')
+    time_series = pd.read_excel(filename, sheet_name=ticker, index_col=0)
     return time_series
 
 
