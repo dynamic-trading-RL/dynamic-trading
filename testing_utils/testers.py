@@ -78,7 +78,10 @@ class Tester:
         average_across_models = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
         use_best_n_batch = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
         supervisedRegressorType = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/supervisedRegressorType.joblib')
-        polynomial_regression_degree = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
+        try:
+            polynomial_regression_degree = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
+        except:
+            polynomial_regression_degree = None
         agentRL = Agent(environment,
                         optimizerType=optimizerType,
                         average_across_models=average_across_models,

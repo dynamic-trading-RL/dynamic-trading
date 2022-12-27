@@ -69,7 +69,13 @@ class FinancialTimeSeries:
 
             time_series = pd.read_excel(os.path.dirname(os.path.dirname(__file__))
                                         + '/data/data_source/market_data/assets_data.xlsx',
-                                        sheet_name=self.ticker, index_col=0).fillna(method='pad')
+                                        sheet_name=self.ticker, index_col=0)
+
+        elif self.ticker == 'fake_asset':
+
+            time_series = pd.read_excel(os.path.dirname(os.path.dirname(__file__))
+                                        + '/data/data_source/market_data/fake_asset_data.xlsx',
+                                        sheet_name=self.ticker, index_col=0)
 
         else:
 
@@ -181,7 +187,6 @@ class FinancialTimeSeries:
                                        self.riskDriverType.value,
                                        self.factorComputationType.value],
                                  columns=['info'])
-
 
 
 # ------------------------------ TESTS ---------------------------------------------------------------------------------
