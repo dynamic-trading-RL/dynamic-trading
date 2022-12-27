@@ -19,7 +19,7 @@ class Agent:
                  use_best_n_batch: bool = False,
                  initialQvalueEstimateType: InitialQvalueEstimateType = InitialQvalueEstimateType.zero,
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
-                 polynomial_regression_degree: int = 2):
+                 polynomial_regression_degree: int = None):
 
         self.environment = environment
 
@@ -34,7 +34,7 @@ class Agent:
         self._use_best_n_batch = use_best_n_batch
         self._initialQvalueEstimateType = initialQvalueEstimateType
         self._supervisedRegressorType = supervisedRegressorType
-        self._polynomial_regression_degree = polynomial_regression_degree
+        self.polynomial_regression_degree = polynomial_regression_degree
 
         self._tol = 10**-10  # numerical tolerance for bound conditions requirements
 
@@ -192,7 +192,7 @@ class Agent:
             q_value_model_input = self.extract_q_value_model_input_trading(state, action)
 
             if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
-                poly = instantiate_polynomialFeatures(degree=self._polynomial_regression_degree)
+                poly = instantiate_polynomialFeatures(degree=self.polynomial_regression_degree)
 
                 q_value_model_input = poly.fit_transform(q_value_model_input)
 
@@ -234,7 +234,7 @@ class Agent:
             coef = 0.5 * (coef + q_value_model.coef_)
 
         # compute complete list of polynomial variables names
-        poly = instantiate_polynomialFeatures(self._polynomial_regression_degree)
+        poly = instantiate_polynomialFeatures(self.polynomial_regression_degree)
         fake_action = Action()
         fake_action.set_trading_attributes(rescaled_trade=1)
         q_value_model_input = self.extract_q_value_model_input_trading(state, fake_action)
@@ -250,7 +250,7 @@ class Agent:
 
         # aggregate all terms multiplying action^d
         aggregate_coef = []
-        for d in range(self._polynomial_regression_degree + 1):
+        for d in range(self.polynomial_regression_degree + 1):
 
             # get positions of variables names that are multiplying action^d
             positions_d = [i for i in range(len(variables_names)) if f'{action_name}^{d}' in variables_names[i]]

@@ -19,8 +19,8 @@ if __name__ == '__main__':
     # Training parameters
     (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores,
      initialQvalueEstimateType, predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
-     optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter, n_iter_no_change,
-     activation, alpha_sarsa, decrease_eps, random_initial_state, polynomial_regression_degree) =\
+     optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter, n_iter_no_change,
+     activation, alpha_sarsa, decrease_eps, random_initial_state, max_polynomial_regression_degree) =\
         read_trading_parameters_training()
 
     # -------------------- Execution
@@ -36,7 +36,7 @@ if __name__ == '__main__':
                                 train_benchmarking_GP_reward=train_benchmarking_GP_reward,
                                 supervisedRegressorType=supervisedRegressorType,
                                 initialQvalueEstimateType=initialQvalueEstimateType,
-                                ann_architecture=ann_architecture,
+                                max_ann_depth=max_ann_depth,
                                 early_stopping=early_stopping,
                                 max_iter=max_iter,
                                 n_iter_no_change=n_iter_no_change,
@@ -44,7 +44,7 @@ if __name__ == '__main__':
                                 alpha_sarsa=alpha_sarsa,
                                 decrease_eps=decrease_eps,
                                 random_initial_state=random_initial_state,
-                                polynomial_regression_degree=polynomial_regression_degree)
+                                max_polynomial_regression_degree=max_polynomial_regression_degree)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=eps_start)
 

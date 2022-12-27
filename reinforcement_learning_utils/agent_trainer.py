@@ -6,8 +6,11 @@ import pandas as pd
 import numpy as np
 from joblib import load, dump
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
 from sklearn.neural_network import MLPRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures
 from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
@@ -36,7 +39,7 @@ class AgentTrainer:
                  plot_regressor: bool = True,
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
                  initialQvalueEstimateType: InitialQvalueEstimateType = InitialQvalueEstimateType.zero,
-                 ann_architecture: tuple = (64, 32, 8),
+                 max_ann_depth: int = 4,
                  early_stopping: bool = False,
                  max_iter: int = 10,
                  n_iter_no_change: int = 2,
@@ -44,7 +47,7 @@ class AgentTrainer:
                  alpha_sarsa: float = 1.,
                  decrease_eps: bool = True,
                  random_initial_state: bool = True,
-                 polynomial_regression_degree: int = 1):
+                 max_polynomial_regression_degree: int = 3):
 
         self.t_ = None
         self.n_batches = None
@@ -84,7 +87,7 @@ class AgentTrainer:
         dump(self._supervisedRegressorType,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/supervisedRegressorType.joblib')
 
-        self._ann_architecture = ann_architecture
+        self._max_ann_depth = max_ann_depth
         self._early_stopping = early_stopping
         self._max_iter = max_iter
         self._n_iter_no_change = n_iter_no_change
@@ -92,17 +95,15 @@ class AgentTrainer:
         self._alpha_sarsa = alpha_sarsa
         self._decrease_eps = decrease_eps
         self._random_initial_state = random_initial_state
-        self._polynomial_regression_degree = polynomial_regression_degree
-        dump(self._polynomial_regression_degree,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
+        self._max_polynomial_regression_degree = max_polynomial_regression_degree
+        self._polynomial_regression_degree = None
 
         self.agent = Agent(self.environment,
                            optimizerType=self._optimizerType,
                            average_across_models=self._average_across_models,
                            use_best_n_batch=self._use_best_n_batch,
                            initialQvalueEstimateType=initialQvalueEstimateType,
-                           supervisedRegressorType=self._supervisedRegressorType,
-                           polynomial_regression_degree=self._polynomial_regression_degree)
+                           supervisedRegressorType=self._supervisedRegressorType)
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
@@ -337,17 +338,21 @@ class AgentTrainer:
         self.agent.update_q_value_models(q_value_model=model)
 
     def _set_and_fit_supervised_regressor_model(self, x_array, y_array, n):
-        alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation = \
+        alpha_ann, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation = \
             self._set_supervised_regressor_parameters()
-        model = self._fit_supervised_regressor_model(alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change,
+        model = self._fit_supervised_regressor_model(alpha_ann, max_iter, n_iter_no_change,
                                                      early_stopping, validation_fraction, activation, x_array, y_array,
                                                      n)
         return model
 
-    def _fit_supervised_regressor_model(self, alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping,
+    def _fit_supervised_regressor_model(self, alpha_ann, max_iter, n_iter_no_change, early_stopping,
                                         validation_fraction, activation, x_array, y_array, n):
 
         if self._supervisedRegressorType == SupervisedRegressorType.ann:
+
+            hidden_layer_sizes = self._perform_ann_grid_search(x_array, y_array, alpha_ann, max_iter, n_iter_no_change,
+                                                               early_stopping, validation_fraction, activation)
+
             model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
                                  alpha=alpha_ann,
                                  max_iter=max_iter,
@@ -356,18 +361,25 @@ class AgentTrainer:
                                  validation_fraction=validation_fraction,
                                  activation=activation,
                                  verbose=1).fit(x_array, y_array)
+
         elif self._supervisedRegressorType == SupervisedRegressorType.gradient_boosting:
             model = GradientBoostingRegressor(random_state=789,
                                               loss='squared_error',
                                               alpha=0.9,  # only used if loss='quantile'
                                               max_depth=int(np.log(len(y_array))),
                                               verbose=1).fit(x_array, y_array)
+
         elif self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
-            # todo: should also provide a derivative (in a) to the global optimizer
-            poly = instantiate_polynomialFeatures(degree=self._polynomial_regression_degree)
+
+            if n == 0:
+
+                self._perform_polynomial_grid_search(x_array, y_array)
+
+            poly = PolynomialFeatures(self._polynomial_regression_degree, interaction_only=False, include_bias=True)
             poly_features = poly.fit_transform(x_array)
-            model = LinearRegression(fit_intercept=False).fit(poly_features, y_array)
+            model = Ridge(alpha=self._ridge_alpha, fit_intercept=False).fit(poly_features, y_array)
             print(f'Score: {model.score(poly_features, y_array): .2f}')
+
         else:
             raise NameError(f'Invalid supervisedRegressorType: {self._supervisedRegressorType}')
 
@@ -375,6 +387,55 @@ class AgentTrainer:
             self._make_regressor_plots(model, n, x_array, y_array)
 
         return model
+
+    def _perform_ann_grid_search(self, x_array, y_array, alpha_ann, max_iter, n_iter_no_change, early_stopping,
+                                 validation_fraction, activation):
+        ann_architectures = [tuple([2**(3 + n) for n in range(N, -1, -1)]) for N in range(self._max_ann_depth)]
+        param_grid = {'ann__hidden_layer_sizes': ann_architectures}
+        pipeline = Pipeline(steps=[('ann', MLPRegressor(alpha=alpha_ann,
+                                                        max_iter=max_iter,
+                                                        n_iter_no_change=n_iter_no_change,
+                                                        early_stopping=early_stopping,
+                                                        validation_fraction=validation_fraction,
+                                                        activation=activation))])
+        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                   scoring='neg_mean_squared_error',
+                                   return_train_score=True,
+                                   verbose=4).fit(x_array, y_array)
+        print(f'Best parameters: {grid_search.best_params_}')
+
+        return grid_search.best_params_['ann__hidden_layer_sizes']
+
+    def _perform_polynomial_grid_search(self, x_array, y_array):
+        poly_degrees = list(np.arange(3, self._max_polynomial_regression_degree + 1))
+        ridge_alphas = [0] + list(range(10, 101, 10))
+        param_grid = [{'poly__degree': poly_degrees,
+                       'ridge__alpha': ridge_alphas}]
+        pipeline = Pipeline(steps=[('poly', PolynomialFeatures(interaction_only=False,
+                                                               include_bias=True)),
+                                   ('ridge', Ridge(fit_intercept=False))])
+        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                   scoring='neg_mean_squared_error',
+                                   return_train_score=True,
+                                   verbose=4).fit(x_array, y_array)
+        print(f'Best joint parameters: {grid_search.best_params_}')
+        self._polynomial_regression_degree = int(grid_search.best_params_['poly__degree'])
+        self.agent.polynomial_regression_degree = self._polynomial_regression_degree
+        dump(self._polynomial_regression_degree,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
+        best_ridge_1 = grid_search.best_params_['ridge__alpha']
+        ridge_alphas = np.linspace(max(0, best_ridge_1 - 6), best_ridge_1 + 6, 25)
+        param_grid = [{'ridge__alpha': ridge_alphas}]
+        pipeline = Pipeline(steps=[('poly', PolynomialFeatures(degree=self._polynomial_regression_degree,
+                                                               interaction_only=False,
+                                                               include_bias=True)),
+                                   ('ridge', Ridge(fit_intercept=False))])
+        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                   scoring='neg_mean_squared_error',
+                                   return_train_score=True,
+                                   verbose=4).fit(x_array, y_array)
+        print(f'Best ridge alpha: {grid_search.best_params_}')
+        self._ridge_alpha = grid_search.best_params_['ridge__alpha']
 
     def _make_regressor_plots(self, model, n, x_array, y_array):
 
@@ -450,7 +511,6 @@ class AgentTrainer:
 
     def _set_supervised_regressor_parameters(self):
 
-        hidden_layer_sizes = self._ann_architecture
         max_iter = self._max_iter
         n_iter_no_change = self._n_iter_no_change
         alpha_ann = 0.0001
@@ -458,7 +518,7 @@ class AgentTrainer:
         validation_fraction = 0.01
         activation = self._activation
 
-        return alpha_ann, hidden_layer_sizes, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation
+        return alpha_ann, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation
 
     def _prepare_data_for_supervised_regressor_fit(self, n):
         x_grid = []
@@ -556,12 +616,7 @@ def read_trading_parameters_training():
     # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
     eps_start = float(df_trad_params.loc['eps_start'][0])
 
-    ann_architecture = []
-    ann_architecture_str = df_trad_params.loc['ann_architecture'][0]
-    ann_architecture_str_split = ann_architecture_str.split(';')
-    for layer in ann_architecture_str_split:
-        ann_architecture.append(int(layer))
-    ann_architecture = tuple(ann_architecture)
+    max_ann_depth = int(df_trad_params.loc['max_ann_depth'][0])
 
     if df_trad_params.loc['early_stopping'][0] == 'Yes':
         early_stopping = True
@@ -592,9 +647,10 @@ def read_trading_parameters_training():
     else:
         raise NameError('Invalid value for parameter random_initial_state in settings.csv')
 
-    polynomial_regression_degree = int(df_trad_params.loc['polynomial_regression_degree'][0])
+    max_polynomial_regression_degree = int(df_trad_params.loc['max_polynomial_regression_degree'][0])
 
     return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialQvalueEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
-            optimizerType, supervisedRegressorType, eps_start, ann_architecture, early_stopping, max_iter,
-            n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state, polynomial_regression_degree)
+            optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter,
+            n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state,
+            max_polynomial_regression_degree)
