@@ -157,11 +157,10 @@ class FinancialTimeSeries:
             self.time_series['factor'] = x.rolling(self.window).mean()
 
         elif self.factorComputationType == FactorComputationType.StdMovingAverage:
-            all_stds = x.rolling(self.window).std()
-            lower_bound = all_stds.quantile(0.1)
-            den = x.rolling(self.window).std()
-            den[den < lower_bound] = lower_bound
-            self.time_series['factor'] = x.rolling(self.window).mean() / den
+            lower_bound = x.rolling(self.window).std().squeeze().quantile(0.1)
+            den = x.squeeze().rolling(self.window).std()
+            den[(den < lower_bound) & (~pd.isna(den))] = lower_bound
+            self.time_series['factor'] = x.squeeze().rolling(self.window).mean() / den
 
     def _set_info(self):
 
