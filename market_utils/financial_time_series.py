@@ -143,17 +143,21 @@ class FinancialTimeSeries:
             filename = os.path.dirname(os.path.dirname(__file__)) +\
                        '/data/data_source/market_data/' + self.factor_ticker + '.xlsx'
             v = pd.read_excel(filename, index_col=0, parse_dates=True)
+
         else:
             raise NameError('factorSourceType not correctly specified')
 
-        if self.factorTransformationType == FactorTransformationType.Diff:
-            pass
+        if self.factorTransformationType == FactorTransformationType.NoTransformation:
+            x = v
+
+        elif self.factorTransformationType == FactorTransformationType.Diff:
+            x = v.diff()
+
         elif self.factorTransformationType == FactorTransformationType.LogDiff:
-            v = np.log(v)
+            x = np.log(v).diff()
+
         else:
             raise NameError('factorTransformationType not correctly specified')
-
-        x = v.diff()
 
         self._get_factor_time_series_from_x(x)
 

@@ -24,6 +24,7 @@ class FactorComputationType(Enum):
 
 class FactorTransformationType(Enum):
 
+    NoTransformation = 'NoTransformation'
     Diff = 'Diff'
     LogDiff = 'LogDiff'
 
