@@ -407,6 +407,7 @@ class AgentTrainer:
         return grid_search.best_params_['ann__hidden_layer_sizes']
 
     def _perform_polynomial_grid_search(self, x_array, y_array):
+
         poly_degrees = list(np.arange(3, self._max_polynomial_regression_degree + 1))
         ridge_alphas = [0] + list(range(10, 101, 10))
         param_grid = [{'poly__degree': poly_degrees,
@@ -419,13 +420,14 @@ class AgentTrainer:
                                    return_train_score=True,
                                    verbose=4).fit(x_array, y_array)
         print(f'Best joint parameters: {grid_search.best_params_}')
-        self._polynomial_regression_degree = int(grid_search.best_params_['poly__degree'])
-        self.agent.polynomial_regression_degree = self._polynomial_regression_degree
-        dump(self._polynomial_regression_degree,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
+
+        best_poly_degree_1 = int(grid_search.best_params_['poly__degree'])
         best_ridge_1 = grid_search.best_params_['ridge__alpha']
+        poly_degrees = np.arange(max(3, best_poly_degree_1 - 1),
+                                 min(self._max_polynomial_regression_degree + 1, best_poly_degree_1 + 2))
         ridge_alphas = np.linspace(max(0, best_ridge_1 - 6), best_ridge_1 + 6, 25)
-        param_grid = [{'ridge__alpha': ridge_alphas}]
+        param_grid = [{'poly__degree': poly_degrees,
+                       'ridge__alpha': ridge_alphas}]
         pipeline = Pipeline(steps=[('poly', PolynomialFeatures(degree=self._polynomial_regression_degree,
                                                                interaction_only=False,
                                                                include_bias=True)),
@@ -434,7 +436,29 @@ class AgentTrainer:
                                    scoring='neg_mean_squared_error',
                                    return_train_score=True,
                                    verbose=4).fit(x_array, y_array)
-        print(f'Best ridge alpha: {grid_search.best_params_}')
+
+        best_poly_degree_2 = int(grid_search.best_params_['poly__degree'])
+        best_ridge_2 = grid_search.best_params_['ridge__alpha']
+        poly_degrees = np.arange(max(3, best_poly_degree_2 - 1),
+                                 min(self._max_polynomial_regression_degree + 1, best_poly_degree_2 + 2))
+        ridge_alphas = np.linspace(max(0, best_ridge_2 - 3), best_ridge_2 + 3, 25)
+        param_grid = [{'poly__degree': poly_degrees,
+                       'ridge__alpha': ridge_alphas}]
+        pipeline = Pipeline(steps=[('poly', PolynomialFeatures(degree=self._polynomial_regression_degree,
+                                                               interaction_only=False,
+                                                               include_bias=True)),
+                                   ('ridge', Ridge(fit_intercept=False))])
+        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                   scoring='neg_mean_squared_error',
+                                   return_train_score=True,
+                                   verbose=4).fit(x_array, y_array)
+
+        print(f'Best joint parameters: {grid_search.best_params_}')
+
+        self._polynomial_regression_degree = int(grid_search.best_params_['poly__degree'])
+        self.agent.polynomial_regression_degree = self._polynomial_regression_degree
+        dump(self._polynomial_regression_degree,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
         self._ridge_alpha = grid_search.best_params_['ridge__alpha']
 
     def _make_regressor_plots(self, model, n, x_array, y_array):

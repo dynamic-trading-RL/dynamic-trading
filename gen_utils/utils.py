@@ -7,6 +7,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from numpy.polynomial import Polynomial
 from scipy.stats import truncnorm
 
+
 def read_ticker():
 
     filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
@@ -32,7 +33,7 @@ def instantiate_polynomialFeatures(degree):
     return poly
 
 
-def find_polynomial_minimum(coef, bounds, complex_tol=10**-9):
+def find_polynomial_minimum(coef, bounds):
 
     x_optim_when_error = truncnorm.rvs(a=bounds[0], b=bounds[1], loc=0., scale=0.12)
 
@@ -48,14 +49,10 @@ def find_polynomial_minimum(coef, bounds, complex_tol=10**-9):
     # exclude complex roots
     stationary_points = np.real(stationary_points[np.isreal(stationary_points)])
 
-    flag_error = False
     if len(stationary_points) == 0:
-
-        flag_error = True
         x_optim = x_optim_when_error
 
     else:
-
         stationary_points = stationary_points[stationary_points >= bounds[0]]
         stationary_points = stationary_points[stationary_points <= bounds[1]]
 
@@ -72,13 +69,7 @@ def find_polynomial_minimum(coef, bounds, complex_tol=10**-9):
                 if p(minimal_points[i]) >= p(x_optim):
                     x_optim = minimal_points[i]
         else:
-            flag_error = True
             x_optim = x_optim_when_error
-
-    # # Make a plot every once in a while
-    # eps_plots = np.random.rand()
-    # if flag_error and eps_plots < 10**-3:
-    #     _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots)
 
     return x_optim
 

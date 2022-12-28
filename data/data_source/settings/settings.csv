@@ -37,7 +37,7 @@ state_pnl,No
 state_price,No
 state_ttm,No
 strategyType,Unconstrained
-supervisedRegressorType,ann
+supervisedRegressorType,polynomial_regression
 t_,50
 ticker,fake_asset
 train_benchmarking_GP_reward,No
