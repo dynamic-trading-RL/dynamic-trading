@@ -1,4 +1,4 @@
-from enums import ModeType
+from enums import ModeType, RiskDriverType
 from gen_utils.utils import read_ticker
 from market_utils.calibrator import DynamicsCalibrator
 from market_utils.financial_time_series import FinancialTimeSeries
@@ -14,7 +14,12 @@ if __name__ == '__main__':
 
     # -------------------- Execution
     financialTimeSeries = FinancialTimeSeries(ticker=ticker, modeType=ModeType.InSample)
+    dynamicsCalibrator = DynamicsCalibrator()
+    dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=scale, scale_f=scale_f, c=c)
 
+    # PnL must be done for benchmark agents
+    financialTimeSeries = FinancialTimeSeries(ticker=ticker, modeType=ModeType.InSample)
+    financialTimeSeries.riskDriverType = RiskDriverType.PnL
     dynamicsCalibrator = DynamicsCalibrator()
     dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=scale, scale_f=scale_f, c=c)
 
