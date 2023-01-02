@@ -442,8 +442,56 @@ class AllSeriesDynamicsCalibrator:
 
         self._plot_financial_time_series()
         self._plot_residuals()
-        self._print_report()
-        self._print_statistics()
+        self._print_residuals_analysis()
+        self._print_prices_and_stds()
+        self._print_calibration_results()
+
+    def _print_calibration_results(self):
+
+        ll_model_summary = [['ticker', 'var_type', 'dynamicsType', 'i', 'aic', 'bic', 'nobs', 'ess', 'f_pvalue',
+                             'fvalue', 'llf', 'mse_model', 'mse_resid', 'mse_total', 'rsquared', 'rsquared_adj']]
+
+        for ticker, dynamicsCalibrator in self.all_series_dynamics_calibrators.items():
+
+             for var_type in ('risk-driver', 'factor'):
+
+                 for dynamicsType, models_lst in dynamicsCalibrator.all_dynamics_model_dict[var_type].items():
+
+                     for i in range(len(models_lst)):
+
+                         current_ll_model_summary = []
+
+                         aic = models_lst[i].aic
+                         bic = models_lst[i].aic
+                         nobs = models_lst[i].nobs
+
+                         current_ll_model_summary += [ticker, var_type, dynamicsType.value, i, aic, bic, nobs]
+
+                         if var_type == 'risk-driver':
+                             ess = models_lst[i].ess
+                             f_pvalue = models_lst[i].f_pvalue
+                             fvalue = models_lst[i].fvalue
+                             llf = models_lst[i].llf
+                             mse_model = models_lst[i].mse_model
+                             mse_resid = models_lst[i].mse_resid
+                             mse_total = models_lst[i].mse_total
+                             rsquared = models_lst[i].rsquared
+                             rsquared_adj = models_lst[i].rsquared_adj
+
+                             current_ll_model_summary += [ess, f_pvalue, fvalue, llf, mse_model, mse_resid, mse_total,
+                                                          rsquared, rsquared_adj]
+                         else:
+                             current_ll_model_summary += [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+                                                          np.nan, np.nan]
+
+                         ll_model_summary.append(current_ll_model_summary)
+
+        df_model_summary = pd.DataFrame(data=ll_model_summary[1:],
+                                        columns=ll_model_summary[0])
+        info = f'{self.financialTimeSeries.ticker}-{self.financialTimeSeries.riskDriverType.value}' +\
+               f'-{self.financialTimeSeries.factor_ticker}-{self.financialTimeSeries.factorTransformationType.value}'
+        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/calibrations/models_summary_{info}.xlsx'
+        df_model_summary.to_excel(filename, sheet_name='models_summary', index=False)
 
     def _plot_financial_time_series(self):
 
@@ -464,7 +512,7 @@ class AllSeriesDynamicsCalibrator:
 
             plt.close(fig)
 
-    def _print_report(self):
+    def _print_residuals_analysis(self):
 
         ll = []
 
@@ -487,7 +535,7 @@ class AllSeriesDynamicsCalibrator:
         filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/model_choice/residuals_analysis.csv'
         df_report.to_csv(filename, index=False)
 
-    def _print_statistics(self):
+    def _print_prices_and_stds(self):
 
         average_prices_per_contract_df = pd.DataFrame.from_dict(self.average_price_per_contract,
                                                                 orient='index',
@@ -625,11 +673,12 @@ class AllSeriesDynamicsCalibrator:
         dynamicsCalibrator = DynamicsCalibrator()
         dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries)
         self.all_series_dynamics_calibrators[ticker] = dynamicsCalibrator
-        self.riskDriverType = financialTimeSeries.riskDriverType
-        self.factorComputationType = financialTimeSeries.factorComputationType
+        self.financialTimeSeries = financialTimeSeries
+        self.riskDriverType = self.financialTimeSeries.riskDriverType
+        self.factorComputationType = self.financialTimeSeries.factorComputationType
 
-        self.average_price_per_contract[ticker] = financialTimeSeries.time_series[ticker].mean()
-        self.std_price_changes[ticker] = financialTimeSeries.time_series[ticker].diff().std()
+        self.average_price_per_contract[ticker] = self.financialTimeSeries.time_series[ticker].mean()
+        self.std_price_changes[ticker] = self.financialTimeSeries.time_series[ticker].diff().std()
 
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
