@@ -1,0 +1,830 @@
+--- End s_calibrate_specific_market_dynamics.py
+Computing trajectories of Markowitz strategy:   0%|          | 0/10000 [00:00<?, ?it/s]Computing trajectories of Markowitz strategy:   6%|▋         | 635/10000 [00:00<00:01, 6339.86it/s]Computing trajectories of Markowitz strategy:  13%|█▎        | 1269/10000 [00:00<00:01, 6306.18it/s]Computing trajectories of Markowitz strategy:  19%|█▉        | 1900/10000 [00:00<00:01, 6268.85it/s]Computing trajectories of Markowitz strategy:  25%|██▌       | 2527/10000 [00:00<00:01, 6268.57it/s]Computing trajectories of Markowitz strategy:  32%|███▏      | 3154/10000 [00:00<00:01, 6238.89it/s]Computing trajectories of Markowitz strategy:  38%|███▊      | 3778/10000 [00:00<00:01, 6218.03it/s]Computing trajectories of Markowitz strategy:  44%|████▍     | 4405/10000 [00:00<00:00, 6232.33it/s]Computing trajectories of Markowitz strategy:  50%|█████     | 5029/10000 [00:00<00:00, 6228.55it/s]Computing trajectories of Markowitz strategy:  57%|█████▋    | 5657/10000 [00:00<00:00, 6244.37it/s]Computing trajectories of Markowitz strategy:  63%|██████▎   | 6282/10000 [00:01<00:00, 6232.51it/s]Computing trajectories of Markowitz strategy:  69%|██████▉   | 6908/10000 [00:01<00:00, 6240.81it/s]Computing trajectories of Markowitz strategy:  75%|███████▌  | 7533/10000 [00:01<00:00, 6210.33it/s]Computing trajectories of Markowitz strategy:  82%|████████▏ | 8162/10000 [00:01<00:00, 6233.88it/s]Computing trajectories of Markowitz strategy:  88%|████████▊ | 8786/10000 [00:01<00:00, 6221.42it/s]Computing trajectories of Markowitz strategy:  94%|█████████▍| 9409/10000 [00:01<00:00, 6204.20it/s]Computing trajectories of Markowitz strategy: 100%|██████████| 10000/10000 [00:01<00:00, 6233.80it/s]
+shares_scale = 189.8337791883444
+Fitting a polynomial_regression regressor
+Using optimizer=OptimizerType.shgo
+Notice: agent is not yet trained
+Generating batches:   0%|          | 0/6 [00:00<?, ?it/s]    Fitting supervised regressor 1 of 6.
+Fitting 5 folds for each of 55 candidates, totalling 275 fits
+[CV 1/5] END poly__degree=3, ridge__alpha=0;, score=(train=-116938.098, test=-116498.280) total time=   0.6s
+[CV 2/5] END poly__degree=3, ridge__alpha=0;, score=(train=-116519.887, test=-118170.262) total time=   0.6s
+[CV 3/5] END poly__degree=3, ridge__alpha=0;, score=(train=-116502.574, test=-118238.825) total time=   0.6s
+[CV 4/5] END poly__degree=3, ridge__alpha=0;, score=(train=-116858.039, test=-116817.276) total time=   0.6s
+[CV 5/5] END poly__degree=3, ridge__alpha=0;, score=(train=-117425.986, test=-114546.174) total time=   0.6s
+[CV 1/5] END poly__degree=3, ridge__alpha=10;, score=(train=-116938.125, test=-116498.026) total time=   0.6s
+[CV 2/5] END poly__degree=3, ridge__alpha=10;, score=(train=-116519.914, test=-118170.315) total time=   0.6s
+[CV 3/5] END poly__degree=3, ridge__alpha=10;, score=(train=-116502.601, test=-118239.090) total time=   0.6s
+[CV 4/5] END poly__degree=3, ridge__alpha=10;, score=(train=-116858.066, test=-116817.611) total time=   0.6s
+[CV 5/5] END poly__degree=3, ridge__alpha=10;, score=(train=-117426.013, test=-114545.873) total time=   0.6s
+[CV 1/5] END poly__degree=3, ridge__alpha=20;, score=(train=-116938.205, test=-116497.827) total time=   0.6s
+[CV 2/5] END poly__degree=3, ridge__alpha=20;, score=(train=-116519.994, test=-118170.422) total time=   1.3s
+[CV 3/5] END poly__degree=3, ridge__alpha=20;, score=(train=-116502.681, test=-118239.408) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=20;, score=(train=-116858.146, test=-116817.999) total time=   1.3s
+[CV 5/5] END poly__degree=3, ridge__alpha=20;, score=(train=-117426.094, test=-114545.627) total time=   1.3s
+[CV 1/5] END poly__degree=3, ridge__alpha=30;, score=(train=-116938.339, test=-116497.683) total time=   1.3s
+[CV 2/5] END poly__degree=3, ridge__alpha=30;, score=(train=-116520.127, test=-118170.581) total time=   1.2s
+[CV 3/5] END poly__degree=3, ridge__alpha=30;, score=(train=-116502.814, test=-118239.778) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=30;, score=(train=-116858.279, test=-116818.439) total time=   1.2s
+[CV 5/5] END poly__degree=3, ridge__alpha=30;, score=(train=-117426.228, test=-114545.434) total time=   1.3s
+[CV 1/5] END poly__degree=3, ridge__alpha=40;, score=(train=-116938.526, test=-116497.592) total time=   1.3s
+[CV 2/5] END poly__degree=3, ridge__alpha=40;, score=(train=-116520.313, test=-118170.793) total time=   1.3s
+[CV 3/5] END poly__degree=3, ridge__alpha=40;, score=(train=-116503.000, test=-118240.200) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=40;, score=(train=-116858.464, test=-116818.931) total time=   1.2s
+[CV 5/5] END poly__degree=3, ridge__alpha=40;, score=(train=-117426.414, test=-114545.295) total time=   1.3s
+[CV 1/5] END poly__degree=3, ridge__alpha=50;, score=(train=-116938.765, test=-116497.555) total time=   1.3s
+[CV 2/5] END poly__degree=3, ridge__alpha=50;, score=(train=-116520.552, test=-118171.058) total time=   1.2s
+[CV 3/5] END poly__degree=3, ridge__alpha=50;, score=(train=-116503.238, test=-118240.673) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=50;, score=(train=-116858.702, test=-116819.475) total time=   1.3s
+[CV 5/5] END poly__degree=3, ridge__alpha=50;, score=(train=-117426.653, test=-114545.210) total time=   1.2s
+[CV 1/5] END poly__degree=3, ridge__alpha=60;, score=(train=-116939.056, test=-116497.571) total time=   1.3s
+[CV 2/5] END poly__degree=3, ridge__alpha=60;, score=(train=-116520.842, test=-118171.374) total time=   1.2s
+[CV 3/5] END poly__degree=3, ridge__alpha=60;, score=(train=-116503.527, test=-118241.198) total time=   1.2s
+[CV 4/5] END poly__degree=3, ridge__alpha=60;, score=(train=-116858.991, test=-116820.070) total time=   1.2s
+[CV 5/5] END poly__degree=3, ridge__alpha=60;, score=(train=-117426.944, test=-114545.177) total time=   1.3s
+[CV 1/5] END poly__degree=3, ridge__alpha=70;, score=(train=-116939.398, test=-116497.639) total time=   1.2s
+[CV 2/5] END poly__degree=3, ridge__alpha=70;, score=(train=-116521.183, test=-118171.742) total time=   1.2s
+[CV 3/5] END poly__degree=3, ridge__alpha=70;, score=(train=-116503.868, test=-118241.773) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=70;, score=(train=-116859.332, test=-116820.716) total time=   1.2s
+[CV 5/5] END poly__degree=3, ridge__alpha=70;, score=(train=-117427.287, test=-114545.196) total time=   1.3s
+[CV 1/5] END poly__degree=3, ridge__alpha=80;, score=(train=-116939.792, test=-116497.760) total time=   1.2s
+[CV 2/5] END poly__degree=3, ridge__alpha=80;, score=(train=-116521.576, test=-118172.161) total time=   1.2s
+[CV 3/5] END poly__degree=3, ridge__alpha=80;, score=(train=-116504.259, test=-118242.399) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=80;, score=(train=-116859.724, test=-116821.412) total time=   1.2s
+[CV 5/5] END poly__degree=3, ridge__alpha=80;, score=(train=-117427.680, test=-114545.268) total time=   1.3s
+[CV 1/5] END poly__degree=3, ridge__alpha=90;, score=(train=-116940.237, test=-116497.933) total time=   1.2s
+[CV 2/5] END poly__degree=3, ridge__alpha=90;, score=(train=-116522.019, test=-118172.631) total time=   1.2s
+[CV 3/5] END poly__degree=3, ridge__alpha=90;, score=(train=-116504.701, test=-118243.074) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=90;, score=(train=-116860.166, test=-116822.158) total time=   1.3s
+[CV 5/5] END poly__degree=3, ridge__alpha=90;, score=(train=-117428.125, test=-114545.391) total time=   1.3s
+[CV 1/5] END poly__degree=3, ridge__alpha=100;, score=(train=-116940.732, test=-116498.158) total time=   1.3s
+[CV 2/5] END poly__degree=3, ridge__alpha=100;, score=(train=-116522.512, test=-118173.150) total time=   1.3s
+[CV 3/5] END poly__degree=3, ridge__alpha=100;, score=(train=-116505.194, test=-118243.799) total time=   1.3s
+[CV 4/5] END poly__degree=3, ridge__alpha=100;, score=(train=-116860.658, test=-116822.954) total time=   1.3s
+[CV 5/5] END poly__degree=3, ridge__alpha=100;, score=(train=-117428.620, test=-114545.565) total time=   1.3s
+[CV 1/5] END poly__degree=4, ridge__alpha=0;, score=(train=-116901.314, test=-116468.217) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=0;, score=(train=-116480.522, test=-118151.640) total time=   1.6s
+[CV 3/5] END poly__degree=4, ridge__alpha=0;, score=(train=-116465.018, test=-118211.567) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=0;, score=(train=-116822.236, test=-116787.482) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=0;, score=(train=-117390.403, test=-114513.597) total time=   1.6s
+[CV 1/5] END poly__degree=4, ridge__alpha=10;, score=(train=-116901.703, test=-116468.482) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=10;, score=(train=-116480.888, test=-118152.619) total time=   1.6s
+[CV 3/5] END poly__degree=4, ridge__alpha=10;, score=(train=-116465.436, test=-118212.239) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=10;, score=(train=-116822.710, test=-116786.626) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=10;, score=(train=-117390.783, test=-114514.019) total time=   1.6s
+[CV 1/5] END poly__degree=4, ridge__alpha=20;, score=(train=-116902.474, test=-116469.005) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=20;, score=(train=-116481.620, test=-118153.662) total time=   1.6s
+[CV 3/5] END poly__degree=4, ridge__alpha=20;, score=(train=-116466.258, test=-118213.429) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=20;, score=(train=-116823.630, test=-116786.826) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=20;, score=(train=-117391.538, test=-114514.618) total time=   1.6s
+[CV 1/5] END poly__degree=4, ridge__alpha=30;, score=(train=-116903.393, test=-116469.608) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=30;, score=(train=-116482.497, test=-118154.684) total time=   1.7s
+[CV 3/5] END poly__degree=4, ridge__alpha=30;, score=(train=-116467.225, test=-118214.828) total time=   1.5s
+[CV 4/5] END poly__degree=4, ridge__alpha=30;, score=(train=-116824.697, test=-116787.515) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=30;, score=(train=-117392.441, test=-114515.254) total time=   1.6s
+[CV 1/5] END poly__degree=4, ridge__alpha=40;, score=(train=-116904.399, test=-116470.260) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=40;, score=(train=-116483.466, test=-118155.693) total time=   1.6s
+[CV 3/5] END poly__degree=4, ridge__alpha=40;, score=(train=-116468.274, test=-118216.344) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=40;, score=(train=-116825.837, test=-116788.487) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=40;, score=(train=-117393.433, test=-114515.914) total time=   1.6s
+[CV 1/5] END poly__degree=4, ridge__alpha=50;, score=(train=-116905.482, test=-116470.964) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=50;, score=(train=-116484.513, test=-118156.716) total time=   1.6s
+[CV 3/5] END poly__degree=4, ridge__alpha=50;, score=(train=-116469.390, test=-118217.953) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=50;, score=(train=-116827.034, test=-116789.657) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=50;, score=(train=-117394.502, test=-114516.609) total time=   1.5s
+[CV 1/5] END poly__degree=4, ridge__alpha=60;, score=(train=-116906.642, test=-116471.730) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=60;, score=(train=-116485.642, test=-118157.775) total time=   1.7s
+[CV 3/5] END poly__degree=4, ridge__alpha=60;, score=(train=-116470.577, test=-118219.647) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=60;, score=(train=-116828.291, test=-116790.984) total time=   1.7s
+[CV 5/5] END poly__degree=4, ridge__alpha=60;, score=(train=-117395.650, test=-114517.356) total time=   1.7s
+[CV 1/5] END poly__degree=4, ridge__alpha=70;, score=(train=-116907.884, test=-116472.569) total time=   1.7s
+[CV 2/5] END poly__degree=4, ridge__alpha=70;, score=(train=-116486.856, test=-118158.888) total time=   1.7s
+[CV 3/5] END poly__degree=4, ridge__alpha=70;, score=(train=-116471.840, test=-118221.427) total time=   1.7s
+[CV 4/5] END poly__degree=4, ridge__alpha=70;, score=(train=-116829.616, test=-116792.447) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=70;, score=(train=-117396.881, test=-114518.168) total time=   1.7s
+[CV 1/5] END poly__degree=4, ridge__alpha=80;, score=(train=-116909.213, test=-116473.489) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=80;, score=(train=-116488.161, test=-118160.067) total time=   1.6s
+[CV 3/5] END poly__degree=4, ridge__alpha=80;, score=(train=-116473.185, test=-118223.296) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=80;, score=(train=-116831.016, test=-116794.037) total time=   1.6s
+[CV 5/5] END poly__degree=4, ridge__alpha=80;, score=(train=-117398.201, test=-114519.055) total time=   1.5s
+[CV 1/5] END poly__degree=4, ridge__alpha=90;, score=(train=-116910.634, test=-116474.498) total time=   1.6s
+[CV 2/5] END poly__degree=4, ridge__alpha=90;, score=(train=-116489.559, test=-118161.323) total time=   1.6s
+[CV 3/5] END poly__degree=4, ridge__alpha=90;, score=(train=-116474.616, test=-118225.256) total time=   1.6s
+[CV 4/5] END poly__degree=4, ridge__alpha=90;, score=(train=-116832.497, test=-116795.746) total time=   1.5s
+[CV 5/5] END poly__degree=4, ridge__alpha=90;, score=(train=-117399.613, test=-114520.024) total time=   1.5s
+[CV 1/5] END poly__degree=4, ridge__alpha=100;, score=(train=-116912.149, test=-116475.599) total time=   1.5s
+[CV 2/5] END poly__degree=4, ridge__alpha=100;, score=(train=-116491.053, test=-118162.664) total time=   1.5s
+[CV 3/5] END poly__degree=4, ridge__alpha=100;, score=(train=-116476.139, test=-118227.309) total time=   1.5s
+[CV 4/5] END poly__degree=4, ridge__alpha=100;, score=(train=-116834.062, test=-116797.571) total time=   1.5s
+[CV 5/5] END poly__degree=4, ridge__alpha=100;, score=(train=-117401.120, test=-114521.083) total time=   1.5s
+[CV 1/5] END poly__degree=5, ridge__alpha=0;, score=(train=-116878.052, test=-116481.128) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=0;, score=(train=-116462.896, test=-118142.290) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=0;, score=(train=-116446.411, test=-118204.369) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=0;, score=(train=-116804.705, test=-116774.100) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=0;, score=(train=-117376.449, test=-114491.747) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=10;, score=(train=-116879.468, test=-116481.377) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=10;, score=(train=-116464.827, test=-118139.730) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=10;, score=(train=-116447.592, test=-118207.594) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=10;, score=(train=-116806.213, test=-116774.331) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=10;, score=(train=-117377.532, test=-114494.892) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=20;, score=(train=-116880.650, test=-116481.515) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=20;, score=(train=-116466.154, test=-118140.003) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=20;, score=(train=-116448.680, test=-118209.578) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=20;, score=(train=-116807.485, test=-116775.138) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=20;, score=(train=-117378.565, test=-114496.277) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=30;, score=(train=-116881.857, test=-116481.738) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=30;, score=(train=-116467.418, test=-118140.599) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=30;, score=(train=-116449.816, test=-118211.466) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=30;, score=(train=-116808.769, test=-116776.250) total time=   2.2s
+[CV 5/5] END poly__degree=5, ridge__alpha=30;, score=(train=-117379.654, test=-114497.433) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=40;, score=(train=-116883.102, test=-116482.052) total time=   2.2s
+[CV 2/5] END poly__degree=5, ridge__alpha=40;, score=(train=-116468.685, test=-118141.341) total time=   2.2s
+[CV 3/5] END poly__degree=5, ridge__alpha=40;, score=(train=-116450.994, test=-118213.336) total time=   2.2s
+[CV 4/5] END poly__degree=5, ridge__alpha=40;, score=(train=-116810.071, test=-116777.553) total time=   2.2s
+[CV 5/5] END poly__degree=5, ridge__alpha=40;, score=(train=-117380.793, test=-114498.497) total time=   2.2s
+[CV 1/5] END poly__degree=5, ridge__alpha=50;, score=(train=-116884.392, test=-116482.458) total time=   2.2s
+[CV 2/5] END poly__degree=5, ridge__alpha=50;, score=(train=-116469.978, test=-118142.185) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=50;, score=(train=-116452.220, test=-118215.216) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=50;, score=(train=-116811.402, test=-116778.995) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=50;, score=(train=-117381.986, test=-114499.528) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=60;, score=(train=-116885.736, test=-116482.958) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=60;, score=(train=-116471.316, test=-118143.119) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=60;, score=(train=-116453.502, test=-118217.128) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=60;, score=(train=-116812.774, test=-116780.552) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=60;, score=(train=-117383.241, test=-114500.563) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=70;, score=(train=-116887.145, test=-116483.558) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=70;, score=(train=-116472.712, test=-118144.143) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=70;, score=(train=-116454.849, test=-118219.087) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=70;, score=(train=-116814.199, test=-116782.216) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=70;, score=(train=-117384.567, test=-114501.629) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=80;, score=(train=-116888.627, test=-116484.260) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=80;, score=(train=-116474.176, test=-118145.258) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=80;, score=(train=-116456.271, test=-118221.105) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=80;, score=(train=-116815.688, test=-116783.982) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=80;, score=(train=-117385.972, test=-114502.745) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=90;, score=(train=-116890.188, test=-116485.069) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=90;, score=(train=-116475.718, test=-118146.468) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=90;, score=(train=-116457.773, test=-118223.192) total time=   2.1s
+[CV 4/5] END poly__degree=5, ridge__alpha=90;, score=(train=-116817.249, test=-116785.849) total time=   2.1s
+[CV 5/5] END poly__degree=5, ridge__alpha=90;, score=(train=-117387.461, test=-114503.922) total time=   2.1s
+[CV 1/5] END poly__degree=5, ridge__alpha=100;, score=(train=-116891.833, test=-116485.986) total time=   2.1s
+[CV 2/5] END poly__degree=5, ridge__alpha=100;, score=(train=-116477.342, test=-118147.776) total time=   2.1s
+[CV 3/5] END poly__degree=5, ridge__alpha=100;, score=(train=-116459.360, test=-118225.354) total time=   2.2s
+[CV 4/5] END poly__degree=5, ridge__alpha=100;, score=(train=-116818.888, test=-116787.815) total time=   2.2s
+[CV 5/5] END poly__degree=5, ridge__alpha=100;, score=(train=-117389.039, test=-114505.171) total time=   2.2s
+[CV 1/5] END poly__degree=6, ridge__alpha=0;, score=(train=-116772.002, test=-116411.450) total time=   2.9s
+[CV 2/5] END poly__degree=6, ridge__alpha=0;, score=(train=-116357.219, test=-118076.270) total time=   2.9s
+[CV 3/5] END poly__degree=6, ridge__alpha=0;, score=(train=-116346.771, test=-118109.502) total time=   2.9s
+[CV 4/5] END poly__degree=6, ridge__alpha=0;, score=(train=-116701.537, test=-116703.762) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=0;, score=(train=-117276.422, test=-114401.857) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=10;, score=(train=-116776.900, test=-116414.837) total time=   2.9s
+[CV 2/5] END poly__degree=6, ridge__alpha=10;, score=(train=-116363.049, test=-118074.487) total time=   2.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=10;, score=(train=-116351.533, test=-118113.646) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=10;, score=(train=-116706.491, test=-116707.929) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=10;, score=(train=-117280.680, test=-114409.393) total time=   2.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=20;, score=(train=-116779.055, test=-116416.164) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=20;, score=(train=-116365.319, test=-118075.101) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=20;, score=(train=-116353.567, test=-118115.409) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=20;, score=(train=-116708.423, test=-116709.865) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=20;, score=(train=-117282.630, test=-114411.646) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=30;, score=(train=-116781.017, test=-116417.648) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=30;, score=(train=-116367.332, test=-118076.040) total time=   2.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=30;, score=(train=-116355.473, test=-118117.154) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=30;, score=(train=-116710.227, test=-116711.526) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=30;, score=(train=-117284.467, test=-114413.656) total time=   2.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=40;, score=(train=-116783.023, test=-116419.347) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=40;, score=(train=-116369.367, test=-118077.241) total time=   2.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=40;, score=(train=-116357.443, test=-118119.044) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=40;, score=(train=-116712.110, test=-116713.194) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=40;, score=(train=-117286.377, test=-114415.695) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=50;, score=(train=-116785.147, test=-116421.271) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=50;, score=(train=-116371.510, test=-118078.686) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=50;, score=(train=-116359.538, test=-118121.114) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=50;, score=(train=-116714.136, test=-116714.963) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=50;, score=(train=-117288.421, test=-114417.842) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=60;, score=(train=-116787.422, test=-116423.416) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=60;, score=(train=-116373.800, test=-118080.364) total time=   2.9s
+[CV 3/5] END poly__degree=6, ridge__alpha=60;, score=(train=-116361.786, test=-118123.375) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=60;, score=(train=-116716.329, test=-116716.877) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=60;, score=(train=-117290.624, test=-114420.133) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=70;, score=(train=-116789.863, test=-116425.781) total time=   2.9s
+[CV 2/5] END poly__degree=6, ridge__alpha=70;, score=(train=-116376.256, test=-118082.272) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=70;, score=(train=-116364.203, test=-118125.830) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=70;, score=(train=-116718.702, test=-116718.956) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=70;, score=(train=-117293.000, test=-114422.583) total time=   2.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=80;, score=(train=-116792.478, test=-116428.359) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=80;, score=(train=-116378.885, test=-118084.402) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=80;, score=(train=-116366.794, test=-118128.479) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=80;, score=(train=-116721.260, test=-116721.212) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=80;, score=(train=-117295.556, test=-114425.201) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=90;, score=(train=-116795.270, test=-116431.145) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=90;, score=(train=-116381.694, test=-118086.751) total time=   2.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=90;, score=(train=-116369.565, test=-118131.320) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=90;, score=(train=-116724.005, test=-116723.650) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=90;, score=(train=-117298.294, test=-114427.991) total time=   2.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=100;, score=(train=-116798.241, test=-116434.134) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=100;, score=(train=-116384.683, test=-118089.312) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=100;, score=(train=-116372.514, test=-118134.350) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=100;, score=(train=-116726.937, test=-116726.272) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=100;, score=(train=-117301.214, test=-114430.955) total time=   2.8s
+[CV 1/5] END poly__degree=7, ridge__alpha=0;, score=(train=-116679.799, test=-116314.003) total time=   3.8s
+[CV 2/5] END poly__degree=7, ridge__alpha=0;, score=(train=-116253.703, test=-118027.135) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=0;, score=(train=-116252.332, test=-118025.226) total time=   2.3s
+[CV 4/5] END poly__degree=7, ridge__alpha=0;, score=(train=-116604.845, test=-116631.289) total time=   2.3s
+[CV 5/5] END poly__degree=7, ridge__alpha=0;, score=(train=-117179.818, test=-114326.588) total time=   2.4s
+[CV 1/5] END poly__degree=7, ridge__alpha=10;, score=(train=-116685.576, test=-116318.654) total time=   2.4s
+[CV 2/5] END poly__degree=7, ridge__alpha=10;, score=(train=-116260.144, test=-118025.369) total time=   2.4s
+[CV 3/5] END poly__degree=7, ridge__alpha=10;, score=(train=-116258.477, test=-118026.056) total time=   2.4s
+[CV 4/5] END poly__degree=7, ridge__alpha=10;, score=(train=-116610.450, test=-116635.137) total time=   2.4s
+[CV 5/5] END poly__degree=7, ridge__alpha=10;, score=(train=-117185.471, test=-114330.356) total time=   2.4s
+[CV 1/5] END poly__degree=7, ridge__alpha=20;, score=(train=-116688.367, test=-116321.575) total time=   2.4s
+[CV 2/5] END poly__degree=7, ridge__alpha=20;, score=(train=-116263.168, test=-118026.107) total time=   2.4s
+[CV 3/5] END poly__degree=7, ridge__alpha=20;, score=(train=-116261.470, test=-118027.953) total time=   2.3s
+[CV 4/5] END poly__degree=7, ridge__alpha=20;, score=(train=-116613.210, test=-116637.238) total time=   2.4s
+[CV 5/5] END poly__degree=7, ridge__alpha=20;, score=(train=-117188.438, test=-114332.094) total time=   2.4s
+[CV 1/5] END poly__degree=7, ridge__alpha=30;, score=(train=-116690.820, test=-116324.201) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=30;, score=(train=-116265.825, test=-118027.188) total time=   2.4s
+[CV 3/5] END poly__degree=7, ridge__alpha=30;, score=(train=-116264.121, test=-118030.054) total time=   2.3s
+[CV 4/5] END poly__degree=7, ridge__alpha=30;, score=(train=-116615.696, test=-116639.139) total time=   2.3s
+[CV 5/5] END poly__degree=7, ridge__alpha=30;, score=(train=-117191.053, test=-114333.895) total time=   2.4s
+[CV 1/5] END poly__degree=7, ridge__alpha=40;, score=(train=-116693.205, test=-116326.740) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=40;, score=(train=-116268.372, test=-118028.485) total time=   2.3s
+[CV 3/5] END poly__degree=7, ridge__alpha=40;, score=(train=-116266.673, test=-118032.331) total time=   2.4s
+[CV 4/5] END poly__degree=7, ridge__alpha=40;, score=(train=-116618.123, test=-116641.037) total time=   2.3s
+[CV 5/5] END poly__degree=7, ridge__alpha=40;, score=(train=-117193.570, test=-114335.789) total time=   2.3s
+[CV 1/5] END poly__degree=7, ridge__alpha=50;, score=(train=-116695.637, test=-116329.311) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=50;, score=(train=-116270.934, test=-118029.983) total time=   2.3s
+[CV 3/5] END poly__degree=7, ridge__alpha=50;, score=(train=-116269.238, test=-118034.788) total time=   2.3s
+[CV 4/5] END poly__degree=7, ridge__alpha=50;, score=(train=-116620.595, test=-116643.020) total time=   2.4s
+[CV 5/5] END poly__degree=7, ridge__alpha=50;, score=(train=-117196.108, test=-114337.815) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=60;, score=(train=-116698.175, test=-116331.978) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=60;, score=(train=-116273.579, test=-118031.686) total time=   2.4s
+[CV 3/5] END poly__degree=7, ridge__alpha=60;, score=(train=-116271.881, test=-118037.427) total time=   2.3s
+[CV 4/5] END poly__degree=7, ridge__alpha=60;, score=(train=-116623.167, test=-116645.135) total time=   2.2s
+[CV 5/5] END poly__degree=7, ridge__alpha=60;, score=(train=-117198.732, test=-114339.999) total time=   2.3s
+[CV 1/5] END poly__degree=7, ridge__alpha=70;, score=(train=-116700.849, test=-116334.780) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=70;, score=(train=-116276.346, test=-118033.598) total time=   2.3s
+[CV 3/5] END poly__degree=7, ridge__alpha=70;, score=(train=-116274.638, test=-118040.250) total time=   2.4s
+[CV 4/5] END poly__degree=7, ridge__alpha=70;, score=(train=-116625.870, test=-116647.405) total time=   2.3s
+[CV 5/5] END poly__degree=7, ridge__alpha=70;, score=(train=-117201.476, test=-114342.354) total time=   2.4s
+[CV 1/5] END poly__degree=7, ridge__alpha=80;, score=(train=-116703.679, test=-116337.736) total time=   2.4s
+[CV 2/5] END poly__degree=7, ridge__alpha=80;, score=(train=-116279.258, test=-118035.722) total time=   2.4s
+[CV 3/5] END poly__degree=7, ridge__alpha=80;, score=(train=-116277.531, test=-118043.258) total time=   2.4s
+[CV 4/5] END poly__degree=7, ridge__alpha=80;, score=(train=-116628.723, test=-116649.845) total time=   2.4s
+[CV 5/5] END poly__degree=7, ridge__alpha=80;, score=(train=-117204.363, test=-114344.888) total time=   2.3s
+[CV 1/5] END poly__degree=7, ridge__alpha=90;, score=(train=-116706.673, test=-116340.858) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=90;, score=(train=-116282.328, test=-118038.058) total time=   2.3s
+[CV 3/5] END poly__degree=7, ridge__alpha=90;, score=(train=-116280.574, test=-118046.448) total time=   2.3s
+[CV 4/5] END poly__degree=7, ridge__alpha=90;, score=(train=-116631.738, test=-116652.462) total time=   2.3s
+[CV 5/5] END poly__degree=7, ridge__alpha=90;, score=(train=-117207.406, test=-114347.605) total time=   2.4s
+[CV 1/5] END poly__degree=7, ridge__alpha=100;, score=(train=-116709.837, test=-116344.151) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=100;, score=(train=-116285.561, test=-118040.604) total time=   2.3s
+[CV 3/5] END poly__degree=7, ridge__alpha=100;, score=(train=-116283.774, test=-118049.819) total time=   2.4s
+[CV 4/5] END poly__degree=7, ridge__alpha=100;, score=(train=-116634.919, test=-116655.257) total time=   2.4s
+[CV 5/5] END poly__degree=7, ridge__alpha=100;, score=(train=-117210.609, test=-114350.505) total time=   2.3s
+Best joint parameters: {'poly__degree': 7, 'ridge__alpha': 0}
+Fitting 5 folds for each of 50 candidates, totalling 250 fits
+[CV 1/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116772.002, test=-116411.450) total time=   1.6s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116357.219, test=-118076.270) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116346.771, test=-118109.502) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116701.537, test=-116703.762) total time=   1.6s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-117276.422, test=-114401.857) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116772.694, test=-116412.539) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116358.104, test=-118075.591) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116347.527, test=-118110.137) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116702.354, test=-116703.990) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-117277.063, test=-114403.603) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116773.131, test=-116412.980) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116358.661, test=-118075.451) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116347.999, test=-118110.532) total time=   1.6s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116702.863, test=-116704.322) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-117277.461, test=-114404.390) total time=   1.6s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116773.407, test=-116413.197) total time=   1.6s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116359.011, test=-118075.306) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116348.290, test=-118110.771) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116703.175, test=-116704.546) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-117277.707, test=-114404.874) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116773.615, test=-116413.328) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116359.272, test=-118075.169) total time=   1.6s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116348.503, test=-118110.949) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116703.403, test=-116704.724) total time=   1.6s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-117277.888, test=-114405.231) total time=   1.6s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116773.789, test=-116413.421) total time=   1.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116359.489, test=-118075.048) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116348.677, test=-118111.097) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116703.589, test=-116704.880) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-117278.037, test=-114405.519) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116773.943, test=-116413.495) total time=   1.6s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116359.680, test=-118074.944) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116348.828, test=-118111.230) total time=   1.6s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116703.750, test=-116705.023) total time=   1.6s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-117278.168, test=-114405.766) total time=   1.6s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116774.085, test=-116413.558) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116359.854, test=-118074.856) total time=   1.6s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116348.965, test=-118111.351) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116703.895, test=-116705.157) total time=   1.6s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-117278.288, test=-114405.985) total time=   1.6s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116774.218, test=-116413.614) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116360.016, test=-118074.780) total time=   1.6s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116349.090, test=-118111.465) total time=   1.6s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116704.028, test=-116705.286) total time=   1.6s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-117278.399, test=-114406.182) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116774.344, test=-116413.666) total time=   1.6s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116360.167, test=-118074.717) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116349.208, test=-118111.572) total time=   1.6s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116704.152, test=-116705.409) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-117278.504, test=-114406.363) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116774.464, test=-116413.715) total time=   1.6s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116360.311, test=-118074.663) total time=   1.6s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116349.320, test=-118111.674) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116704.269, test=-116705.528) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-117278.604, test=-114406.531) total time=   1.6s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116774.580, test=-116413.763) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116360.447, test=-118074.617) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116349.426, test=-118111.772) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116704.380, test=-116705.643) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-117278.700, test=-114406.688) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116774.691, test=-116413.808) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116360.578, test=-118074.578) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116349.527, test=-118111.865) total time=   1.6s
+[CV 4/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116704.486, test=-116705.754) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-117278.792, test=-114406.835) total time=   1.6s
+[CV 1/5] END poly__degree=6, ridge__alpha=3.25;, score=(train=-116774.798, test=-116413.853) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=3.25;, score=(train=-116360.703, test=-118074.545) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=3.25;, score=(train=-116349.625, test=-118111.955) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=3.25;, score=(train=-116704.587, test=-116705.862) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=3.25;, score=(train=-117278.882, test=-114406.975) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=3.5;, score=(train=-116774.902, test=-116413.896) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=3.5;, score=(train=-116360.824, test=-118074.517) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=3.5;, score=(train=-116349.719, test=-118112.042) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=3.5;, score=(train=-116704.684, test=-116705.966) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=3.5;, score=(train=-117278.968, test=-114407.108) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=3.75;, score=(train=-116775.002, test=-116413.938) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=3.75;, score=(train=-116360.940, test=-118074.494) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=3.75;, score=(train=-116349.810, test=-118112.125) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=3.75;, score=(train=-116704.778, test=-116706.067) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=3.75;, score=(train=-117279.052, test=-114407.234) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=4.0;, score=(train=-116775.100, test=-116413.980) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=4.0;, score=(train=-116361.052, test=-118074.474) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=4.0;, score=(train=-116349.898, test=-118112.206) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=4.0;, score=(train=-116704.869, test=-116706.165) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=4.0;, score=(train=-117279.134, test=-114407.355) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=4.25;, score=(train=-116775.194, test=-116414.020) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=4.25;, score=(train=-116361.161, test=-118074.458) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=4.25;, score=(train=-116349.984, test=-118112.284) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=4.25;, score=(train=-116704.956, test=-116706.260) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=4.25;, score=(train=-117279.214, test=-114407.471) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=4.5;, score=(train=-116775.287, test=-116414.060) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=4.5;, score=(train=-116361.266, test=-118074.444) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=4.5;, score=(train=-116350.067, test=-118112.359) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=4.5;, score=(train=-116705.041, test=-116706.353) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=4.5;, score=(train=-117279.291, test=-114407.582) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=4.75;, score=(train=-116775.376, test=-116414.099) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=4.75;, score=(train=-116361.368, test=-118074.433) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=4.75;, score=(train=-116350.148, test=-118112.432) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=4.75;, score=(train=-116705.123, test=-116706.443) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=4.75;, score=(train=-117279.367, test=-114407.689) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=5.0;, score=(train=-116775.464, test=-116414.138) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=5.0;, score=(train=-116361.467, test=-118074.425) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=5.0;, score=(train=-116350.227, test=-118112.504) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=5.0;, score=(train=-116705.203, test=-116706.530) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=5.0;, score=(train=-117279.441, test=-114407.793) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=5.25;, score=(train=-116775.549, test=-116414.176) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=5.25;, score=(train=-116361.564, test=-118074.418) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=5.25;, score=(train=-116350.304, test=-118112.573) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=5.25;, score=(train=-116705.281, test=-116706.616) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=5.25;, score=(train=-117279.513, test=-114407.893) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=5.5;, score=(train=-116775.633, test=-116414.214) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=5.5;, score=(train=-116361.657, test=-118074.412) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=5.5;, score=(train=-116350.379, test=-118112.640) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=5.5;, score=(train=-116705.357, test=-116706.699) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=5.5;, score=(train=-117279.584, test=-114407.990) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=5.75;, score=(train=-116775.714, test=-116414.251) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=5.75;, score=(train=-116361.749, test=-118074.409) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=5.75;, score=(train=-116350.453, test=-118112.706) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=5.75;, score=(train=-116705.430, test=-116706.780) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=5.75;, score=(train=-117279.653, test=-114408.084) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=6.0;, score=(train=-116775.794, test=-116414.288) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=6.0;, score=(train=-116361.838, test=-118074.407) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=6.0;, score=(train=-116350.525, test=-118112.770) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=6.0;, score=(train=-116705.503, test=-116706.859) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=6.0;, score=(train=-117279.721, test=-114408.176) total time=   1.7s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116679.799, test=-116314.003) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116253.703, test=-118027.135) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116252.332, test=-118025.226) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116604.845, test=-116631.289) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-117179.818, test=-114326.588) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116680.672, test=-116315.002) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116254.906, test=-118025.696) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116253.347, test=-118024.838) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116605.741, test=-116631.588) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-117180.599, test=-114328.157) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116681.195, test=-116315.424) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116255.557, test=-118025.703) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116253.915, test=-118024.957) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116606.295, test=-116631.993) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-117181.082, test=-114328.660) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116681.525, test=-116315.632) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116255.945, test=-118025.705) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116254.270, test=-118024.987) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116606.630, test=-116632.238) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-117181.389, test=-114328.881) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116681.769, test=-116315.762) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116256.219, test=-118025.688) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116254.531, test=-118024.988) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116606.871, test=-116632.412) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-117181.619, test=-114328.997) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116681.969, test=-116315.860) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116256.435, test=-118025.661) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116254.743, test=-118024.983) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116607.064, test=-116632.550) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-117181.808, test=-114329.067) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116682.142, test=-116315.943) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116256.617, test=-118025.629) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116254.925, test=-118024.978) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116607.230, test=-116632.668) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-117181.975, test=-114329.115) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116682.299, test=-116316.020) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116256.778, test=-118025.596) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116255.089, test=-118024.978) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116607.377, test=-116632.775) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-117182.127, test=-114329.153) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116682.445, test=-116316.095) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116256.925, test=-118025.563) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116255.240, test=-118024.981) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116607.513, test=-116632.874) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-117182.269, test=-114329.184) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116682.581, test=-116316.169) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116257.063, test=-118025.532) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116255.382, test=-118024.989) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116607.641, test=-116632.968) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-117182.403, test=-114329.214) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116682.712, test=-116316.243) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116257.193, test=-118025.502) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116255.516, test=-118025.001) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116607.761, test=-116633.058) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-117182.532, test=-114329.242) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116682.837, test=-116316.318) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116257.318, test=-118025.475) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116255.645, test=-118025.017) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116607.877, test=-116633.146) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-117182.656, test=-114329.270) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116682.958, test=-116316.394) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116257.438, test=-118025.449) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116255.768, test=-118025.035) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116607.989, test=-116633.230) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-117182.776, test=-114329.299) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=3.25;, score=(train=-116683.075, test=-116316.471) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=3.25;, score=(train=-116257.555, test=-118025.426) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=3.25;, score=(train=-116255.888, test=-118025.056) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=3.25;, score=(train=-116608.097, test=-116633.313) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=3.25;, score=(train=-117182.894, test=-114329.329) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=3.5;, score=(train=-116683.189, test=-116316.549) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=3.5;, score=(train=-116257.669, test=-118025.405) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=3.5;, score=(train=-116256.005, test=-118025.080) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=3.5;, score=(train=-116608.202, test=-116633.394) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=3.5;, score=(train=-117183.008, test=-114329.359) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=3.75;, score=(train=-116683.300, test=-116316.628) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=3.75;, score=(train=-116257.781, test=-118025.386) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=3.75;, score=(train=-116256.119, test=-118025.106) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=3.75;, score=(train=-116608.305, test=-116633.473) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=3.75;, score=(train=-117183.120, test=-114329.390) total time=   1.9s
+[CV 1/5] END poly__degree=7, ridge__alpha=4.0;, score=(train=-116683.409, test=-116316.708) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=4.0;, score=(train=-116257.890, test=-118025.369) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=4.0;, score=(train=-116256.230, test=-118025.133) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=4.0;, score=(train=-116608.406, test=-116633.551) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=4.0;, score=(train=-117183.230, test=-114329.422) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=4.25;, score=(train=-116683.515, test=-116316.788) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=4.25;, score=(train=-116257.998, test=-118025.355) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=4.25;, score=(train=-116256.339, test=-118025.163) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=4.25;, score=(train=-116608.504, test=-116633.627) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=4.25;, score=(train=-117183.338, test=-114329.455) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=4.5;, score=(train=-116683.620, test=-116316.869) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=4.5;, score=(train=-116258.103, test=-118025.341) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=4.5;, score=(train=-116256.445, test=-118025.193) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=4.5;, score=(train=-116608.601, test=-116633.703) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=4.5;, score=(train=-117183.444, test=-114329.489) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=4.75;, score=(train=-116683.722, test=-116316.950) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=4.75;, score=(train=-116258.207, test=-118025.330) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=4.75;, score=(train=-116256.550, test=-118025.225) total time=   1.9s
+[CV 4/5] END poly__degree=7, ridge__alpha=4.75;, score=(train=-116608.696, test=-116633.777) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=4.75;, score=(train=-117183.548, test=-114329.524) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=5.0;, score=(train=-116683.823, test=-116317.031) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=5.0;, score=(train=-116258.309, test=-118025.320) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=5.0;, score=(train=-116256.653, test=-118025.258) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=5.0;, score=(train=-116608.789, test=-116633.849) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=5.0;, score=(train=-117183.650, test=-114329.559) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=5.25;, score=(train=-116683.922, test=-116317.113) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=5.25;, score=(train=-116258.410, test=-118025.312) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=5.25;, score=(train=-116256.755, test=-118025.292) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=5.25;, score=(train=-116608.881, test=-116633.921) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=5.25;, score=(train=-117183.752, test=-114329.595) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=5.5;, score=(train=-116684.019, test=-116317.195) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=5.5;, score=(train=-116258.510, test=-118025.306) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=5.5;, score=(train=-116256.855, test=-118025.328) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=5.5;, score=(train=-116608.972, test=-116633.992) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=5.5;, score=(train=-117183.851, test=-114329.632) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=5.75;, score=(train=-116684.115, test=-116317.277) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=5.75;, score=(train=-116258.609, test=-118025.300) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=5.75;, score=(train=-116256.953, test=-118025.363) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=5.75;, score=(train=-116609.062, test=-116634.062) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=5.75;, score=(train=-117183.950, test=-114329.669) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=6.0;, score=(train=-116684.209, test=-116317.360) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=6.0;, score=(train=-116258.706, test=-118025.296) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=6.0;, score=(train=-116257.051, test=-118025.400) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=6.0;, score=(train=-116609.150, test=-116634.131) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=6.0;, score=(train=-117184.047, test=-114329.707) total time=   2.0s
+Fitting 5 folds for each of 50 candidates, totalling 250 fits
+[CV 1/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116772.002, test=-116411.450) total time=   1.6s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116357.219, test=-118076.270) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116346.771, test=-118109.502) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-116701.537, test=-116703.762) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.0;, score=(train=-117276.422, test=-114401.857) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.125;, score=(train=-116772.347, test=-116412.106) total time=   1.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.125;, score=(train=-116357.660, test=-118075.694) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.125;, score=(train=-116347.149, test=-118109.812) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.125;, score=(train=-116701.945, test=-116703.763) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.125;, score=(train=-117276.742, test=-114402.929) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116772.694, test=-116412.539) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116358.104, test=-118075.591) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116347.527, test=-118110.137) total time=   1.6s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-116702.354, test=-116703.990) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.25;, score=(train=-117277.063, test=-114403.603) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.375;, score=(train=-116772.944, test=-116412.805) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.375;, score=(train=-116358.422, test=-118075.522) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.375;, score=(train=-116347.798, test=-118110.365) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.375;, score=(train=-116702.646, test=-116704.176) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.375;, score=(train=-117277.291, test=-114404.056) total time=   1.6s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116773.131, test=-116412.980) total time=   1.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116358.661, test=-118075.451) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116347.999, test=-118110.532) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-116702.863, test=-116704.322) total time=   1.6s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.5;, score=(train=-117277.461, test=-114404.390) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.625;, score=(train=-116773.281, test=-116413.104) total time=   1.6s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.625;, score=(train=-116358.851, test=-118075.378) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.625;, score=(train=-116348.158, test=-118110.662) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.625;, score=(train=-116703.033, test=-116704.442) total time=   1.6s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.625;, score=(train=-117277.596, test=-114404.654) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116773.407, test=-116413.197) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116359.011, test=-118075.306) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116348.290, test=-118110.771) total time=   1.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-116703.175, test=-116704.546) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.75;, score=(train=-117277.707, test=-114404.874) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=0.875;, score=(train=-116773.516, test=-116413.269) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=0.875;, score=(train=-116359.149, test=-118075.236) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=0.875;, score=(train=-116348.403, test=-118110.865) total time=   1.6s
+[CV 4/5] END poly__degree=6, ridge__alpha=0.875;, score=(train=-116703.296, test=-116704.639) total time=   1.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=0.875;, score=(train=-117277.803, test=-114405.063) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116773.615, test=-116413.328) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116359.272, test=-118075.169) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116348.503, test=-118110.949) total time=   1.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-116703.403, test=-116704.724) total time=   1.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.0;, score=(train=-117277.888, test=-114405.231) total time=   1.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.125;, score=(train=-116773.705, test=-116413.378) total time=   1.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.125;, score=(train=-116359.385, test=-118075.107) total time=   1.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.125;, score=(train=-116348.594, test=-118111.026) total time=   1.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.125;, score=(train=-116703.500, test=-116704.804) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.125;, score=(train=-117277.966, test=-114405.381) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116773.789, test=-116413.421) total time=   2.9s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116359.489, test=-118075.048) total time=   2.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116348.677, test=-118111.097) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-116703.589, test=-116704.880) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.25;, score=(train=-117278.037, test=-114405.519) total time=   2.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.375;, score=(train=-116773.868, test=-116413.460) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.375;, score=(train=-116359.588, test=-118074.994) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.375;, score=(train=-116348.755, test=-118111.165) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.375;, score=(train=-116703.672, test=-116704.952) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.375;, score=(train=-117278.105, test=-114405.647) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116773.943, test=-116413.495) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116359.680, test=-118074.944) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116348.828, test=-118111.230) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-116703.750, test=-116705.023) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.5;, score=(train=-117278.168, test=-114405.766) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.625;, score=(train=-116774.016, test=-116413.527) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.625;, score=(train=-116359.769, test=-118074.898) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.625;, score=(train=-116348.898, test=-118111.291) total time=   2.9s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.625;, score=(train=-116703.824, test=-116705.091) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.625;, score=(train=-117278.229, test=-114405.879) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116774.085, test=-116413.558) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116359.854, test=-118074.856) total time=   2.9s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116348.965, test=-118111.351) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-116703.895, test=-116705.157) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.75;, score=(train=-117278.288, test=-114405.985) total time=   2.9s
+[CV 1/5] END poly__degree=6, ridge__alpha=1.875;, score=(train=-116774.153, test=-116413.586) total time=   2.9s
+[CV 2/5] END poly__degree=6, ridge__alpha=1.875;, score=(train=-116359.936, test=-118074.816) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=1.875;, score=(train=-116349.029, test=-118111.409) total time=   2.9s
+[CV 4/5] END poly__degree=6, ridge__alpha=1.875;, score=(train=-116703.962, test=-116705.222) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=1.875;, score=(train=-117278.344, test=-114406.086) total time=   2.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116774.218, test=-116413.614) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116360.016, test=-118074.780) total time=   2.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116349.090, test=-118111.465) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-116704.028, test=-116705.286) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.0;, score=(train=-117278.399, test=-114406.182) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.125;, score=(train=-116774.282, test=-116413.641) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.125;, score=(train=-116360.092, test=-118074.747) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.125;, score=(train=-116349.150, test=-118111.519) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.125;, score=(train=-116704.091, test=-116705.348) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.125;, score=(train=-117278.452, test=-114406.274) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116774.344, test=-116413.666) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116360.167, test=-118074.717) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116349.208, test=-118111.572) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-116704.152, test=-116705.409) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.25;, score=(train=-117278.504, test=-114406.363) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.375;, score=(train=-116774.405, test=-116413.691) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.375;, score=(train=-116360.240, test=-118074.689) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.375;, score=(train=-116349.265, test=-118111.624) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.375;, score=(train=-116704.211, test=-116705.469) total time=   2.9s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.375;, score=(train=-117278.554, test=-114406.448) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116774.464, test=-116413.715) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116360.311, test=-118074.663) total time=   2.9s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116349.320, test=-118111.674) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-116704.269, test=-116705.528) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.5;, score=(train=-117278.604, test=-114406.531) total time=   2.9s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.625;, score=(train=-116774.523, test=-116413.739) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.625;, score=(train=-116360.380, test=-118074.639) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.625;, score=(train=-116349.373, test=-118111.723) total time=   2.8s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.625;, score=(train=-116704.325, test=-116705.586) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.625;, score=(train=-117278.652, test=-114406.611) total time=   2.7s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116774.580, test=-116413.763) total time=   2.8s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116360.447, test=-118074.617) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116349.426, test=-118111.772) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-116704.380, test=-116705.643) total time=   2.8s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.75;, score=(train=-117278.700, test=-114406.688) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=2.875;, score=(train=-116774.636, test=-116413.786) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=2.875;, score=(train=-116360.513, test=-118074.597) total time=   2.8s
+[CV 3/5] END poly__degree=6, ridge__alpha=2.875;, score=(train=-116349.477, test=-118111.819) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=2.875;, score=(train=-116704.433, test=-116705.699) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=2.875;, score=(train=-117278.747, test=-114406.763) total time=   2.8s
+[CV 1/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116774.691, test=-116413.808) total time=   2.7s
+[CV 2/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116360.578, test=-118074.578) total time=   2.7s
+[CV 3/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116349.527, test=-118111.865) total time=   2.7s
+[CV 4/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-116704.486, test=-116705.754) total time=   2.7s
+[CV 5/5] END poly__degree=6, ridge__alpha=3.0;, score=(train=-117278.792, test=-114406.835) total time=   2.7s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116679.799, test=-116314.003) total time=   3.7s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116253.703, test=-118027.135) total time=   3.6s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116252.332, test=-118025.226) total time=   3.6s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-116604.845, test=-116631.289) total time=   3.6s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.0;, score=(train=-117179.818, test=-114326.588) total time=   3.5s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.125;, score=(train=-116680.263, test=-116314.590) total time=   3.6s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.125;, score=(train=-116254.377, test=-118025.784) total time=   3.5s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.125;, score=(train=-116252.893, test=-118024.728) total time=   3.5s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.125;, score=(train=-116605.293, test=-116631.290) total time=   3.6s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.125;, score=(train=-117180.223, test=-114327.624) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116680.672, test=-116315.002) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116254.906, test=-118025.696) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116253.347, test=-118024.838) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-116605.741, test=-116631.588) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.25;, score=(train=-117180.599, test=-114328.157) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.375;, score=(train=-116680.970, test=-116315.256) total time=   2.3s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.375;, score=(train=-116255.281, test=-118025.695) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.375;, score=(train=-116253.671, test=-118024.915) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.375;, score=(train=-116606.059, test=-116631.819) total time=   2.2s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.375;, score=(train=-117180.874, test=-114328.466) total time=   2.0s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116681.195, test=-116315.424) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116255.557, test=-118025.703) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116253.915, test=-118024.957) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-116606.295, test=-116631.993) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.5;, score=(train=-117181.082, test=-114328.660) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.625;, score=(train=-116681.375, test=-116315.542) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.625;, score=(train=-116255.771, test=-118025.707) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.625;, score=(train=-116254.109, test=-118024.978) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.625;, score=(train=-116606.479, test=-116632.128) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.625;, score=(train=-117181.249, test=-114328.790) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116681.525, test=-116315.632) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116255.945, test=-118025.705) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116254.270, test=-118024.987) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-116606.630, test=-116632.238) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.75;, score=(train=-117181.389, test=-114328.881) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=0.875;, score=(train=-116681.654, test=-116315.703) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=0.875;, score=(train=-116256.092, test=-118025.698) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=0.875;, score=(train=-116254.409, test=-118024.989) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=0.875;, score=(train=-116606.759, test=-116632.331) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=0.875;, score=(train=-117181.510, test=-114328.947) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116681.769, test=-116315.762) total time=   2.0s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116256.219, test=-118025.688) total time=   2.3s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116254.531, test=-118024.988) total time=   2.4s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-116606.871, test=-116632.412) total time=   2.3s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.0;, score=(train=-117181.619, test=-114328.997) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.125;, score=(train=-116681.873, test=-116315.813) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.125;, score=(train=-116256.332, test=-118025.675) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.125;, score=(train=-116254.641, test=-118024.985) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.125;, score=(train=-116606.972, test=-116632.484) total time=   2.2s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.125;, score=(train=-117181.717, test=-114329.036) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116681.969, test=-116315.860) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116256.435, test=-118025.661) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116254.743, test=-118024.983) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-116607.064, test=-116632.550) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.25;, score=(train=-117181.808, test=-114329.067) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.375;, score=(train=-116682.058, test=-116315.903) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.375;, score=(train=-116256.529, test=-118025.645) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.375;, score=(train=-116254.837, test=-118024.980) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.375;, score=(train=-116607.150, test=-116632.611) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.375;, score=(train=-117181.894, test=-114329.093) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116682.142, test=-116315.943) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116256.617, test=-118025.629) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116254.925, test=-118024.978) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-116607.230, test=-116632.668) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.5;, score=(train=-117181.975, test=-114329.115) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.625;, score=(train=-116682.222, test=-116315.982) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.625;, score=(train=-116256.699, test=-118025.613) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.625;, score=(train=-116255.009, test=-118024.977) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.625;, score=(train=-116607.305, test=-116632.723) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.625;, score=(train=-117182.053, test=-114329.135) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116682.299, test=-116316.020) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116256.778, test=-118025.596) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116255.089, test=-118024.978) total time=   2.2s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-116607.377, test=-116632.775) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.75;, score=(train=-117182.127, test=-114329.153) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=1.875;, score=(train=-116682.373, test=-116316.058) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=1.875;, score=(train=-116256.853, test=-118025.580) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=1.875;, score=(train=-116255.166, test=-118024.979) total time=   2.2s
+[CV 4/5] END poly__degree=7, ridge__alpha=1.875;, score=(train=-116607.447, test=-116632.825) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=1.875;, score=(train=-117182.199, test=-114329.169) total time=   2.2s
+Generating batches:  17%|█▋        | 1/6 [40:49<3:24:06, 2449.21s/it][CV 1/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116682.445, test=-116316.095) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116256.925, test=-118025.563) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116255.240, test=-118024.981) total time=   2.2s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-116607.513, test=-116632.874) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.0;, score=(train=-117182.269, test=-114329.184) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.125;, score=(train=-116682.514, test=-116316.132) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.125;, score=(train=-116256.995, test=-118025.547) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.125;, score=(train=-116255.312, test=-118024.985) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.125;, score=(train=-116607.578, test=-116632.922) total time=   2.2s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.125;, score=(train=-117182.337, test=-114329.199) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116682.581, test=-116316.169) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116257.063, test=-118025.532) total time=   2.0s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116255.382, test=-118024.989) total time=   2.2s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-116607.641, test=-116632.968) total time=   2.2s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.25;, score=(train=-117182.403, test=-114329.214) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.375;, score=(train=-116682.647, test=-116316.206) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.375;, score=(train=-116257.129, test=-118025.517) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.375;, score=(train=-116255.450, test=-118024.995) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.375;, score=(train=-116607.702, test=-116633.014) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.375;, score=(train=-117182.468, test=-114329.228) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116682.712, test=-116316.243) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116257.193, test=-118025.502) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116255.516, test=-118025.001) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-116607.761, test=-116633.058) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.5;, score=(train=-117182.532, test=-114329.242) total time=   2.2s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.625;, score=(train=-116682.775, test=-116316.280) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.625;, score=(train=-116257.256, test=-118025.488) total time=   2.2s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.625;, score=(train=-116255.581, test=-118025.009) total time=   2.2s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.625;, score=(train=-116607.820, test=-116633.102) total time=   2.1s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.625;, score=(train=-117182.594, test=-114329.256) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116682.837, test=-116316.318) total time=   2.2s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116257.318, test=-118025.475) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116255.645, test=-118025.017) total time=   2.0s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-116607.877, test=-116633.146) total time=   2.2s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.75;, score=(train=-117182.656, test=-114329.270) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=2.875;, score=(train=-116682.898, test=-116316.356) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=2.875;, score=(train=-116257.379, test=-118025.462) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=2.875;, score=(train=-116255.707, test=-118025.026) total time=   2.1s
+[CV 4/5] END poly__degree=7, ridge__alpha=2.875;, score=(train=-116607.934, test=-116633.188) total time=   2.0s
+[CV 5/5] END poly__degree=7, ridge__alpha=2.875;, score=(train=-117182.717, test=-114329.285) total time=   2.1s
+[CV 1/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116682.958, test=-116316.394) total time=   2.1s
+[CV 2/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116257.438, test=-118025.449) total time=   2.1s
+[CV 3/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116255.768, test=-118025.035) total time=   2.2s
+[CV 4/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-116607.989, test=-116633.230) total time=   2.2s
+[CV 5/5] END poly__degree=7, ridge__alpha=3.0;, score=(train=-117182.776, test=-114329.299) total time=   2.0s
+Best joint parameters: {'poly__degree': 7, 'ridge__alpha': 0.125}
+Score:  0.95
+Average RL reward for batch 1: -1303.3334475016488
+Average GP reward for batch 1: 0.0 
+
+Generating batches:  33%|███▎      | 2/6 [53:29<1:37:02, 1455.73s/it]    Fitting supervised regressor 2 of 6.
+Score:  0.15
+Average RL reward for batch 2: -6.37645769380141
+Average GP reward for batch 2: 0.0 
+
+Generating batches:  50%|█████     | 3/6 [1:28:47<1:27:53, 1757.91s/it]    Fitting supervised regressor 3 of 6.
+Score:  0.20
+Average RL reward for batch 3: -7.6701598845606025
+Average GP reward for batch 3: 0.0 
+
+Generating batches:  67%|██████▋   | 4/6 [2:36:11<1:28:41, 2660.70s/it]    Fitting supervised regressor 4 of 6.
+Score:  0.16
+Average RL reward for batch 4: -0.7818495887538187
+Average GP reward for batch 4: 0.0 
+
+Generating batches:  83%|████████▎ | 5/6 [4:27:10<1:08:22, 4102.45s/it]    Fitting supervised regressor 5 of 6.
+Score:  0.71
+Average RL reward for batch 5: -27.397813215277225
+Average GP reward for batch 5: 0.0 
+
+Generating batches: 100%|██████████| 6/6 [6:57:12<00:00, 5768.23s/it]  Generating batches: 100%|██████████| 6/6 [6:57:12<00:00, 4172.05s/it]
+    Fitting supervised regressor 6 of 6.
+Score:  0.90
+Average RL reward for batch 6: -397.28067239630326
+Average GP reward for batch 6: 0.0 
+
+Trained using N = 6; best reward obtained on batch n = 4
+--- End s_train_agent.py
+Using optimizer=OptimizerType.shgo
+Computing Markowitz strategy:   0%|          | 0/798 [00:00<?, ?it/s]Computing Markowitz strategy: 100%|██████████| 798/798 [00:00<00:00, 9251.66it/s]
+Computing GP strategy:   0%|          | 0/798 [00:00<?, ?it/s]Computing GP strategy:   2%|▏         | 12/798 [00:00<00:06, 113.88it/s]Computing GP strategy:   4%|▍         | 30/798 [00:00<00:05, 148.86it/s]Computing GP strategy:   6%|▌         | 48/798 [00:00<00:04, 160.24it/s]Computing GP strategy:   8%|▊         | 66/798 [00:00<00:04, 165.69it/s]Computing GP strategy:  11%|█         | 84/798 [00:00<00:04, 169.04it/s]Computing GP strategy:  13%|█▎        | 102/798 [00:00<00:04, 170.91it/s]Computing GP strategy:  15%|█▌        | 120/798 [00:00<00:03, 172.09it/s]Computing GP strategy:  17%|█▋        | 138/798 [00:00<00:03, 172.97it/s]Computing GP strategy:  20%|█▉        | 156/798 [00:00<00:03, 173.45it/s]Computing GP strategy:  22%|██▏       | 174/798 [00:01<00:03, 174.09it/s]Computing GP strategy:  24%|██▍       | 192/798 [00:01<00:03, 174.31it/s]Computing GP strategy:  26%|██▋       | 210/798 [00:01<00:03, 174.35it/s]Computing GP strategy:  29%|██▊       | 228/798 [00:01<00:03, 174.40it/s]Computing GP strategy:  31%|███       | 246/798 [00:01<00:03, 174.47it/s]Computing GP strategy:  33%|███▎      | 264/798 [00:01<00:03, 174.81it/s]Computing GP strategy:  35%|███▌      | 282/798 [00:01<00:02, 174.83it/s]Computing GP strategy:  38%|███▊      | 300/798 [00:01<00:02, 174.67it/s]Computing GP strategy:  40%|███▉      | 318/798 [00:01<00:02, 174.68it/s]Computing GP strategy:  42%|████▏     | 336/798 [00:01<00:02, 174.61it/s]Computing GP strategy:  44%|████▍     | 354/798 [00:02<00:02, 174.88it/s]Computing GP strategy:  47%|████▋     | 372/798 [00:02<00:02, 174.82it/s]Computing GP strategy:  49%|████▉     | 390/798 [00:02<00:02, 174.60it/s]Computing GP strategy:  51%|█████     | 408/798 [00:02<00:02, 174.50it/s]Computing GP strategy:  53%|█████▎    | 426/798 [00:02<00:02, 174.30it/s]Computing GP strategy:  56%|█████▌    | 444/798 [00:02<00:02, 174.48it/s]Computing GP strategy:  58%|█████▊    | 462/798 [00:02<00:01, 174.35it/s]Computing GP strategy:  60%|██████    | 480/798 [00:02<00:01, 173.89it/s]Computing GP strategy:  62%|██████▏   | 498/798 [00:02<00:01, 172.24it/s]Computing GP strategy:  65%|██████▍   | 516/798 [00:03<00:01, 171.37it/s]Computing GP strategy:  67%|██████▋   | 534/798 [00:03<00:01, 171.88it/s]Computing GP strategy:  69%|██████▉   | 552/798 [00:03<00:01, 168.44it/s]Computing GP strategy:  71%|███████▏  | 569/798 [00:03<00:01, 168.66it/s]Computing GP strategy:  73%|███████▎  | 586/798 [00:03<00:01, 168.22it/s]Computing GP strategy:  76%|███████▌  | 603/798 [00:03<00:01, 166.74it/s]Computing GP strategy:  78%|███████▊  | 620/798 [00:03<00:01, 167.47it/s]Computing GP strategy:  80%|███████▉  | 638/798 [00:03<00:00, 168.91it/s]Computing GP strategy:  82%|████████▏ | 656/798 [00:03<00:00, 169.66it/s]Computing GP strategy:  84%|████████▍ | 674/798 [00:03<00:00, 170.59it/s]Computing GP strategy:  87%|████████▋ | 692/798 [00:04<00:00, 171.54it/s]Computing GP strategy:  89%|████████▉ | 710/798 [00:04<00:00, 172.33it/s]Computing GP strategy:  91%|█████████ | 728/798 [00:04<00:00, 172.88it/s]Computing GP strategy:  93%|█████████▎| 746/798 [00:04<00:00, 173.21it/s]Computing GP strategy:  96%|█████████▌| 764/798 [00:04<00:00, 173.64it/s]Computing GP strategy:  98%|█████████▊| 782/798 [00:04<00:00, 173.74it/s]Computing GP strategy: 100%|██████████| 798/798 [00:04<00:00, 171.65it/s]
+Computing RL strategy:   0%|          | 0/798 [00:00<?, ?it/s]Computing RL strategy:   2%|▏         | 13/798 [00:00<00:06, 129.14it/s]Computing RL strategy:   3%|▎         | 27/798 [00:00<00:05, 130.21it/s]Computing RL strategy:   5%|▌         | 41/798 [00:00<00:05, 130.26it/s]Computing RL strategy:   7%|▋         | 55/798 [00:00<00:05, 130.42it/s]Computing RL strategy:   9%|▊         | 69/798 [00:00<00:05, 130.36it/s]Computing RL strategy:  10%|█         | 83/798 [00:00<00:05, 130.52it/s]Computing RL strategy:  12%|█▏        | 97/798 [00:00<00:05, 130.83it/s]Computing RL strategy:  14%|█▍        | 111/798 [00:00<00:05, 130.57it/s]Computing RL strategy:  16%|█▌        | 125/798 [00:00<00:05, 130.67it/s]Computing RL strategy:  17%|█▋        | 139/798 [00:01<00:05, 130.82it/s]Computing RL strategy:  19%|█▉        | 153/798 [00:01<00:04, 130.79it/s]Computing RL strategy:  21%|██        | 167/798 [00:01<00:04, 130.90it/s]Computing RL strategy:  23%|██▎       | 181/798 [00:01<00:05, 114.84it/s]Computing RL strategy:  24%|██▍       | 195/798 [00:01<00:05, 119.74it/s]Computing RL strategy:  26%|██▌       | 209/798 [00:01<00:04, 123.35it/s]Computing RL strategy:  28%|██▊       | 223/798 [00:01<00:04, 126.07it/s]Computing RL strategy:  30%|██▉       | 237/798 [00:01<00:04, 127.95it/s]Computing RL strategy:  31%|███▏      | 251/798 [00:01<00:04, 129.35it/s]Computing RL strategy:  33%|███▎      | 265/798 [00:02<00:04, 130.20it/s]Computing RL strategy:  35%|███▍      | 279/798 [00:02<00:03, 131.00it/s]Computing RL strategy:  37%|███▋      | 293/798 [00:02<00:03, 131.42it/s]Computing RL strategy:  38%|███▊      | 307/798 [00:02<00:03, 131.87it/s]Computing RL strategy:  40%|████      | 321/798 [00:02<00:03, 132.05it/s]Computing RL strategy:  42%|████▏     | 335/798 [00:02<00:03, 131.99it/s]Computing RL strategy:  44%|████▎     | 349/798 [00:02<00:03, 132.21it/s]Computing RL strategy:  45%|████▌     | 363/798 [00:02<00:03, 132.33it/s]Computing RL strategy:  47%|████▋     | 377/798 [00:02<00:03, 132.26it/s]Computing RL strategy:  49%|████▉     | 391/798 [00:03<00:03, 132.36it/s]Computing RL strategy:  51%|█████     | 405/798 [00:03<00:02, 132.22it/s]Computing RL strategy:  53%|█████▎    | 419/798 [00:03<00:02, 132.48it/s]Computing RL strategy:  54%|█████▍    | 433/798 [00:03<00:02, 132.59it/s]Computing RL strategy:  56%|█████▌    | 447/798 [00:03<00:02, 132.44it/s]Computing RL strategy:  58%|█████▊    | 461/798 [00:03<00:02, 132.50it/s]Computing RL strategy:  60%|█████▉    | 475/798 [00:03<00:02, 132.51it/s]Computing RL strategy:  61%|██████▏   | 489/798 [00:03<00:02, 132.38it/s]Computing RL strategy:  63%|██████▎   | 503/798 [00:03<00:02, 132.30it/s]Computing RL strategy:  65%|██████▍   | 517/798 [00:03<00:02, 132.17it/s]Computing RL strategy:  67%|██████▋   | 531/798 [00:04<00:02, 132.33it/s]Computing RL strategy:  68%|██████▊   | 545/798 [00:04<00:01, 132.47it/s]Computing RL strategy:  70%|███████   | 559/798 [00:04<00:01, 132.22it/s]Computing RL strategy:  72%|███████▏  | 573/798 [00:04<00:01, 132.34it/s]Computing RL strategy:  74%|███████▎  | 587/798 [00:04<00:01, 132.36it/s]Computing RL strategy:  75%|███████▌  | 601/798 [00:04<00:01, 132.15it/s]Computing RL strategy:  77%|███████▋  | 615/798 [00:04<00:01, 132.24it/s]Computing RL strategy:  79%|███████▉  | 629/798 [00:04<00:01, 132.08it/s]Computing RL strategy:  81%|████████  | 643/798 [00:04<00:01, 131.93it/s]Computing RL strategy:  82%|████████▏ | 657/798 [00:05<00:01, 127.88it/s]Computing RL strategy:  84%|████████▍ | 670/798 [00:05<00:01, 124.90it/s]Computing RL strategy:  86%|████████▌ | 683/798 [00:05<00:00, 126.22it/s]Computing RL strategy:  87%|████████▋ | 696/798 [00:05<00:00, 120.10it/s]Computing RL strategy:  89%|████████▉ | 709/798 [00:05<00:00, 121.56it/s]Computing RL strategy:  90%|█████████ | 722/798 [00:05<00:00, 120.03it/s]Computing RL strategy:  92%|█████████▏| 735/798 [00:05<00:00, 118.37it/s]Computing RL strategy:  94%|█████████▎| 748/798 [00:05<00:00, 121.49it/s]Computing RL strategy:  95%|█████████▌| 762/798 [00:05<00:00, 124.03it/s]Computing RL strategy:  97%|█████████▋| 776/798 [00:06<00:00, 125.99it/s]Computing RL strategy:  99%|█████████▉| 789/798 [00:06<00:00, 123.77it/s]Computing RL strategy: 100%|██████████| 798/798 [00:06<00:00, 128.81it/s]
+Computing Markowitz strategy on chunks:   0%|          | 0/16 [00:00<?, ?it/s]Computing Markowitz strategy on chunks: 100%|██████████| 16/16 [00:00<00:00, 190.57it/s]
+Computing GP strategy on chunks:   0%|          | 0/16 [00:00<?, ?it/s]Computing GP strategy on chunks:   6%|▋         | 1/16 [00:00<00:04,  3.50it/s]Computing GP strategy on chunks:  12%|█▎        | 2/16 [00:00<00:04,  3.50it/s]Computing GP strategy on chunks:  19%|█▉        | 3/16 [00:00<00:03,  3.50it/s]Computing GP strategy on chunks:  25%|██▌       | 4/16 [00:01<00:03,  3.50it/s]Computing GP strategy on chunks:  31%|███▏      | 5/16 [00:01<00:03,  3.50it/s]Computing GP strategy on chunks:  38%|███▊      | 6/16 [00:01<00:02,  3.50it/s]Computing GP strategy on chunks:  44%|████▍     | 7/16 [00:01<00:02,  3.50it/s]Computing GP strategy on chunks:  50%|█████     | 8/16 [00:02<00:02,  3.50it/s]Computing GP strategy on chunks:  56%|█████▋    | 9/16 [00:02<00:01,  3.50it/s]Computing GP strategy on chunks:  62%|██████▎   | 10/16 [00:02<00:01,  3.50it/s]Computing GP strategy on chunks:  69%|██████▉   | 11/16 [00:03<00:01,  3.50it/s]Computing GP strategy on chunks:  75%|███████▌  | 12/16 [00:03<00:01,  3.35it/s]Computing GP strategy on chunks:  81%|████████▏ | 13/16 [00:03<00:00,  3.40it/s]Computing GP strategy on chunks:  88%|████████▊ | 14/16 [00:04<00:00,  3.44it/s]Computing GP strategy on chunks:  94%|█████████▍| 15/16 [00:04<00:00,  3.46it/s]Computing GP strategy on chunks: 100%|██████████| 16/16 [00:04<00:00,  3.50it/s]Computing GP strategy on chunks: 100%|██████████| 16/16 [00:04<00:00,  3.48it/s]
+Computing RL strategy on chunks:   0%|          | 0/16 [00:00<?, ?it/s]Computing RL strategy on chunks:   6%|▋         | 1/16 [00:00<00:05,  2.70it/s]Computing RL strategy on chunks:  12%|█▎        | 2/16 [00:00<00:05,  2.56it/s]Computing RL strategy on chunks:  19%|█▉        | 3/16 [00:01<00:05,  2.48it/s]Computing RL strategy on chunks:  25%|██▌       | 4/16 [00:01<00:04,  2.56it/s]Computing RL strategy on chunks:  31%|███▏      | 5/16 [00:01<00:04,  2.59it/s]Computing RL strategy on chunks:  38%|███▊      | 6/16 [00:02<00:03,  2.63it/s]Computing RL strategy on chunks:  44%|████▍     | 7/16 [00:02<00:03,  2.65it/s]Computing RL strategy on chunks:  50%|█████     | 8/16 [00:03<00:03,  2.67it/s]Computing RL strategy on chunks:  56%|█████▋    | 9/16 [00:03<00:02,  2.68it/s]Computing RL strategy on chunks:  62%|██████▎   | 10/16 [00:03<00:02,  2.68it/s]Computing RL strategy on chunks:  69%|██████▉   | 11/16 [00:04<00:01,  2.69it/s]Computing RL strategy on chunks:  75%|███████▌  | 12/16 [00:04<00:01,  2.69it/s]Computing RL strategy on chunks:  81%|████████▏ | 13/16 [00:04<00:01,  2.70it/s]Computing RL strategy on chunks:  88%|████████▊ | 14/16 [00:05<00:00,  2.70it/s]Computing RL strategy on chunks:  94%|█████████▍| 15/16 [00:05<00:00,  2.70it/s]Computing RL strategy on chunks: 100%|██████████| 16/16 [00:06<00:00,  2.71it/s]Computing RL strategy on chunks: 100%|██████████| 16/16 [00:06<00:00,  2.66it/s]
+--- End s_backtesting.py
+Using optimizer=OptimizerType.shgo
+
+--- End s_simulationtesting.py

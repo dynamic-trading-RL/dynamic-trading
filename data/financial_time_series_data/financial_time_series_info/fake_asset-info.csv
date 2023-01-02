@@ -1,0 +1,9 @@
+,info
+ticker,fake_asset
+end_date,2022-12-31 00:00:00
+start_price,284.0742101055486
+len,799
+out_of_sample_proportion_len,800
+window,1
+riskDriverType,PnL
+factorComputationType,MovingAverage
