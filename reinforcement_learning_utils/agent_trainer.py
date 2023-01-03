@@ -390,7 +390,7 @@ class AgentTrainer:
 
     def _perform_ann_grid_search(self, x_array, y_array, alpha_ann, max_iter, n_iter_no_change, early_stopping,
                                  validation_fraction, activation):
-        ann_architectures = [tuple([2**(3 + n) for n in range(N, -1, -1)]) for N in range(self._max_ann_depth)]
+        ann_architectures = [tuple([max(64, 2**(3 + n)) for n in range(N, -1, -1)]) for N in range(self._max_ann_depth)]
         param_grid = {'ann__hidden_layer_sizes': ann_architectures}
         pipeline = Pipeline(steps=[('ann', MLPRegressor(alpha=alpha_ann,
                                                         max_iter=max_iter,
