@@ -488,7 +488,7 @@ class AllSeriesDynamicsCalibrator:
 
         df_model_summary = pd.DataFrame(data=ll_model_summary[1:],
                                         columns=ll_model_summary[0])
-        info = f'{self.financialTimeSeries.ticker}-{self.financialTimeSeries.riskDriverType.value}' +\
+        info = f'{self.financialTimeSeries.riskDriverType.value}' +\
                f'-{self.financialTimeSeries.factor_ticker}-{self.financialTimeSeries.factorTransformationType.value}'
         filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/calibrations/models_summary_{info}.xlsx'
         df_model_summary.to_excel(filename, sheet_name='models_summary', index=False)
@@ -500,16 +500,39 @@ class AllSeriesDynamicsCalibrator:
             time_series = financialTimeSeries.time_series[ticker]
 
             dpi = plt.rcParams['figure.dpi']
+
             fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
             plt.plot(time_series, label=ticker)
             plt.title(ticker + ' time series')
             plt.xlabel('Date')
             plt.ylabel('Value [$]')
-
             plt.savefig(os.path.dirname(os.path.dirname(__file__))
                         + '/figures/residuals/'
                         + ticker + '-time-series.png')
+            plt.close(fig)
 
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            factor = financialTimeSeries.time_series['factor']
+            c = dynamicsCalibrator.all_dynamics_param_dict['risk-driver'][RiskDriverDynamicsType.NonLinear]['c']
+            factor0 = factor[factor < c]
+            factor1 = factor[factor >= c]
+            risk_driver = financialTimeSeries.time_series['risk-driver']
+            linear_model = dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.Linear][0]
+            nonlinear_model0 = dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.NonLinear][0]
+            nonlinear_model1 = dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.NonLinear][1]
+            xlim = [np.quantile(factor, 0.01), np.quantile(factor, 0.99)]
+            ylim = [np.quantile(risk_driver, 0.01), np.quantile(risk_driver, 0.99)]
+            plt.scatter(factor, risk_driver, s=2)
+            plt.plot(factor, linear_model.params['const'] + linear_model.params['factor']*factor, label='Linear', color='k')
+            plt.plot(factor0, nonlinear_model0.params['const'] + nonlinear_model0.params['factor']*factor0, label='Non Linear', color='r')
+            plt.plot(factor1, nonlinear_model1.params['const'] + nonlinear_model1.params['factor']*factor1, color='r')
+            plt.legend()
+            plt.xlabel('Factor')
+            plt.ylabel(f'{financialTimeSeries.riskDriverType.value}')
+            plt.axis('equal')
+            plt.savefig(os.path.dirname(os.path.dirname(__file__))
+                        + '/figures/residuals/'
+                        + ticker + '-prediction.png')
             plt.close(fig)
 
     def _print_residuals_analysis(self):
