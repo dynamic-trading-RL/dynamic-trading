@@ -16,7 +16,7 @@ in_sample_proportion,0.9
 initialQvalueEstimateType,random
 j_episodes,15000
 j_oos,10000
-max_ann_depth,4
+max_ann_depth,5
 max_iter,200
 max_polynomial_regression_degree,6
 n_batches,6
