@@ -36,6 +36,7 @@ def instantiate_polynomialFeatures(degree):
 def find_polynomial_minimum(coef, bounds):
 
     x_optim_when_error = truncnorm.rvs(a=bounds[0], b=bounds[1], loc=0., scale=0.12)
+    flag_error = False
 
     if len(coef) < 2:
         raise NameError('Polynomial must be of degree >= 2')
@@ -51,6 +52,7 @@ def find_polynomial_minimum(coef, bounds):
 
     if len(stationary_points) == 0:
         x_optim = x_optim_when_error
+        flag_error = True
 
     else:
         stationary_points = stationary_points[stationary_points >= bounds[0]]
@@ -70,27 +72,32 @@ def find_polynomial_minimum(coef, bounds):
                     x_optim = minimal_points[i]
         else:
             x_optim = x_optim_when_error
+            flag_error = True
 
-    return x_optim
+    eps_plots = np.random.rand()
+    if eps_plots < 10**-3:
+        _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots)
+
+    return x_optim, flag_error
 
 
 def _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots):
 
-    xx = np.linspace(bounds[0], bounds[1])
+    xx = np.linspace(bounds[0], bounds[1], 20)
     yy = p(xx)
     dyy = dp(xx)
     ddyy = dp2(xx)
 
-    plt.figure()
+    dpi = plt.rcParams['figure.dpi']
+    fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
     plt.plot(xx, yy, label='Polinomial')
-    plt.plot(xx, dyy, label='First derivative')
-    plt.plot(xx, ddyy, label='Second derivative')
+    plt.plot(xx, dyy, label='Polynomial 1st derivative')
+    plt.plot(xx, ddyy, label='Polynomial 2nd derivative')
     plt.plot(xx, 0 * np.ones(len(xx)), label='Zero line', color='k')
-    plt.plot(x_optim)
-    plt.vlines(x_optim, plt.gca().get_ylim()[0], plt.gca().get_ylim()[1])
+    plt.vlines(x_optim, min(0, p(x_optim)), max(0, p(x_optim)), label=f'Optimum = {x_optim: .2f}')
     plt.legend()
     plt.xlim(bounds)
 
-    filename = os.path.dirname(os.path.dirname(__file__)) + f'/figures/training/polynomial{eps_plots*10}.png'
+    filename = os.path.dirname(os.path.dirname(__file__)) + f'/figures/polynomial/polynomial{int(eps_plots*10**5)}.png'
 
     plt.savefig(filename)

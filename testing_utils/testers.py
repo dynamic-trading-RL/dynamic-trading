@@ -16,7 +16,7 @@ from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.agent_trainer import read_trading_parameters_training
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State, Action
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType, SupervisedRegressorType
 from testing_utils.hypothesis_testing import TTester
 
 
@@ -211,6 +211,9 @@ class BackTester(Tester):
 
         # Print Sharpe ratios
         self._print_sharpe_ratios()
+
+        if self._agents['RL']._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            self._agents['RL'].print_proportion_missing_polynomial_optima()
 
     def _print_sharpe_ratios(self):
         df = pd.DataFrame.from_dict(data=self._sharpe_ratio_all,
@@ -719,8 +722,8 @@ class SimulationTester(Tester):
         # Output
         self._compute_simulation_testing_output()
 
-        # Print outputs
-        print()
+        if self._agents['RL']._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            self._agents['RL'].print_proportion_missing_polynomial_optima()
 
     def make_plots(self, j_trajectories_plot):
 

@@ -38,6 +38,10 @@ class Agent:
 
         self._tol = 10**-10  # numerical tolerance for bound conditions requirements
 
+        if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            self.total_polynomial_optimizations = 0
+            self.missing_polynomial_optima = 0
+
     def policy(self, state: State, eps: float = None):
 
         if eps is None:
@@ -262,9 +266,23 @@ class Agent:
 
         aggregate_coef = - np.array(aggregate_coef)  # we want to find the maximum
 
-        x_optimal = find_polynomial_minimum(coef=aggregate_coef, bounds=(lower_bound, upper_bound))
+        x_optimal, flag_error = find_polynomial_minimum(coef=aggregate_coef, bounds=(lower_bound, upper_bound))
+
+        self.total_polynomial_optimizations += 1
+        if flag_error:
+            self.missing_polynomial_optima += 1
 
         return x_optimal
+
+    def print_proportion_missing_polynomial_optima(self):
+
+        if self.total_polynomial_optimizations > 0:
+            proportion_missing = self.missing_polynomial_optima / self.total_polynomial_optimizations
+        else:
+            proportion_missing = -1
+        print(f'Total number of polynomial optimizations: {self.total_polynomial_optimizations}')
+        print(f'Number of missing polynomial optima: {self.missing_polynomial_optima}')
+        print(f'Proportion of missing polynomial optima: {proportion_missing*100: .2f} %')
 
     def _optimize_general_q_value_trading(self, state, lower_bound, upper_bound):
 
