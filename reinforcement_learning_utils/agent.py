@@ -289,6 +289,8 @@ class Agent:
         x0 = self._get_trade_loc(lower_bound, upper_bound)
         bounds = [(lower_bound, upper_bound)]
 
+        x_optim_when_error = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=x0, scale=0.12)
+
         def func(rescaled_trade):
 
             action = Action()
@@ -327,6 +329,9 @@ class Agent:
 
         else:
             raise NameError(f'Invalid optimizerType: {self._optimizerType}')
+
+        if x_optimal == lower_bound or x_optimal == upper_bound:
+            x_optimal = x_optim_when_error
 
         return x_optimal
 
