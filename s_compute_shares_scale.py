@@ -15,7 +15,7 @@ if __name__ == '__main__':
     j_episodes = 10000
     t_ = 50
 
-    ticker, riskDriverDynamicsType, factorDynamicsType, riskDriverType = read_trading_parameters_market()
+    ticker, _, _, _ = read_trading_parameters_market()
     market = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
                                 factorDynamicsType=FactorDynamicsType.AR,
                                 ticker=ticker,

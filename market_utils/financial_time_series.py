@@ -8,9 +8,10 @@ from gen_utils.utils import get_available_futures_tickers
 
 class FinancialTimeSeries:
 
-    def __init__(self, ticker: str, window: int = None, modeType: ModeType = ModeType.InSample):
+    def __init__(self, ticker: str, window: int = None, modeType: ModeType = ModeType.InSample, forcePnL: bool = False):
 
         self.ticker = ticker
+        self._forcePnL = forcePnL
         self._set_time_series(window, modeType)
 
     def _set_time_series(self, window: int, modeType: ModeType):
@@ -57,8 +58,10 @@ class FinancialTimeSeries:
 
             self.factorSourceType = FactorSourceType.Constructed
 
-
-        self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
+        if self._forcePnL:
+            self.riskDriverType = RiskDriverType.PnL
+        else:
+            self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
         self.factorComputationType = FactorComputationType(self.info.loc['factorComputationType'][0])
         self.window = int(self.info.loc['window'][0])
         self.factorTransformationType = FactorTransformationType(self.info.loc['factorTransformationType'].item())
