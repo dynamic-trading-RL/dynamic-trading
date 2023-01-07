@@ -142,7 +142,7 @@ class DynamicsCalibrator:
         df_reg = self._prepare_df_reg(var_type)
 
         if c is None:
-            c = df_reg[var_type].mean()
+            c = df_reg['factor'].mean()
 
         ind_0 = df_reg['factor'] < c
         ind_1 = df_reg['factor'] >= c
