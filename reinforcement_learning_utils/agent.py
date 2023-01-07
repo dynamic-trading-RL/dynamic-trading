@@ -42,6 +42,8 @@ class Agent:
             self.total_polynomial_optimizations = 0
             self.missing_polynomial_optima = 0
 
+        self._alpha_truncnorm = 0.01
+
     def policy(self, state: State, eps: float = None):
 
         if eps is None:
@@ -150,8 +152,7 @@ class Agent:
             #  by default even if the initialization is set to GP. Make a better structuring of this part.
 
             loc = self._get_trade_loc(lower_bound, upper_bound)
-            alpha = 0.12
-            scale = self._get_trade_scale(lower_bound, upper_bound, alpha)
+            scale = self._get_trade_scale(lower_bound, upper_bound, self._alpha_truncnorm)
 
             rescaled_trade = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=loc, scale=scale)
 
@@ -289,7 +290,8 @@ class Agent:
         x0 = self._get_trade_loc(lower_bound, upper_bound)
         bounds = [(lower_bound, upper_bound)]
 
-        x_optim_when_error = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=x0, scale=0.12)
+        x_optim_when_error = truncnorm.rvs(a=lower_bound, b=upper_bound, loc=x0,
+                                           scale=self._alpha_truncnorm * (upper_bound - lower_bound))
 
         def func(rescaled_trade):
 

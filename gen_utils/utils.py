@@ -35,7 +35,7 @@ def instantiate_polynomialFeatures(degree):
 
 def find_polynomial_minimum(coef, bounds):
 
-    x_optim_when_error = truncnorm.rvs(a=bounds[0], b=bounds[1], loc=0., scale=0.12)
+    x_optim_when_error = truncnorm.rvs(a=bounds[0], b=bounds[1], loc=0., scale=0.01 * (bounds[1] - bounds[0]))
     flag_error = False
 
     if len(coef) < 2:
