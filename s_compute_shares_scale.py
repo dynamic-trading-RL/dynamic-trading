@@ -5,7 +5,6 @@ from tqdm import tqdm
 
 from benchmark_agents.agents import AgentMarkowitz
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
-from gen_utils.utils import read_ticker
 from market_utils.market import read_trading_parameters_market, instantiate_market
 
 if __name__ == '__main__':
