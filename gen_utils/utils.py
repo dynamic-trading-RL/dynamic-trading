@@ -18,8 +18,8 @@ def read_ticker():
 
 
 def get_available_futures_tickers():
-    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'WTI-spot', 'gasoil', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter',
-           'nickel', 'silver', 'sugar', 'tin', 'unleaded', 'zinc']
+    lst = ['cocoa', 'coffee', 'copper', 'WTI', 'WTI-spot', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter',
+           'nickel', 'silver', 'sugar', 'unleaded', 'zinc']  # 'tin', 'gasoil'
 
     return lst
 
