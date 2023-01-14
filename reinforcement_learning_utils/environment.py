@@ -207,9 +207,9 @@ class Environment:
         if str(df_trad_params.loc['state_ttm'][0]) == 'Yes':
             state_ttm = True
             self._add_absorbing_state = True
-        elif str(df_trad_params.loc['state_GP_action'][0]) == 'No':
+        elif str(df_trad_params.loc['state_ttm'][0]) == 'No':
             state_ttm = False
-            self._add_absorbing_state = True
+            self._add_absorbing_state = False
         else:
             raise NameError('state_ttm in settings file must be either Yes or No')
         self.state_ttm = state_ttm
