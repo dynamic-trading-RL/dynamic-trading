@@ -18,13 +18,13 @@ j_episodes,15000
 j_oos,10000
 max_ann_depth,5
 max_iter,50
-max_polynomial_regression_degree,6
+max_polynomial_regression_degree,5
 n_batches,6
 n_cores,40
 n_iter_no_change,5
 optimizerType,shgo
-parallel_computing,No
-predict_pnl_for_reward,No
+parallel_computing,Yes
+predict_pnl_for_reward,Yes
 randomActionType,RandomUniform
 random_initial_state,Yes
 riskDriverDynamicsType,NonLinear
@@ -39,7 +39,7 @@ state_ttm,No
 strategyType,Unconstrained
 supervisedRegressorType,ann
 t_,50
-ticker,lead
+ticker,WTI
 train_benchmarking_GP_reward,No
 use_best_n_batch,Yes
 window,1
