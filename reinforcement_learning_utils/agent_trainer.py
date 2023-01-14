@@ -273,7 +273,7 @@ class AgentTrainer:
                 if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
                     action = state.action_GP
-                    reward_RL, next_state =\
+                    reward_RL, next_state = \
                         self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
 
             reward_RL_j += reward_RL
@@ -372,7 +372,6 @@ class AgentTrainer:
         elif self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
 
             if n == 0:
-
                 self._perform_polynomial_grid_search(x_array, y_array)
 
             poly = PolynomialFeatures(self._polynomial_regression_degree, interaction_only=False, include_bias=True)
@@ -390,7 +389,7 @@ class AgentTrainer:
 
     def _perform_ann_grid_search(self, x_array, y_array, alpha_ann, max_iter, n_iter_no_change, early_stopping,
                                  validation_fraction, activation):
-        ann_architectures = [tuple([min(64, 2**(3 + n)) for n in range(N, -1, -1)]) for N in range(self._max_ann_depth)]
+        ann_architectures = self._get_ann_architectures_by_depth()
         param_grid = {'ann__hidden_layer_sizes': ann_architectures}
         pipeline = Pipeline(steps=[('ann', MLPRegressor(alpha=alpha_ann,
                                                         max_iter=max_iter,
@@ -405,6 +404,20 @@ class AgentTrainer:
         print(f'Best parameters: {grid_search.best_params_}')
 
         return grid_search.best_params_['ann__hidden_layer_sizes']
+
+    def _get_ann_architectures_by_depth(self):
+
+        available_ann_architectures = [(64,),
+                                       (64, 32),
+                                       (64, 32, 8),
+                                       (64, 32, 16, 8),
+                                       (64, 32, 16, 8, 4)]
+        if len(available_ann_architectures) > self._max_ann_depth:
+            print(f'You set max_ann_depth={self._max_ann_depth}',
+                  f' but the maximum available is {len(available_ann_architectures)}')
+            self._max_ann_depth = len(available_ann_architectures)
+
+        return available_ann_architectures[:self._max_ann_depth]
 
     def _perform_polynomial_grid_search(self, x_array, y_array):
 
