@@ -529,7 +529,6 @@ class AllSeriesDynamicsCalibrator:
             plt.legend()
             plt.xlabel('Factor')
             plt.ylabel(f'{financialTimeSeries.riskDriverType.value}')
-            plt.axis('equal')
             plt.savefig(os.path.dirname(os.path.dirname(__file__))
                         + '/figures/residuals/'
                         + ticker + '-prediction.png')
