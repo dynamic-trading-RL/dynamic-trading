@@ -147,8 +147,10 @@ class AgentTrainer:
                 eps = max(eps / 3, 10 ** -5)
 
         # compute best batch  # todo: is this correct? discuss with SH and PP
-        n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
-        self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
+        # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
+        # self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
+        average_q_per_batch = self._average_q_per_batch()
+        self.best_n = max(np.argmax(average_q_per_batch), 1)
 
         dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
         print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n}')
@@ -156,28 +158,24 @@ class AgentTrainer:
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self.agent.print_proportion_missing_polynomial_optima()
 
-    def _average_cumulative_q_per_batch(self):
-
-        average_cumulative_q_per_batch = []
+    def _average_q_per_batch(self):
+        average_q_per_batch = []
+        total_n_values = 0
+        for key in self.q_grid_dict[0].keys():
+            for _ in self.q_grid_dict[0][key]:
+                total_n_values += 1
 
         for n in range(self.n_batches):
-
             q_grid_n = self.q_grid_dict[n]
+            q_array_n = np.zeros(total_n_values)
+            count = 0
+            for j, episode in q_grid_n.items():
+                for t in range(len(episode)):
+                    q_array_n[count] = q_grid_n[j][t]
+                    count += 1
+            average_q_per_batch.append(q_array_n.mean())
 
-            average_cumulative_q_per_batch_n = 0.
-
-            for j in range(self.j_episodes):
-                q_grid_nj = q_grid_n[j]
-
-                q_grid_nj_cumsum = np.sum(q_grid_nj)
-
-                average_cumulative_q_per_batch_n += q_grid_nj_cumsum
-
-            average_cumulative_q_per_batch_n /= self.j_episodes
-
-            average_cumulative_q_per_batch.append(average_cumulative_q_per_batch_n)
-
-        return average_cumulative_q_per_batch
+        return average_q_per_batch
 
     def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
 
