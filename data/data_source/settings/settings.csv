@@ -2,7 +2,7 @@ field,value
 activation,relu
 alpha_sarsa,0.75
 average_across_models,Yes
-use_quadratic_cost_in_markowitz,Yes
+use_quadratic_cost_in_markowitz,No
 decrease_eps,Yes
 early_stopping,No
 end_date,
@@ -17,6 +17,7 @@ initialQvalueEstimateType,random
 j_episodes,15000
 j_oos,10000
 max_ann_depth,3
+max_complexity_no_gridsearch,Yes
 max_iter,50
 max_polynomial_regression_degree,5
 n_batches,6
