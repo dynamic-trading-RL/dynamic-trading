@@ -281,3 +281,7 @@ class Environment:
 
         self.gamma = gamma
         self.kappa = kappa
+
+    @property
+    def add_absorbing_state(self):
+        return self._add_absorbing_state
