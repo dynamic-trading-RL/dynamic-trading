@@ -7,6 +7,12 @@ from sklearn.preprocessing import PolynomialFeatures
 from numpy.polynomial import Polynomial
 from scipy.stats import truncnorm
 
+available_ann_architectures = [(64,),
+                               (64, 32),
+                               (64, 32, 8),
+                               (64, 32, 16, 8),
+                               (64, 32, 16, 8, 4)]
+
 
 def read_ticker():
 

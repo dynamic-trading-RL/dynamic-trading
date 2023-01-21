@@ -17,7 +17,7 @@ from functools import partial
 
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType, \
     InitialQvalueEstimateType
-from gen_utils.utils import instantiate_polynomialFeatures
+from gen_utils.utils import instantiate_polynomialFeatures, available_ann_architectures
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
@@ -47,7 +47,8 @@ class AgentTrainer:
                  alpha_sarsa: float = 1.,
                  decrease_eps: bool = True,
                  random_initial_state: bool = True,
-                 max_polynomial_regression_degree: int = 3):
+                 max_polynomial_regression_degree: int = 3,
+                 max_complexity_no_gridsearch: bool = True):
 
         self.t_ = None
         self.n_batches = None
@@ -68,7 +69,7 @@ class AgentTrainer:
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
 
         self.environment = Environment(market=self.market, random_initial_state=random_initial_state)
-        self._add_absorbing_state = self.environment._add_absorbing_state
+        self._add_absorbing_state = self.environment.add_absorbing_state
 
         if train_benchmarking_GP_reward and not self.environment.observe_GP:
             self.environment.observe_GP = True
@@ -96,7 +97,11 @@ class AgentTrainer:
         self._decrease_eps = decrease_eps
         self._random_initial_state = random_initial_state
         self._max_polynomial_regression_degree = max_polynomial_regression_degree
-        self._polynomial_regression_degree = None
+        self._max_complexity_no_gridsearch = max_complexity_no_gridsearch
+        if self._max_complexity_no_gridsearch:
+            self._polynomial_regression_degree = max_polynomial_regression_degree
+        else:
+            self._polynomial_regression_degree = None
 
         self.agent = Agent(self.environment,
                            optimizerType=self._optimizerType,
@@ -308,22 +313,20 @@ class AgentTrainer:
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        next_state, reward = self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t,
-                                                                            predict_pnl_for_reward=self._predict_pnl_for_reward)
+        next_state, reward = \
+            self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t,
+                                                           predict_pnl_for_reward=self._predict_pnl_for_reward)
 
         return reward, next_state
 
     def _sarsa_updating_formula(self, state: State, action: Action, next_state: State, next_action: Action,
                                 reward: float):
 
-        q_prec = self.agent.q_value(state=state, action=action)
-
-        if next_action.rescaled_trade is None:
-            a = 1
+        q_prev = self.agent.q_value(state=state, action=action)
 
         q_new = self.agent.q_value(state=next_state, action=next_action)
 
-        q = q_prec + self._alpha_sarsa * (reward + self.environment.gamma * q_new - q_prec)
+        q = q_prev + self._alpha_sarsa * (reward + self.environment.gamma * q_new - q_prev)
 
         return q
 
@@ -390,29 +393,29 @@ class AgentTrainer:
     def _perform_ann_grid_search(self, x_array, y_array, alpha_ann, max_iter, n_iter_no_change, early_stopping,
                                  validation_fraction, activation):
         ann_architectures = self._get_ann_architectures_by_depth()
-        param_grid = {'ann__hidden_layer_sizes': ann_architectures}
-        pipeline = Pipeline(steps=[('ann', MLPRegressor(alpha=alpha_ann,
-                                                        max_iter=max_iter,
-                                                        n_iter_no_change=n_iter_no_change,
-                                                        early_stopping=early_stopping,
-                                                        validation_fraction=validation_fraction,
-                                                        activation=activation))])
-        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
-                                   scoring='neg_mean_squared_error',
-                                   return_train_score=True,
-                                   verbose=4).fit(x_array, y_array)
-        print(f'Best parameters: {grid_search.best_params_}')
+        if self._max_complexity_no_gridsearch:
 
-        return grid_search.best_params_['ann__hidden_layer_sizes']
+            return ann_architectures[self._max_ann_depth - 1]
+
+        else:
+            param_grid = {'ann__hidden_layer_sizes': ann_architectures}
+            pipeline = Pipeline(steps=[('ann', MLPRegressor(alpha=alpha_ann,
+                                                            max_iter=max_iter,
+                                                            n_iter_no_change=n_iter_no_change,
+                                                            early_stopping=early_stopping,
+                                                            validation_fraction=validation_fraction,
+                                                            activation=activation))])
+            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       scoring='neg_mean_squared_error',
+                                       return_train_score=True,
+                                       verbose=4).fit(x_array, y_array)
+            print(f'Best parameters: {grid_search.best_params_}')
+
+            return grid_search.best_params_['ann__hidden_layer_sizes']
 
     def _get_ann_architectures_by_depth(self):
 
-        available_ann_architectures = [(64,),
-                                       (64, 32),
-                                       (64, 32, 8),
-                                       (64, 32, 16, 8),
-                                       (64, 32, 16, 8, 4)]
-        if len(available_ann_architectures) > self._max_ann_depth:
+        if len(available_ann_architectures) < self._max_ann_depth:
             print(f'You set max_ann_depth={self._max_ann_depth}',
                   f' but the maximum available is {len(available_ann_architectures)}')
             self._max_ann_depth = len(available_ann_architectures)
@@ -421,58 +424,65 @@ class AgentTrainer:
 
     def _perform_polynomial_grid_search(self, x_array, y_array):
 
-        poly_degrees = list(np.arange(3, self._max_polynomial_regression_degree + 1))
-        ridge_alphas = [0] + list(range(10, 101, 10))
-        param_grid = [{'poly__degree': poly_degrees,
-                       'ridge__alpha': ridge_alphas}]
-        pipeline = Pipeline(steps=[('poly', PolynomialFeatures(interaction_only=False,
-                                                               include_bias=True)),
-                                   ('ridge', Ridge(fit_intercept=False))])
-        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
-                                   scoring='neg_mean_squared_error',
-                                   return_train_score=True,
-                                   verbose=4).fit(x_array, y_array)
-        print(f'Best joint parameters: {grid_search.best_params_}')
+        if self._max_complexity_no_gridsearch:
 
-        best_poly_degree_1 = int(grid_search.best_params_['poly__degree'])
-        best_ridge_1 = grid_search.best_params_['ridge__alpha']
-        poly_degrees = np.arange(max(3, best_poly_degree_1 - 1),
-                                 min(self._max_polynomial_regression_degree + 1, best_poly_degree_1 + 2))
-        ridge_alphas = np.linspace(max(0, best_ridge_1 - 6), best_ridge_1 + 6, 25)
-        param_grid = [{'poly__degree': poly_degrees,
-                       'ridge__alpha': ridge_alphas}]
-        pipeline = Pipeline(steps=[('poly', PolynomialFeatures(degree=self._polynomial_regression_degree,
-                                                               interaction_only=False,
-                                                               include_bias=True)),
-                                   ('ridge', Ridge(fit_intercept=False))])
-        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
-                                   scoring='neg_mean_squared_error',
-                                   return_train_score=True,
-                                   verbose=4).fit(x_array, y_array)
+            self._ridge_alpha = 0.
+            self._polynomial_regression_degree = self._max_polynomial_regression_degree
 
-        best_poly_degree_2 = int(grid_search.best_params_['poly__degree'])
-        best_ridge_2 = grid_search.best_params_['ridge__alpha']
-        poly_degrees = np.arange(max(3, best_poly_degree_2 - 1),
-                                 min(self._max_polynomial_regression_degree + 1, best_poly_degree_2 + 2))
-        ridge_alphas = np.linspace(max(0, best_ridge_2 - 3), best_ridge_2 + 3, 25)
-        param_grid = [{'poly__degree': poly_degrees,
-                       'ridge__alpha': ridge_alphas}]
-        pipeline = Pipeline(steps=[('poly', PolynomialFeatures(degree=self._polynomial_regression_degree,
-                                                               interaction_only=False,
-                                                               include_bias=True)),
-                                   ('ridge', Ridge(fit_intercept=False))])
-        grid_search = GridSearchCV(pipeline, param_grid, cv=5,
-                                   scoring='neg_mean_squared_error',
-                                   return_train_score=True,
-                                   verbose=4).fit(x_array, y_array)
+        else:
+            poly_degrees = list(np.arange(3, self._max_polynomial_regression_degree + 1))
+            ridge_alphas = [0] + list(range(10, 101, 10))
+            param_grid = [{'poly__degree': poly_degrees,
+                           'ridge__alpha': ridge_alphas}]
+            pipeline = Pipeline(steps=[('poly', PolynomialFeatures(interaction_only=False,
+                                                                   include_bias=True)),
+                                       ('ridge', Ridge(fit_intercept=False))])
+            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       scoring='neg_mean_squared_error',
+                                       return_train_score=True,
+                                       verbose=4).fit(x_array, y_array)
+            print(f'Best joint parameters: {grid_search.best_params_}')
 
-        print(f'Best joint parameters: {grid_search.best_params_}')
+            best_poly_degree_1 = int(grid_search.best_params_['poly__degree'])
+            best_ridge_1 = grid_search.best_params_['ridge__alpha']
+            poly_degrees = np.arange(max(3, best_poly_degree_1 - 1),
+                                     min(self._max_polynomial_regression_degree + 1, best_poly_degree_1 + 2))
+            ridge_alphas = np.linspace(max(0, best_ridge_1 - 6), best_ridge_1 + 6, 25)
+            param_grid = [{'poly__degree': poly_degrees,
+                           'ridge__alpha': ridge_alphas}]
+            pipeline = Pipeline(steps=[('poly', PolynomialFeatures(degree=self._polynomial_regression_degree,
+                                                                   interaction_only=False,
+                                                                   include_bias=True)),
+                                       ('ridge', Ridge(fit_intercept=False))])
+            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       scoring='neg_mean_squared_error',
+                                       return_train_score=True,
+                                       verbose=4).fit(x_array, y_array)
 
-        self._polynomial_regression_degree = int(grid_search.best_params_['poly__degree'])
+            best_poly_degree_2 = int(grid_search.best_params_['poly__degree'])
+            best_ridge_2 = grid_search.best_params_['ridge__alpha']
+            poly_degrees = np.arange(max(3, best_poly_degree_2 - 1),
+                                     min(self._max_polynomial_regression_degree + 1, best_poly_degree_2 + 2))
+            ridge_alphas = np.linspace(max(0, best_ridge_2 - 3), best_ridge_2 + 3, 25)
+            param_grid = [{'poly__degree': poly_degrees,
+                           'ridge__alpha': ridge_alphas}]
+            pipeline = Pipeline(steps=[('poly', PolynomialFeatures(degree=self._polynomial_regression_degree,
+                                                                   interaction_only=False,
+                                                                   include_bias=True)),
+                                       ('ridge', Ridge(fit_intercept=False))])
+            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       scoring='neg_mean_squared_error',
+                                       return_train_score=True,
+                                       verbose=4).fit(x_array, y_array)
+
+            print(f'Best joint parameters: {grid_search.best_params_}')
+
+            self._ridge_alpha = grid_search.best_params_['ridge__alpha']
+            self._polynomial_regression_degree = int(grid_search.best_params_['poly__degree'])
+
         self.agent.polynomial_regression_degree = self._polynomial_regression_degree
         dump(self._polynomial_regression_degree,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
-        self._ridge_alpha = grid_search.best_params_['ridge__alpha']
 
     def _make_regressor_plots(self, model, n, x_array, y_array):
 
@@ -510,8 +520,8 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
-                   '/figures/training/training_batch_%d_realized_vs_predicted_q.png' % n
+        filename = os.path.dirname(os.path.dirname(__file__)) +\
+                   f'/figures/training/training_batch_{n}_realized_vs_predicted_q.png'
         plt.savefig(filename)
 
         # --------- Plotting detail of regressor
@@ -577,13 +587,13 @@ class AgentTrainer:
 
     def _check_n(self, n: int):
         if n >= self.n_batches:
-            raise NameError('Trying to extract simulations for batch n = %d, '
-                            + 'but only %d batches have been simulated.' % (n + 1, self.n_batches + 1))
+            raise NameError(f'Trying to extract simulations for batch n = {n + 1}, '
+                            + f'but only {self.n_batches + 1} batches have been simulated.')
 
     def _check_j(self, j: int):
         if j >= self.j_episodes:
-            raise NameError('Trying to simulate episode j = %d, '
-                            + 'but only %d market paths have been simulated.' % (j + 1, self.j_episodes + 1))
+            raise NameError(f'Trying to simulate episode j = {j + 1}, '
+                            + f'but only {self.j_episodes + 1} market paths have been simulated.')
 
 
 def read_trading_parameters_training():
@@ -686,8 +696,15 @@ def read_trading_parameters_training():
 
     max_polynomial_regression_degree = int(df_trad_params.loc['max_polynomial_regression_degree'][0])
 
+    if df_trad_params.loc['max_complexity_no_gridsearch'][0] == 'Yes':
+        max_complexity_no_gridsearch = True
+    elif df_trad_params.loc['max_complexity_no_gridsearch'][0] == 'No':
+        max_complexity_no_gridsearch = False
+    else:
+        raise NameError('Invalid value for parameter max_complexity_no_gridsearch in settings.csv')
+
     return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialQvalueEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
             optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter,
             n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state,
-            max_polynomial_regression_degree)
+            max_polynomial_regression_degree, max_complexity_no_gridsearch)
