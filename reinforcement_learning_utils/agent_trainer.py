@@ -117,21 +117,25 @@ class AgentTrainer:
         self.n_batches = n_batches
         self.t_ = t_
 
-        if parallel_computing and n_cores is None:
-            print('Number of cores to use for parallel computing not set. Setting it to maximum available.')
-            n_cores = os.cpu_count()
+        if parallel_computing:
+            if n_cores is None:
+                print('Number of cores to use for parallel computing not set. Setting it to maximum available.')
+                n_cores = os.cpu_count()
+            elif n_cores > os.cpu_count():
+                print('Number of cores set exceeds those available on this machine. Setting it to maximum available.')
+                n_cores = os.cpu_count()
+        else:
+            n_cores = None
 
-        if parallel_computing and n_cores > os.cpu_count():
-            print('Number of cores set exceeds those available on this machine. Setting it to maximum available.')
-            n_cores = os.cpu_count()
+        self._n_cores = n_cores
 
-        self._train_trading(eps_start, parallel_computing, n_cores)
+        self._train_trading(eps_start, parallel_computing)
 
-    def _train_trading(self, eps_start: float, parallel_computing: bool, n_cores: int):
+    def _train_trading(self, eps_start: float, parallel_computing: bool):
 
-        self._generate_all_batches(eps_start, parallel_computing, n_cores)
+        self._generate_all_batches(eps_start, parallel_computing)
 
-    def _generate_all_batches(self, eps_start: float, parallel_computing: bool, n_cores: int):
+    def _generate_all_batches(self, eps_start: float, parallel_computing: bool):
 
         self.state_action_grid_dict = {}
         self.q_grid_dict = {}
@@ -141,7 +145,7 @@ class AgentTrainer:
         eps = eps_start
 
         for n in tqdm(range(self.n_batches), desc='Generating batches'):
-            self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing, n_cores=n_cores)
+            self._generate_batch(n=n, eps=eps, parallel_computing=parallel_computing)
 
             if self._decrease_eps:
                 eps = max(eps / 3, 10 ** -5)
@@ -177,7 +181,7 @@ class AgentTrainer:
 
         return average_q_per_batch
 
-    def _generate_batch(self, n: int, eps: float, parallel_computing: bool, n_cores: int):
+    def _generate_batch(self, n: int, eps: float, parallel_computing: bool):
 
         self._check_n(n)
 
@@ -190,7 +194,7 @@ class AgentTrainer:
 
         if parallel_computing:
 
-            self._create_batch_parallel(eps, n, n_cores)
+            self._create_batch_parallel(eps, n)
 
         else:
 
@@ -214,14 +218,14 @@ class AgentTrainer:
             self.reward_RL[n] += reward_RL_j
             self.reward_GP[n] += reward_GP_j
 
-    def _create_batch_parallel(self, eps, n, n_cores):
+    def _create_batch_parallel(self, eps, n):
 
         generate_single_episode = partial(self._generate_single_episode, n=n, eps=eps)
 
-        p = mp.Pool(n_cores)
+        p = mp.Pool(self._n_cores)
 
         episodes = p.map(func=generate_single_episode, iterable=range(self.j_episodes),
-                         chunksize=int(self.j_episodes / n_cores))
+                         chunksize=int(self.j_episodes / self._n_cores))
 
         p.close()
         p.join()
@@ -404,6 +408,7 @@ class AgentTrainer:
                                                             validation_fraction=validation_fraction,
                                                             activation=activation))])
             grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       n_jobs=self._n_cores,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)
@@ -436,6 +441,7 @@ class AgentTrainer:
                                                                    include_bias=True)),
                                        ('ridge', Ridge(fit_intercept=False))])
             grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       n_jobs=self._n_cores,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)
@@ -453,6 +459,7 @@ class AgentTrainer:
                                                                    include_bias=True)),
                                        ('ridge', Ridge(fit_intercept=False))])
             grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       n_jobs=self._n_cores,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)
@@ -469,6 +476,7 @@ class AgentTrainer:
                                                                    include_bias=True)),
                                        ('ridge', Ridge(fit_intercept=False))])
             grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+                                       n_jobs=self._n_cores,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)

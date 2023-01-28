@@ -252,7 +252,10 @@ class BackTester(Tester):
 
     def _get_factor_pnl_price(self):
 
-        length = self._out_of_sample_proportion_len
+        if self._environment.state_ttm:
+            length = min(self._out_of_sample_proportion_len, self._t_)
+        else:
+            length = self._out_of_sample_proportion_len
 
         factor_series = self._market.financialTimeSeries.time_series['factor'].iloc[-length:].copy()
         pnl_series = self._market.financialTimeSeries.time_series['pnl'].copy()
