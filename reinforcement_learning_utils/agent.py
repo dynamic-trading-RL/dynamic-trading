@@ -203,11 +203,13 @@ class Agent:
 
             if self._average_across_models:
 
-                q_value_model = self._q_value_models[0]
-                qvl = q_value_model.predict(q_value_model_input)
+                # q_value_model = self._q_value_models[0]
+                # qvl = q_value_model.predict(q_value_model_input)
+                # for q_value_model in self._q_value_models[1:]:
+                #     qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
 
-                for q_value_model in self._q_value_models[1:]:
-                    qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
+                qvl = np.mean([q_value_model.predict(q_value_model_input) for q_value_model in self._q_value_models])
+
             else:
                 q_value_model = self._q_value_models[-1]
                 qvl = q_value_model.predict(q_value_model_input)
