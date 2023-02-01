@@ -19,7 +19,8 @@ class Agent:
                  use_best_n_batch: bool = False,
                  initialQvalueEstimateType: InitialQvalueEstimateType = InitialQvalueEstimateType.zero,
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
-                 polynomial_regression_degree: int = None):
+                 polynomial_regression_degree: int = None,
+                 alpha_ewma: float = 0.5):
 
         self.environment = environment
 
@@ -35,6 +36,12 @@ class Agent:
         self._initialQvalueEstimateType = initialQvalueEstimateType
         self._supervisedRegressorType = supervisedRegressorType
         self.polynomial_regression_degree = polynomial_regression_degree
+
+        if alpha_ewma > 1 or alpha_ewma < 0:
+            raise NameError(f'Invalid alpha_ewma = {alpha_ewma}: must be 0 <= alpha_ewma <= 1')
+        if alpha_ewma == 1:
+            self._average_across_models = True
+        self._alpha_ewma = alpha_ewma
 
         self._tol = 10**-10  # numerical tolerance for bound conditions requirements
 
@@ -203,12 +210,11 @@ class Agent:
 
             if self._average_across_models:
 
-                # q_value_model = self._q_value_models[0]
-                # qvl = q_value_model.predict(q_value_model_input)
-                # for q_value_model in self._q_value_models[1:]:
-                #     qvl = 0.5 * (qvl + q_value_model.predict(q_value_model_input))
-
-                qvl = np.mean([q_value_model.predict(q_value_model_input) for q_value_model in self._q_value_models])
+                q_value_model = self._q_value_models[0]
+                qvl = q_value_model.predict(q_value_model_input)
+                alpha_ewma = self._alpha_ewma
+                for q_value_model in self._q_value_models[1:]:
+                    qvl = alpha_ewma * q_value_model.predict(q_value_model_input) + (1 - alpha_ewma) * qvl
 
             else:
                 q_value_model = self._q_value_models[-1]

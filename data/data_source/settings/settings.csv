@@ -1,5 +1,6 @@
 field,value
 activation,relu
+alpha_ewma,0.5
 alpha_sarsa,1
 average_across_models,Yes
 use_quadratic_cost_in_markowitz,Yes
@@ -8,9 +9,9 @@ early_stopping,No
 end_date,
 eps_start,0.01
 factorComputationType,MovingAverage
-factorDynamicsType,AR
+factorDynamicsType,AR_TARCH
 factorTransformationType,LogDiff
-factor_ticker,RV5
+factor_ticker,VIX
 gamma,0.9999
 in_sample_proportion,0.9
 initialQvalueEstimateType,random
@@ -28,7 +29,7 @@ parallel_computing,Yes
 predict_pnl_for_reward,Yes
 randomActionType,RandomUniform
 random_initial_state,Yes
-riskDriverDynamicsType,Linear
+riskDriverDynamicsType,NonLinear
 riskDriverType,PnL
 start_date,
 state_average_past_pnl,No
