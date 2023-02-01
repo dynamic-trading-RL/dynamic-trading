@@ -48,7 +48,8 @@ class AgentTrainer:
                  decrease_eps: bool = True,
                  random_initial_state: bool = True,
                  max_polynomial_regression_degree: int = 3,
-                 max_complexity_no_gridsearch: bool = True):
+                 max_complexity_no_gridsearch: bool = True,
+                 alpha_ewma: float = 0.5):
 
         self.t_ = None
         self.n_batches = None
@@ -103,12 +104,17 @@ class AgentTrainer:
         else:
             self._polynomial_regression_degree = None
 
+        self._alpha_ewma = alpha_ewma
+        dump(self._alpha_ewma,
+             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/alpha_ewma.joblib')
+
         self.agent = Agent(self.environment,
                            optimizerType=self._optimizerType,
                            average_across_models=self._average_across_models,
                            use_best_n_batch=self._use_best_n_batch,
                            initialQvalueEstimateType=initialQvalueEstimateType,
-                           supervisedRegressorType=self._supervisedRegressorType)
+                           supervisedRegressorType=self._supervisedRegressorType,
+                           alpha_ewma=self._alpha_ewma)
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):

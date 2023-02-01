@@ -82,12 +82,14 @@ class Tester:
             polynomial_regression_degree = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
         except:
             polynomial_regression_degree = None
+        alpha_ewma = load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/alpha_ewma.joblib')
         agentRL = Agent(environment,
                         optimizerType=optimizerType,
                         average_across_models=average_across_models,
                         use_best_n_batch=use_best_n_batch,
                         supervisedRegressorType=supervisedRegressorType,
-                        polynomial_regression_degree=polynomial_regression_degree)
+                        polynomial_regression_degree=polynomial_regression_degree,
+                        alpha_ewma=alpha_ewma)
         agentRL.load_q_value_models(self._n_batches)
 
         self._agents = {'Markowitz': agentMarkowitz, 'GP': agentGP, 'RL': agentRL}

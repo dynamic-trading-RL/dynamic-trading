@@ -45,7 +45,8 @@ if __name__ == '__main__':
                                 decrease_eps=decrease_eps,
                                 random_initial_state=random_initial_state,
                                 max_polynomial_regression_degree=max_polynomial_regression_degree,
-                                max_complexity_no_gridsearch=max_complexity_no_gridsearch)
+                                max_complexity_no_gridsearch=max_complexity_no_gridsearch,
+                                alpha_ewma=alpha_ewma)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=eps_start)
 
