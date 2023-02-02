@@ -15,17 +15,17 @@ factor_ticker,RV5
 gamma,0.9999
 in_sample_proportion,0.95
 initialQvalueEstimateType,random
-j_episodes,1500
+j_episodes,150
 j_oos,10000
 max_ann_depth,3
 max_complexity_no_gridsearch,No
 max_iter,50
 max_polynomial_regression_degree,5
-n_batches,1
+n_batches,10
 n_cores,40
 n_iter_no_change,5
 optimizerType,shgo
-parallel_computing,Yes
+parallel_computing,No
 predict_pnl_for_reward,Yes
 randomActionType,RandomUniform
 random_initial_state,Yes
@@ -44,4 +44,4 @@ t_,50
 ticker,WTI-spot
 train_benchmarking_GP_reward,No
 use_best_n_batch,Yes
-window,1
+window,5
