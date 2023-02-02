@@ -9,7 +9,7 @@ early_stopping,No
 end_date,
 eps_start,0.01
 factorComputationType,MovingAverage
-factorDynamicsType,AR_TARCH
+factorDynamicsType,AR
 factorTransformationType,LogDiff
 factor_ticker,VIX
 gamma,0.9999
@@ -29,7 +29,7 @@ parallel_computing,Yes
 predict_pnl_for_reward,Yes
 randomActionType,RandomUniform
 random_initial_state,Yes
-riskDriverDynamicsType,NonLinear
+riskDriverDynamicsType,Linear
 riskDriverType,PnL
 start_date,
 state_average_past_pnl,No
@@ -44,4 +44,4 @@ t_,50
 ticker,WTI-spot
 train_benchmarking_GP_reward,No
 use_best_n_batch,No
-window,5
+window,1
