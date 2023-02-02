@@ -1,6 +1,6 @@
 field,value
 activation,relu
-alpha_ewma,0.7
+alpha_ewma,0.5
 alpha_sarsa,1
 average_across_models,Yes
 use_quadratic_cost_in_markowitz,Yes
@@ -21,7 +21,7 @@ max_ann_depth,3
 max_complexity_no_gridsearch,No
 max_iter,50
 max_polynomial_regression_degree,5
-n_batches,10
+n_batches,1
 n_cores,40
 n_iter_no_change,5
 optimizerType,shgo
