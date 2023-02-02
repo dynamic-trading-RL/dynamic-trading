@@ -13,7 +13,7 @@ from tqdm import tqdm
 from benchmark_agents.agents import AgentMarkowitz, AgentGP
 from market_utils.market import read_trading_parameters_market, instantiate_market
 from reinforcement_learning_utils.agent import Agent
-from reinforcement_learning_utils.agent_trainer import read_trading_parameters_training
+from gen_utils.utils import read_trading_parameters_training
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State, Action
 from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType, SupervisedRegressorType
@@ -22,16 +22,27 @@ from testing_utils.hypothesis_testing import TTester
 
 class Tester:
 
-    def __init__(self, use_assessment_period: bool = False, assessment_proportion: float = 0.1):
+    def __init__(self, use_assessment_period: bool = False, assessment_proportion: float = 0.1,
+                 on_the_fly: bool = False, n: int = None):
 
         # TODO: evaluating the introduction of the concept of assessment period
 
         self._factor_pnl_and_price = None
         self._use_assessment_period = use_assessment_period
         self._assessment_proportion = assessment_proportion
+        self._on_the_fly = on_the_fly
+        self._n = n
         self._read_parameters()
 
         self._colors = {'Markowitz': 'm', 'GP': 'g', 'RL': 'r'}
+        if self._on_the_fly:
+            self._on_the_fly_str = 'on_the_fly_'
+        else:
+            self._on_the_fly_str = ''
+        if self._n is not None:
+            self._n_str = f'{self._n}_'
+        else:
+            self._n_str = ''
 
     def _read_parameters(self):
 
@@ -194,9 +205,9 @@ class Tester:
 
 class BackTester(Tester):
 
-    def __init__(self, split_strategy: bool = True):
+    def __init__(self, split_strategy: bool = True, on_the_fly: bool = False, n: int = None):
 
-        super().__init__()
+        super().__init__(on_the_fly=on_the_fly, n=n)
         self._split_strategy = split_strategy
         self._read_out_of_sample_proportion_len()
 
@@ -221,7 +232,7 @@ class BackTester(Tester):
         df = pd.DataFrame.from_dict(data=self._sharpe_ratio_all,
                                     orient='index', columns=['sharpe_ratio'])
         df.index.name = 'agent_type'
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/sharpe_ratios_complete_series.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/sharpe_ratios/{self._n_str}sharpe_ratios_complete_series.csv'
         df.to_csv(filename)
 
         # in chunks
@@ -231,7 +242,7 @@ class BackTester(Tester):
                 sharpe_ratio = self._sharpe_ratio_chunks[agent_type][chunk_id]
                 li.append([agent_type, chunk_id, sharpe_ratio])
         df = pd.DataFrame(data=li, columns=['agent_type', 'chunk_id', 'sharpe_ratio'])
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/sharpe_ratios_across_chunks.csv'
+        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/sharpe_ratios/{self._n_str}sharpe_ratios_across_chunks.csv'
         df.to_csv(filename, index=False)
 
     def make_plots(self):
@@ -424,7 +435,7 @@ class BackTester(Tester):
         plt.title(self._ticker)
         plt.xlabel('Date')
         plt.ylabel('Price [$]')
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-time_series.png')
 
     def _plot_shares(self):
@@ -442,7 +453,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Shares [#]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-shares.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -460,7 +471,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Shares [#]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-shares-chunks.png')
 
     def _plot_value(self):
@@ -477,7 +488,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Portfolio value [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-value.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -495,7 +506,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Portfolio value [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-value-chunks.png')
 
     def _plot_cost(self):
@@ -512,7 +523,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Cost [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-cost.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -530,7 +541,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Cost [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-cost-chunks.png')
 
     def _plot_risk(self):
@@ -547,7 +558,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Risk')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-risk.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -565,7 +576,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Risk')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-risk-chunks.png')
 
     def _plot_wealth(self):
@@ -583,7 +594,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Wealth = Value - Cost [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -601,7 +612,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Wealth = Value - Cost [$]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth-chunks.png')
 
     def _plot_wealth_net_risk(self):
@@ -619,7 +630,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Wealth net Risk = Value - Cost - Risk')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth-net-risk.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -637,7 +648,7 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Wealth net Risk = Value - Cost - Risk')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth-net-risk-chunks.png')
 
     def _plot_trades_scatter(self):
@@ -656,7 +667,7 @@ class BackTester(Tester):
         plt.xlim(xlim)
         plt.ylim(xlim)
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-trades-scatter.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -671,7 +682,7 @@ class BackTester(Tester):
         plt.xlim(xlim)
         plt.ylim(xlim)
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-trades-scatter-chunks.png')
 
     def _plot_sharpe_ratio(self):
@@ -686,7 +697,7 @@ class BackTester(Tester):
         plt.grid()
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-sharpe-ratio.png')
 
         fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
@@ -699,7 +710,7 @@ class BackTester(Tester):
         plt.grid()
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/backtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-sharpe-ratio-chunks.png')
 
 
@@ -707,9 +718,9 @@ class SimulationTester(Tester):
 
     # TODO: Finalize implementation of this class
 
-    def __init__(self):
+    def __init__(self, on_the_fly: bool = False, n: int = None):
 
-        super().__init__()
+        super().__init__(on_the_fly=on_the_fly, n=n)
         self.t_ = None
         self.j_ = None
 
@@ -768,7 +779,7 @@ class SimulationTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Shares [#]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-shares.png')
 
     def _plot_value(self):
@@ -788,7 +799,7 @@ class SimulationTester(Tester):
         plt.xlabel('Portfolio Value [$]')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-value.png')
 
     def _plot_value_diff(self):
@@ -807,7 +818,7 @@ class SimulationTester(Tester):
         plt.xlabel('Portfolio Value [$]')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-RL-GP-value.png')
 
     def _plot_cost(self):
@@ -827,7 +838,7 @@ class SimulationTester(Tester):
         plt.xlabel('Cost [$]')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-cost.png')
 
     def _plot_cost_diff(self):
@@ -846,7 +857,7 @@ class SimulationTester(Tester):
         plt.xlabel('Cost [$]')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-RL-GP-cost.png')
 
     def _plot_risk(self):
@@ -866,7 +877,7 @@ class SimulationTester(Tester):
         plt.xlabel('Risk')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-risk.png')
 
     def _plot_risk_diff(self):
@@ -885,7 +896,7 @@ class SimulationTester(Tester):
         plt.xlabel('Risk')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-RL-GP-risk.png')
 
     def _plot_wealth(self):
@@ -905,7 +916,7 @@ class SimulationTester(Tester):
         plt.xlabel('Wealth = Value - Cost [$]')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-wealth.png')
 
     def _plot_wealth_diff(self):
@@ -924,7 +935,7 @@ class SimulationTester(Tester):
         plt.xlabel('Wealth = Value - Cost [$]')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-RL-GP-wealth.png')
 
     def _plot_wealth_net_risk(self):
@@ -944,7 +955,7 @@ class SimulationTester(Tester):
         plt.xlabel('Wealth net Risk = Value - Cost - Risk')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-wealth-net-risk.png')
 
     def _plot_wealth_net_risk_diff(self):
@@ -963,7 +974,7 @@ class SimulationTester(Tester):
         plt.xlabel('Wealth net Risk = Value - Cost - Risk')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-RL-GP-wealth-net-risk.png')
 
     def _plot_wealth_net_risk_scatter(self):
@@ -986,7 +997,7 @@ class SimulationTester(Tester):
         plt.xlabel('GP Wealth net Risk')
         plt.ylabel('RL Wealth net Risk')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-wealth-scatter.png')
 
     def _plot_trades_scatter(self):
@@ -1009,7 +1020,7 @@ class SimulationTester(Tester):
         plt.xlabel('GP trades [#]')
         plt.ylabel('RL trades [#]')
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-trades-scatter.png')
 
     def _plot_sharpe_ratio(self):
@@ -1029,7 +1040,7 @@ class SimulationTester(Tester):
         plt.xlabel('Realized Sharpe ratio (annualized)')
         plt.yticks([])
         plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + '/figures/simulationtesting/' + self._ticker
+        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}simulationtesting/{self._n_str}' + self._ticker
                     + '-simulationtesting-sharpe-ratio.png')
 
     def _simulate_factor_pnl_price(self):
@@ -1136,7 +1147,9 @@ class SimulationTester(Tester):
                                nan_policy='omit',
                                permutations=self.j_,
                                random_state=789,
-                               alternative='greater')
+                               alternative='greater',
+                               on_the_fly=self._on_the_fly,
+                               n=self._n)
     def _compute_means_and_stds(self):
 
         self._means = {}

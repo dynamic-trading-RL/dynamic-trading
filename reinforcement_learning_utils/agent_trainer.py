@@ -1,10 +1,9 @@
 import os
 
 import matplotlib.pyplot as plt
-import pandas as pd
 
 import numpy as np
-from joblib import load, dump
+from joblib import dump
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV
@@ -25,6 +24,8 @@ from reinforcement_learning_utils.state_action_utils import State, Action
 
 
 # TODO: methods should be generalized, then specialized with a "trading" keyword in the name
+from testing_utils.testers import BackTester, SimulationTester
+
 
 class AgentTrainer:
 
@@ -147,6 +148,8 @@ class AgentTrainer:
         self.q_grid_dict = {}
         self.reward_RL = {}
         self.reward_GP = {}
+        self.backtesting_sharperatio = {}
+        self.simulationtesting_sharperatio_av2std = {}
 
         eps = eps_start
 
@@ -159,11 +162,24 @@ class AgentTrainer:
         # compute best batch  # todo: is this correct? discuss with SH and PP
         # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
         # self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
-        average_q_per_batch = self._average_q_per_batch()
-        self.best_n = max(np.argmax(average_q_per_batch), 1)
+        # average_q_per_batch = self._average_q_per_batch()
+        # self.best_n = max(np.argmax(average_q_per_batch), 1)
+        n_vs_SR_RL =\
+            np.array([[n, SR_RL] for n, SR_RL in self.simulationtesting_sharperatio_av2std.items()])
+        self.best_n = int(n_vs_SR_RL[np.argmax(n_vs_SR_RL[:, 1]), 0]) + 1
 
         dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
         print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n}')
+
+        print('Summaries:')
+        for n in range(self.n_batches):
+            print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
+
+        for n in range(self.n_batches):
+            print(f'Average RL backtesting Sharpe ratio for batch {n + 1}: {self.backtesting_sharperatio[n]}')
+
+        for n in range(self.n_batches):
+            print(f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
 
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self.agent.print_proportion_missing_polynomial_optima()
@@ -206,7 +222,21 @@ class AgentTrainer:
 
             self._create_batch_sequential(eps, n)
 
-        self._fit_supervised_regressor(n)  # TODO: should go to dedicated method
+        self._fit_supervised_regressor(n)
+
+        # Execute on-the-fly backtesting and simulation-testing
+        backtester = BackTester(split_strategy=False, on_the_fly=True, n=n)
+        backtester.execute_backtesting()
+        backtester.make_plots()
+        simulationTester = SimulationTester(on_the_fly=True, n=n)
+        simulationTester.execute_simulation_testing(j_=100, t_=self.t_)
+        simulationTester.make_plots(j_trajectories_plot=10)
+
+        self.backtesting_sharperatio[n] = backtester._sharpe_ratio_all['RL']
+        self.simulationtesting_sharperatio_av2std[n] =\
+            simulationTester._sharpe_ratio_all['RL'].mean()/simulationTester._sharpe_ratio_all['RL'].std()
+
+        del backtester, simulationTester
 
         del self.market.simulations_trading[n]
 
@@ -214,7 +244,9 @@ class AgentTrainer:
         self.reward_GP[n] /= (self.j_episodes * self.t_)
 
         print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
-        print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]} \n')
+        print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]}')
+        print(f'Average RL backtesting Sharpe ratio for batch {n + 1}: {self.backtesting_sharperatio[n]}')
+        print(f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
 
     def _create_batch_sequential(self, eps, n):
 
@@ -347,6 +379,7 @@ class AgentTrainer:
         model = self._set_and_fit_supervised_regressor_model(x_array, y_array, n)
 
         self.agent.update_q_value_models(q_value_model=model)
+        self.agent.dump_q_value_models()
 
     def _set_and_fit_supervised_regressor_model(self, x_array, y_array, n):
         alpha_ann, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation = \
@@ -608,117 +641,3 @@ class AgentTrainer:
                             + f'but only {self.j_episodes + 1} market paths have been simulated.')
 
 
-def read_trading_parameters_training():
-    filename = os.path.dirname(os.path.dirname(__file__)) + \
-               '/data/data_source/settings/settings.csv'
-    df_trad_params = pd.read_csv(filename, index_col=0)
-
-    shares_scale = float(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/shares_scale.joblib'))
-
-    j_episodes = int(df_trad_params.loc['j_episodes'][0])
-    n_batches = int(df_trad_params.loc['n_batches'][0])
-    t_ = int(df_trad_params.loc['t_'][0])
-
-    if df_trad_params.loc['parallel_computing'][0] == 'Yes':
-        parallel_computing = True
-        n_cores = int(df_trad_params.loc['n_cores'][0])
-        n_cores = min(n_cores, mp.cpu_count())
-    elif df_trad_params.loc['parallel_computing'][0] == 'No':
-        parallel_computing = False
-        n_cores = None
-    else:
-        raise NameError('Invalid value for parameter parallel_computing in settings.csv')
-
-    # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
-    initialQvalueEstimateType = InitialQvalueEstimateType(df_trad_params.loc['initialQvalueEstimateType'][0])
-
-    # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
-    if df_trad_params.loc['predict_pnl_for_reward'][0] == 'Yes':
-        predict_pnl_for_reward = True
-    elif df_trad_params.loc['predict_pnl_for_reward'][0] == 'No':
-        predict_pnl_for_reward = False
-    else:
-        raise NameError('Invalid value for parameter predict_pnl_for_reward in settings.csv')
-
-    # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
-    if df_trad_params.loc['average_across_models'][0] == 'Yes':
-        average_across_models = True
-    elif df_trad_params.loc['average_across_models'][0] == 'No':
-        average_across_models = False
-    else:
-        raise NameError('Invalid value for parameter average_across_models in settings.csv')
-
-    # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
-    # provided the best reward in the training phase
-    if df_trad_params.loc['use_best_n_batch'][0] == 'Yes':
-        use_best_n_batch = True
-    elif df_trad_params.loc['use_best_n_batch'][0] == 'No':
-        use_best_n_batch = False
-    else:
-        raise NameError('Invalid value for parameter use_best_n_batch in settings.csv')
-
-    # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
-    # than the one learned automatically
-    if df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'Yes':
-        train_benchmarking_GP_reward = True
-    elif df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'No':
-        train_benchmarking_GP_reward = False
-    else:
-        raise NameError('Invalid value for parameter train_benchmarking_GP_reward in settings.csv')
-
-    # which optimizer to use in greedy policy
-    optimizerType = OptimizerType(df_trad_params.loc['optimizerType'][0])
-
-    # choose which model to use for supervised regression
-    supervisedRegressorType = SupervisedRegressorType(df_trad_params.loc['supervisedRegressorType'][0])
-
-    # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
-    eps_start = float(df_trad_params.loc['eps_start'][0])
-
-    max_ann_depth = int(df_trad_params.loc['max_ann_depth'][0])
-
-    if df_trad_params.loc['early_stopping'][0] == 'Yes':
-        early_stopping = True
-    elif df_trad_params.loc['early_stopping'][0] == 'No':
-        early_stopping = False
-    else:
-        raise NameError('Invalid value for parameter early_stopping in settings.csv')
-
-    max_iter = int(df_trad_params.loc['max_iter'][0])
-
-    n_iter_no_change = int(df_trad_params.loc['n_iter_no_change'][0])
-
-    activation = str(df_trad_params.loc['activation'][0])
-
-    alpha_sarsa = float(df_trad_params.loc['alpha_sarsa'][0])
-
-    if df_trad_params.loc['decrease_eps'][0] == 'Yes':
-        decrease_eps = True
-    elif df_trad_params.loc['decrease_eps'][0] == 'No':
-        decrease_eps = False
-    else:
-        raise NameError('Invalid value for parameter decrease_eps in settings.csv')
-
-    if df_trad_params.loc['random_initial_state'][0] == 'Yes':
-        random_initial_state = True
-    elif df_trad_params.loc['random_initial_state'][0] == 'No':
-        random_initial_state = False
-    else:
-        raise NameError('Invalid value for parameter random_initial_state in settings.csv')
-
-    max_polynomial_regression_degree = int(df_trad_params.loc['max_polynomial_regression_degree'][0])
-
-    if df_trad_params.loc['max_complexity_no_gridsearch'][0] == 'Yes':
-        max_complexity_no_gridsearch = True
-    elif df_trad_params.loc['max_complexity_no_gridsearch'][0] == 'No':
-        max_complexity_no_gridsearch = False
-    else:
-        raise NameError('Invalid value for parameter max_complexity_no_gridsearch in settings.csv')
-
-    alpha_ewma = float(df_trad_params.loc['alpha_ewma'][0])
-
-    return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialQvalueEstimateType,
-            predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
-            optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter,
-            n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state,
-            max_polynomial_regression_degree, max_complexity_no_gridsearch, alpha_ewma)

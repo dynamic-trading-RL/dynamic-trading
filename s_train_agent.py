@@ -1,7 +1,8 @@
 import numpy as np
 
 from market_utils.market import read_trading_parameters_market
-from reinforcement_learning_utils.agent_trainer import AgentTrainer, read_trading_parameters_training
+from reinforcement_learning_utils.agent_trainer import AgentTrainer
+from gen_utils.utils import read_trading_parameters_training
 
 import warnings
 
@@ -49,7 +50,5 @@ if __name__ == '__main__':
                                 alpha_ewma=alpha_ewma)
     agentTrainer.train(j_episodes=j_episodes, n_batches=n_batches, t_=t_, parallel_computing=parallel_computing,
                        n_cores=n_cores, eps_start=eps_start)
-
-    agentTrainer.agent.dump_q_value_models()
 
     print('--- End s_train_agent.py')

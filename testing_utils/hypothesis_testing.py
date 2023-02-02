@@ -13,7 +13,9 @@ class TTester:
                  nan_policy: str = 'omit',
                  permutations=None,
                  random_state: int = 789,
-                 alternative: str = 'two-sided'):
+                 alternative: str = 'two-sided',
+                 on_the_fly: bool = False,
+                 n: int = None):
 
         self.t_test_id = t_test_id
         self.sample_a = sample_a
@@ -23,6 +25,17 @@ class TTester:
         self.permutations = permutations
         self.random_state = random_state
         self.alternative = alternative
+        self._on_the_fly = on_the_fly
+        if self._on_the_fly:
+            self._on_the_fly_str = 'on_the_fly_'
+        else:
+            self._on_the_fly_str = ''
+
+        self._n = n
+        if self._n is not None:
+            self._n_str = f'{self._n}_'
+        else:
+            self._n_str = ''
 
         self.t_test_result = {'statistic': None,
                               'pvalue': None}
@@ -45,7 +58,7 @@ class TTester:
     def print_t_test_result(self):
 
         out_path = os.path.dirname(os.path.dirname(__file__)) + '/reports/t-tests/'
-        file_name = 't_test_result_' + self.t_test_id + '.txt'
+        file_name = f'{self._on_the_fly_str}{self._n_str}t_test_result_{self.t_test_id}.txt'
 
         with open(out_path + file_name, 'w') as f:
             for key, value in self.t_test_result.items():

@@ -90,9 +90,13 @@ class Agent:
                 n_batches = self.best_n
 
         for n in range(n_batches):
-            q_value_model = load(
-                os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
-            self.update_q_value_models(q_value_model)
+            try:
+                q_value_model = load(
+                    os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
+                self.update_q_value_models(q_value_model)
+            except:
+                print(f'Trying to load q{n} but it is not fitted. Possible cause: on-the-fly testing.')
+
 
     def _greedy_policy(self, state: State):
 
@@ -214,7 +218,8 @@ class Agent:
                 qvl = q_value_model.predict(q_value_model_input)
                 alpha_ewma = self._alpha_ewma
                 for q_value_model in self._q_value_models[1:]:
-                    qvl = alpha_ewma * q_value_model.predict(q_value_model_input) + (1 - alpha_ewma) * qvl
+                    qvl_new = q_value_model.predict(q_value_model_input)
+                    qvl = alpha_ewma * qvl_new + (1 - alpha_ewma) * qvl
 
             else:
                 q_value_model = self._q_value_models[-1]

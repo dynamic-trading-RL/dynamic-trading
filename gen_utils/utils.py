@@ -1,11 +1,15 @@
+import multiprocessing as mp
 import os
 
 import numpy as np
 import pandas as pd
+from joblib import load
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import PolynomialFeatures
 from numpy.polynomial import Polynomial
 from scipy.stats import truncnorm
+
+from enums import InitialQvalueEstimateType, OptimizerType, SupervisedRegressorType
 
 available_ann_architectures = [(64,),
                                (64, 32),
@@ -107,3 +111,119 @@ def _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots):
     filename = os.path.dirname(os.path.dirname(__file__)) + f'/figures/polynomial/polynomial{int(eps_plots*10**5)}.png'
 
     plt.savefig(filename)
+
+
+def read_trading_parameters_training():
+    filename = os.path.dirname(os.path.dirname(__file__)) + \
+               '/data/data_source/settings/settings.csv'
+    df_trad_params = pd.read_csv(filename, index_col=0)
+
+    shares_scale = float(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/shares_scale.joblib'))
+
+    j_episodes = int(df_trad_params.loc['j_episodes'][0])
+    n_batches = int(df_trad_params.loc['n_batches'][0])
+    t_ = int(df_trad_params.loc['t_'][0])
+
+    if df_trad_params.loc['parallel_computing'][0] == 'Yes':
+        parallel_computing = True
+        n_cores = int(df_trad_params.loc['n_cores'][0])
+        n_cores = min(n_cores, mp.cpu_count())
+    elif df_trad_params.loc['parallel_computing'][0] == 'No':
+        parallel_computing = False
+        n_cores = None
+    else:
+        raise NameError('Invalid value for parameter parallel_computing in settings.csv')
+
+    # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
+    initialQvalueEstimateType = InitialQvalueEstimateType(df_trad_params.loc['initialQvalueEstimateType'][0])
+
+    # if True, the agent uses the model to predict the next step pnl and sig2 for the reward; else, uses the realized
+    if df_trad_params.loc['predict_pnl_for_reward'][0] == 'Yes':
+        predict_pnl_for_reward = True
+    elif df_trad_params.loc['predict_pnl_for_reward'][0] == 'No':
+        predict_pnl_for_reward = False
+    else:
+        raise NameError('Invalid value for parameter predict_pnl_for_reward in settings.csv')
+
+    # if True, the agent averages across supervised regressors in its definition of q_value; else, uses the last one
+    if df_trad_params.loc['average_across_models'][0] == 'Yes':
+        average_across_models = True
+    elif df_trad_params.loc['average_across_models'][0] == 'No':
+        average_across_models = False
+    else:
+        raise NameError('Invalid value for parameter average_across_models in settings.csv')
+
+    # if True, then the agent considers the supervised regressors only up to n<=n_batches, where n is the batch that
+    # provided the best reward in the training phase
+    if df_trad_params.loc['use_best_n_batch'][0] == 'Yes':
+        use_best_n_batch = True
+    elif df_trad_params.loc['use_best_n_batch'][0] == 'No':
+        use_best_n_batch = False
+    else:
+        raise NameError('Invalid value for parameter use_best_n_batch in settings.csv')
+
+    # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
+    # than the one learned automatically
+    if df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'Yes':
+        train_benchmarking_GP_reward = True
+    elif df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'No':
+        train_benchmarking_GP_reward = False
+    else:
+        raise NameError('Invalid value for parameter train_benchmarking_GP_reward in settings.csv')
+
+    # which optimizer to use in greedy policy
+    optimizerType = OptimizerType(df_trad_params.loc['optimizerType'][0])
+
+    # choose which model to use for supervised regression
+    supervisedRegressorType = SupervisedRegressorType(df_trad_params.loc['supervisedRegressorType'][0])
+
+    # initial epsilon for eps-greedy policy: at each batch iteration, we do eps <- eps/3
+    eps_start = float(df_trad_params.loc['eps_start'][0])
+
+    max_ann_depth = int(df_trad_params.loc['max_ann_depth'][0])
+
+    if df_trad_params.loc['early_stopping'][0] == 'Yes':
+        early_stopping = True
+    elif df_trad_params.loc['early_stopping'][0] == 'No':
+        early_stopping = False
+    else:
+        raise NameError('Invalid value for parameter early_stopping in settings.csv')
+
+    max_iter = int(df_trad_params.loc['max_iter'][0])
+
+    n_iter_no_change = int(df_trad_params.loc['n_iter_no_change'][0])
+
+    activation = str(df_trad_params.loc['activation'][0])
+
+    alpha_sarsa = float(df_trad_params.loc['alpha_sarsa'][0])
+
+    if df_trad_params.loc['decrease_eps'][0] == 'Yes':
+        decrease_eps = True
+    elif df_trad_params.loc['decrease_eps'][0] == 'No':
+        decrease_eps = False
+    else:
+        raise NameError('Invalid value for parameter decrease_eps in settings.csv')
+
+    if df_trad_params.loc['random_initial_state'][0] == 'Yes':
+        random_initial_state = True
+    elif df_trad_params.loc['random_initial_state'][0] == 'No':
+        random_initial_state = False
+    else:
+        raise NameError('Invalid value for parameter random_initial_state in settings.csv')
+
+    max_polynomial_regression_degree = int(df_trad_params.loc['max_polynomial_regression_degree'][0])
+
+    if df_trad_params.loc['max_complexity_no_gridsearch'][0] == 'Yes':
+        max_complexity_no_gridsearch = True
+    elif df_trad_params.loc['max_complexity_no_gridsearch'][0] == 'No':
+        max_complexity_no_gridsearch = False
+    else:
+        raise NameError('Invalid value for parameter max_complexity_no_gridsearch in settings.csv')
+
+    alpha_ewma = float(df_trad_params.loc['alpha_ewma'][0])
+
+    return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialQvalueEstimateType,
+            predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
+            optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter,
+            n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state,
+            max_polynomial_regression_degree, max_complexity_no_gridsearch, alpha_ewma)
