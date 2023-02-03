@@ -51,8 +51,8 @@ class Tester:
             read_trading_parameters_market()
 
         # Training parameters
-        (shares_scale, _, n_batches, t_, parallel_computing, n_cores,
-         _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) = read_trading_parameters_training()
+        (shares_scale, _, n_batches, t_, _, n_cores, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+         parallel_computing_sim) = read_trading_parameters_training()
 
         self._ticker = ticker
         self._riskDriverDynamicsType = riskDriverDynamicsType
@@ -61,7 +61,7 @@ class Tester:
         self._shares_scale = shares_scale
         self._n_batches = n_batches
         self._t_ = t_
-        self._parallel_computing = parallel_computing
+        self._parallel_computing = parallel_computing_sim
         self._n_cores = n_cores
 
     def _instantiate_agents_and_environment(self):

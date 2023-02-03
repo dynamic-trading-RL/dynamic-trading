@@ -124,15 +124,25 @@ def read_trading_parameters_training():
     n_batches = int(df_trad_params.loc['n_batches'][0])
     t_ = int(df_trad_params.loc['t_'][0])
 
-    if df_trad_params.loc['parallel_computing'][0] == 'Yes':
-        parallel_computing = True
+    if df_trad_params.loc['parallel_computing_train'][0] == 'Yes':
+        parallel_computing_train = True
         n_cores = int(df_trad_params.loc['n_cores'][0])
         n_cores = min(n_cores, mp.cpu_count())
-    elif df_trad_params.loc['parallel_computing'][0] == 'No':
-        parallel_computing = False
+    elif df_trad_params.loc['parallel_computing_train'][0] == 'No':
+        parallel_computing_train = False
         n_cores = None
     else:
-        raise NameError('Invalid value for parameter parallel_computing in settings.csv')
+        raise NameError('Invalid value for parameter parallel_computing_train in settings.csv')
+
+    if df_trad_params.loc['parallel_computing_sim'][0] == 'Yes':
+        parallel_computing_sim = True
+        n_cores = int(df_trad_params.loc['n_cores'][0])
+        n_cores = min(n_cores, mp.cpu_count())
+    elif df_trad_params.loc['parallel_computing_sim'][0] == 'No':
+        parallel_computing_sim = False
+        n_cores = None
+    else:
+        raise NameError('Invalid value for parameter parallel_computing_sim in settings.csv')
 
     # if zero, the initial estimate of the qvalue function is 0; if random, it is N(0,1)
     initialQvalueEstimateType = InitialQvalueEstimateType(df_trad_params.loc['initialQvalueEstimateType'][0])
@@ -222,8 +232,8 @@ def read_trading_parameters_training():
 
     alpha_ewma = float(df_trad_params.loc['alpha_ewma'][0])
 
-    return (shares_scale, j_episodes, n_batches, t_, parallel_computing, n_cores, initialQvalueEstimateType,
+    return (shares_scale, j_episodes, n_batches, t_, parallel_computing_train, n_cores, initialQvalueEstimateType,
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
             optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter,
             n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state,
-            max_polynomial_regression_degree, max_complexity_no_gridsearch, alpha_ewma)
+            max_polynomial_regression_degree, max_complexity_no_gridsearch, alpha_ewma, parallel_computing_sim)
