@@ -18,7 +18,7 @@ if __name__ == '__main__':
         '/figures/simulationtesting/',
         '/figures/training/',
         '/reports/calibrations/',
-        '/reports/sharpe_ratios',
+        '/reports/sharpe_ratios/',
         '/reports/t-tests/'
     )
 
@@ -27,8 +27,10 @@ if __name__ == '__main__':
         for filename in os.listdir(folderpath):
             if filename == '.keep':
                 continue
-            try:
-                filepath = folderpath + filename
-                os.remove(filepath)
-            except:
-                continue
+            filepath = folderpath + filename
+            os.remove(filepath)
+            # try:
+            #     filepath = folderpath + filename
+            #     os.remove(filepath)
+            # except:
+            #     continue
