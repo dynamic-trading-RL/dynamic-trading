@@ -29,8 +29,3 @@ if __name__ == '__main__':
                 continue
             filepath = folderpath + filename
             os.remove(filepath)
-            # try:
-            #     filepath = folderpath + filename
-            #     os.remove(filepath)
-            # except:
-            #     continue
