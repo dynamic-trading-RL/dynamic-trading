@@ -150,6 +150,7 @@ class AgentTrainer:
         self.reward_GP = {}
         self.backtesting_sharperatio = {}
         self.simulationtesting_sharperatio_av2std = {}
+        self.simulationtesting_wealthnetrisk_av2std = {}
 
         eps = eps_start
 
@@ -180,6 +181,9 @@ class AgentTrainer:
 
         for n in range(self.n_batches):
             print(f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
+
+        for n in range(self.n_batches):
+            print(f'Average/Std RL simulation wealth-net-risk for batch {n + 1}: {self.simulationtesting_wealthnetrisk_av2std[n]}')
 
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self.agent.print_proportion_missing_polynomial_optima()
@@ -229,12 +233,14 @@ class AgentTrainer:
         backtester.execute_backtesting()
         backtester.make_plots()
         simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=100, t_=self.t_)
+        simulationTester.execute_simulation_testing(j_=10, t_=self.t_)
         simulationTester.make_plots(j_trajectories_plot=10)
 
         self.backtesting_sharperatio[n] = backtester._sharpe_ratio_all['RL']
         self.simulationtesting_sharperatio_av2std[n] =\
             simulationTester._sharpe_ratio_all['RL'].mean()/simulationTester._sharpe_ratio_all['RL'].std()
+        self.simulationtesting_wealthnetrisk_av2std[n] =\
+            simulationTester._means['RL']['wealth_net_risk']/simulationTester._stds['RL']['wealth_net_risk']
 
         del backtester, simulationTester
 
@@ -247,6 +253,7 @@ class AgentTrainer:
         print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]}')
         print(f'Average RL backtesting Sharpe ratio for batch {n + 1}: {self.backtesting_sharperatio[n]}')
         print(f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
+        print(f'Average/Std RL simulation wealth-net-risk for batch {n + 1}: {self.simulationtesting_wealthnetrisk_av2std[n]}')
 
     def _create_batch_sequential(self, eps, n):
 
