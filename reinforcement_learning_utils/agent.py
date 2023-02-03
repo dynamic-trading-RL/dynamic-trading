@@ -83,11 +83,10 @@ class Agent:
 
     def load_q_value_models(self, n_batches: int):
 
-        if self._use_best_n_batch:
-            if self.best_n is None:
-                n_batches = 1
-            else:
-                n_batches = self.best_n
+        if self._use_best_n_batch and self.best_n is not None:
+            n_batches = self.best_n
+        else:
+            print(f'Want to use best batch but best_n not yet computed. Possible cause: on-the-fly testing.')
 
         for n in range(n_batches):
             try:

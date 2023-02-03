@@ -236,14 +236,15 @@ class BackTester(Tester):
         df.to_csv(filename)
 
         # in chunks
-        li = []
-        for agent_type in self._sharpe_ratio_chunks.keys():
-            for chunk_id in self._sharpe_ratio_chunks[agent_type].keys():
-                sharpe_ratio = self._sharpe_ratio_chunks[agent_type][chunk_id]
-                li.append([agent_type, chunk_id, sharpe_ratio])
-        df = pd.DataFrame(data=li, columns=['agent_type', 'chunk_id', 'sharpe_ratio'])
-        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/sharpe_ratios/{self._n_str}sharpe_ratios_across_chunks.csv'
-        df.to_csv(filename, index=False)
+        if self._split_strategy:
+            li = []
+            for agent_type in self._sharpe_ratio_chunks.keys():
+                for chunk_id in self._sharpe_ratio_chunks[agent_type].keys():
+                    sharpe_ratio = self._sharpe_ratio_chunks[agent_type][chunk_id]
+                    li.append([agent_type, chunk_id, sharpe_ratio])
+            df = pd.DataFrame(data=li, columns=['agent_type', 'chunk_id', 'sharpe_ratio'])
+            filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/sharpe_ratios/{self._n_str}sharpe_ratios_across_chunks.csv'
+            df.to_csv(filename, index=False)
 
     def make_plots(self):
 
@@ -300,8 +301,9 @@ class BackTester(Tester):
                                                          price_series)
 
         # compute strategies on different chunks of time series
-        self._compute_strategies_on_chunks_time_series(dates, factor_series, pnl_series, average_past_pnl_series,
-                                                       price_series)
+        if self._split_strategy:
+            self._compute_strategies_on_chunks_time_series(dates, factor_series, pnl_series, average_past_pnl_series,
+                                                           price_series)
 
     def _compute_strategies_on_chunks_time_series(self, dates, factor_series, pnl_series, average_past_pnl_series,
                                                   price_series):
@@ -456,23 +458,24 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-shares.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        for agent_type in self._agents.keys():
-            chunk_id = 0
-            for dates_chunk in self._dates_chunks_list:
-                if chunk_id == 0:
-                    label = agent_type
-                else:
-                    label = None
-                plt.plot(dates_chunk[:-1], self._strategy_chunks[agent_type][chunk_id],
-                         color=self._colors[agent_type], label=label)
-                chunk_id += 1
-        plt.title('Shares')
-        plt.xlabel('Date')
-        plt.ylabel('Shares [#]')
-        plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-shares-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            for agent_type in self._agents.keys():
+                chunk_id = 0
+                for dates_chunk in self._dates_chunks_list:
+                    if chunk_id == 0:
+                        label = agent_type
+                    else:
+                        label = None
+                    plt.plot(dates_chunk[:-1], self._strategy_chunks[agent_type][chunk_id],
+                             color=self._colors[agent_type], label=label)
+                    chunk_id += 1
+            plt.title('Shares')
+            plt.xlabel('Date')
+            plt.ylabel('Shares [#]')
+            plt.legend()
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-shares-chunks.png')
 
     def _plot_value(self):
 
@@ -491,23 +494,24 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-value.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        for agent_type in self._agents.keys():
-            chunk_id = 0
-            for dates_chunk in self._dates_chunks_list:
-                if chunk_id == 0:
-                    label = agent_type
-                else:
-                    label = None
-                plt.plot(dates_chunk[:-1], self._cum_value_chunks[agent_type][chunk_id],
-                         color=self._colors[agent_type], label=label)
-                chunk_id += 1
-        plt.title('Value')
-        plt.xlabel('Date')
-        plt.ylabel('Portfolio value [$]')
-        plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-value-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            for agent_type in self._agents.keys():
+                chunk_id = 0
+                for dates_chunk in self._dates_chunks_list:
+                    if chunk_id == 0:
+                        label = agent_type
+                    else:
+                        label = None
+                    plt.plot(dates_chunk[:-1], self._cum_value_chunks[agent_type][chunk_id],
+                             color=self._colors[agent_type], label=label)
+                    chunk_id += 1
+            plt.title('Value')
+            plt.xlabel('Date')
+            plt.ylabel('Portfolio value [$]')
+            plt.legend()
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-value-chunks.png')
 
     def _plot_cost(self):
 
@@ -526,23 +530,24 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-cost.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        for agent_type in self._agents.keys():
-            chunk_id = 0
-            for dates_chunk in self._dates_chunks_list:
-                if chunk_id == 0:
-                    label = agent_type
-                else:
-                    label = None
-                plt.plot(dates_chunk[:-1], self._cum_cost_chunks[agent_type][chunk_id],
-                         color=self._colors[agent_type], label=label)
-                chunk_id += 1
-        plt.title('Cost')
-        plt.xlabel('Date')
-        plt.ylabel('Cost [$]')
-        plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-cost-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            for agent_type in self._agents.keys():
+                chunk_id = 0
+                for dates_chunk in self._dates_chunks_list:
+                    if chunk_id == 0:
+                        label = agent_type
+                    else:
+                        label = None
+                    plt.plot(dates_chunk[:-1], self._cum_cost_chunks[agent_type][chunk_id],
+                             color=self._colors[agent_type], label=label)
+                    chunk_id += 1
+            plt.title('Cost')
+            plt.xlabel('Date')
+            plt.ylabel('Cost [$]')
+            plt.legend()
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-cost-chunks.png')
 
     def _plot_risk(self):
 
@@ -561,23 +566,24 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-risk.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        for agent_type in self._agents.keys():
-            chunk_id = 0
-            for dates_chunk in self._dates_chunks_list:
-                if chunk_id == 0:
-                    label = agent_type
-                else:
-                    label = None
-                plt.plot(dates_chunk[:-1], self._cum_risk_chunks[agent_type][chunk_id],
-                         color=self._colors[agent_type], label=label)
-                chunk_id += 1
-        plt.title('Risk')
-        plt.xlabel('Date')
-        plt.ylabel('Risk')
-        plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-risk-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            for agent_type in self._agents.keys():
+                chunk_id = 0
+                for dates_chunk in self._dates_chunks_list:
+                    if chunk_id == 0:
+                        label = agent_type
+                    else:
+                        label = None
+                    plt.plot(dates_chunk[:-1], self._cum_risk_chunks[agent_type][chunk_id],
+                             color=self._colors[agent_type], label=label)
+                    chunk_id += 1
+            plt.title('Risk')
+            plt.xlabel('Date')
+            plt.ylabel('Risk')
+            plt.legend()
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-risk-chunks.png')
 
     def _plot_wealth(self):
 
@@ -597,23 +603,24 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        for agent_type in self._agents.keys():
-            chunk_id = 0
-            for dates_chunk in self._dates_chunks_list:
-                if chunk_id == 0:
-                    label = agent_type
-                else:
-                    label = None
-                plt.plot(dates_chunk[:-1], self._cum_wealth_chunks[agent_type][chunk_id],
-                         color=self._colors[agent_type], label=label)
-                chunk_id += 1
-        plt.title('Wealth')
-        plt.xlabel('Date')
-        plt.ylabel('Wealth = Value - Cost [$]')
-        plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-wealth-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            for agent_type in self._agents.keys():
+                chunk_id = 0
+                for dates_chunk in self._dates_chunks_list:
+                    if chunk_id == 0:
+                        label = agent_type
+                    else:
+                        label = None
+                    plt.plot(dates_chunk[:-1], self._cum_wealth_chunks[agent_type][chunk_id],
+                             color=self._colors[agent_type], label=label)
+                    chunk_id += 1
+            plt.title('Wealth')
+            plt.xlabel('Date')
+            plt.ylabel('Wealth = Value - Cost [$]')
+            plt.legend()
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-wealth-chunks.png')
 
     def _plot_wealth_net_risk(self):
 
@@ -633,23 +640,24 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth-net-risk.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        for agent_type in self._agents.keys():
-            chunk_id = 0
-            for dates_chunk in self._dates_chunks_list:
-                if chunk_id == 0:
-                    label = agent_type
-                else:
-                    label = None
-                plt.plot(dates_chunk[:-1], self._cum_wealth_net_risk_chunks[agent_type][chunk_id],
-                         color=self._colors[agent_type], label=label)
-                chunk_id += 1
-        plt.title('Wealth net Risk')
-        plt.xlabel('Date')
-        plt.ylabel('Wealth net Risk = Value - Cost - Risk')
-        plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-wealth-net-risk-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            for agent_type in self._agents.keys():
+                chunk_id = 0
+                for dates_chunk in self._dates_chunks_list:
+                    if chunk_id == 0:
+                        label = agent_type
+                    else:
+                        label = None
+                    plt.plot(dates_chunk[:-1], self._cum_wealth_net_risk_chunks[agent_type][chunk_id],
+                             color=self._colors[agent_type], label=label)
+                    chunk_id += 1
+            plt.title('Wealth net Risk')
+            plt.xlabel('Date')
+            plt.ylabel('Wealth net Risk = Value - Cost - Risk')
+            plt.legend()
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-wealth-net-risk-chunks.png')
 
     def _plot_trades_scatter(self):
 
@@ -670,20 +678,21 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-trades-scatter.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        for chunk_id in range(len(self._dates_chunks_list)):
-            plt.scatter(self._trade_chunks['GP'][chunk_id], self._trade_chunks['RL'][chunk_id], s=2, alpha=0.5,
-                        label=f'chunk_id = {chunk_id}')
-        plt.title('GP vs RL trades')
-        plt.xlabel('GP trades [#]')
-        plt.ylabel('RL trades [#]')
-        plt.axis('equal')
-        plt.plot(xlim, xlim, color='r', label='45° line')
-        plt.xlim(xlim)
-        plt.ylim(xlim)
-        plt.legend()
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-trades-scatter-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            for chunk_id in range(len(self._dates_chunks_list)):
+                plt.scatter(self._trade_chunks['GP'][chunk_id], self._trade_chunks['RL'][chunk_id], s=2, alpha=0.5,
+                            label=f'chunk_id = {chunk_id}')
+            plt.title('GP vs RL trades')
+            plt.xlabel('GP trades [#]')
+            plt.ylabel('RL trades [#]')
+            plt.axis('equal')
+            plt.plot(xlim, xlim, color='r', label='45° line')
+            plt.xlim(xlim)
+            plt.ylim(xlim)
+            plt.legend()
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-trades-scatter-chunks.png')
 
     def _plot_sharpe_ratio(self):
 
@@ -700,18 +709,19 @@ class BackTester(Tester):
         plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-sharpe-ratio.png')
 
-        fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-        df = pd.DataFrame(self._sharpe_ratio_chunks)
-        df.plot(kind='bar', color=['m', 'g', 'r'])
-        #plt.bar(self._sharpe_ratio_chunks.keys(), self._sharpe_ratio_chunks.values()),
-        plt.xlabel('Agent')
-        plt.ylabel('Realized Sharpe ratio (annualized)')
-        plt.title('Realized Sharpe ratio for chunks')
-        plt.grid()
-        ax = plt.gca()
-        ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
-        plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
-                    + '-backtesting-sharpe-ratio-chunks.png')
+        if self._split_strategy:
+            fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+            df = pd.DataFrame(self._sharpe_ratio_chunks)
+            df.plot(kind='bar', color=['m', 'g', 'r'])
+            #plt.bar(self._sharpe_ratio_chunks.keys(), self._sharpe_ratio_chunks.values()),
+            plt.xlabel('Agent')
+            plt.ylabel('Realized Sharpe ratio (annualized)')
+            plt.title('Realized Sharpe ratio for chunks')
+            plt.grid()
+            ax = plt.gca()
+            ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
+            plt.savefig(os.path.dirname(os.path.dirname(__file__)) + f'/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                        + '-backtesting-sharpe-ratio-chunks.png')
 
 
 class SimulationTester(Tester):
