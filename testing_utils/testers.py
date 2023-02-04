@@ -1095,6 +1095,8 @@ class SimulationTester(Tester):
 
             if self._parallel_computing:
 
+                print(f'Computing {self.j_} simulations of {agent_type} strategy on {self._n_cores} cores')
+
                 compute_outputs_iter_j_partial = partial(self._compute_outputs_iter_j,
                                                          factor_series_all_j=factor_series_all_j,
                                                          pnl_series_all_j=pnl_series_all_j,
