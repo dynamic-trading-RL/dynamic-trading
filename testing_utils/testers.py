@@ -1147,12 +1147,17 @@ class SimulationTester(Tester):
 
         self._compute_means_and_stds()
 
-        self._final_wealth_diff_between_RL_and_GP =\
-            self._cum_wealth_net_risk_all['RL'][:, -1] - self._cum_wealth_net_risk_all['GP'][:, -1]
+        # self._final_wealth_diff_between_RL_and_GP =\
+        #     self._cum_wealth_net_risk_all['RL'][:, -1] - self._cum_wealth_net_risk_all['GP'][:, -1]
+        # sample_a = self._final_wealth_diff_between_RL_and_GP
+        # sampe_b = np.zeros(len(self._final_wealth_diff_between_RL_and_GP))
+
+        sample_a = self._cum_wealth_net_risk_all['RL'][:, -1]
+        sample_b = self._cum_wealth_net_risk_all['GP'][:, -1]
 
         self.tTester = TTester(t_test_id=self._ticker,
-                               sample_a=self._final_wealth_diff_between_RL_and_GP,
-                               sample_b=np.zeros(len(self._final_wealth_diff_between_RL_and_GP)),
+                               sample_a=sample_a,
+                               sample_b=sample_b,
                                equal_var=False,
                                nan_policy='omit',
                                permutations=self.j_,
@@ -1160,6 +1165,7 @@ class SimulationTester(Tester):
                                alternative='greater',
                                on_the_fly=self._on_the_fly,
                                n=self._n)
+
     def _compute_means_and_stds(self):
 
         self._means = {}
