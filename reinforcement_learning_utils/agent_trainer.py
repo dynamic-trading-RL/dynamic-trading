@@ -242,7 +242,7 @@ class AgentTrainer:
         backtester.execute_backtesting()
         backtester.make_plots()
         simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=10000, t_=self.t_)
+        simulationTester.execute_simulation_testing(j_=1000, t_=self.t_)
         simulationTester.make_plots(j_trajectories_plot=5)
 
         self.backtesting_sharperatio[n] = backtester._sharpe_ratio_all['RL']
