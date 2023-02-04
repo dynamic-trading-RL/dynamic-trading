@@ -16,6 +16,6 @@ if __name__ == '__main__':
     # -------------------- Execution
     simulationTester = SimulationTester()
     simulationTester.execute_simulation_testing(j_=j_oos, t_=t_)
-    simulationTester.make_plots(j_trajectories_plot=10)
+    simulationTester.make_plots(j_trajectories_plot=5)
 
     print('--- End s_simulationtesting.py')
