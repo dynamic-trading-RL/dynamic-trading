@@ -1,3 +1,4 @@
+from datetime import timedelta
 from functools import partial
 import multiprocessing as mp
 
@@ -9,6 +10,7 @@ import os
 
 from joblib import load
 from tqdm import tqdm
+from timeit import default_timer as timer
 
 from benchmark_agents.agents import AgentMarkowitz, AgentGP
 from market_utils.market import read_trading_parameters_market, instantiate_market
@@ -1097,6 +1099,8 @@ class SimulationTester(Tester):
 
                 print(f'Computing {self.j_} simulations of {agent_type} strategy on {self._n_cores} cores')
 
+                start = timer()
+
                 compute_outputs_iter_j_partial = partial(self._compute_outputs_iter_j,
                                                          factor_series_all_j=factor_series_all_j,
                                                          pnl_series_all_j=pnl_series_all_j,
@@ -1119,6 +1123,11 @@ class SimulationTester(Tester):
                     value.append(outputs[j][2])
                     cost.append(outputs[j][3])
                     risk.append(outputs[j][4])
+
+                end = timer()
+                hours, rem = divmod(end - start, 3600)
+                minutes, seconds = divmod(rem, 60)
+                print('Time elapsed (hh:mm:ss): {:0>2}:{:0>2}:{:05.2f}'.format(int(hours), int(minutes), seconds))
 
             else:
 
