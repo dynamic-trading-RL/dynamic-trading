@@ -151,6 +151,7 @@ class AgentTrainer:
         self.backtesting_sharperatio = {}
         self.simulationtesting_sharperatio_av2std = {}
         self.simulationtesting_wealthnetrisk_av2std = {}
+        self.simulationtesting_ttest = {}
 
         eps = eps_start
 
@@ -161,29 +162,37 @@ class AgentTrainer:
                 eps = max(eps / 3, 10 ** -5)
 
         # compute best batch  # todo: is this correct? discuss with SH and PP
+        # Mode 1
         # n_vs_reward_RL = np.array([[n, reward_RL] for n, reward_RL in self.reward_RL.items()])
         # self.best_n = int(n_vs_reward_RL[np.argmax(n_vs_reward_RL[:, 1]), 0]) + 1
+
+        # Mode 2
         # average_q_per_batch = self._average_q_per_batch()
         # self.best_n = max(np.argmax(average_q_per_batch), 1)
-        n_vs_SR_RL =\
-            np.array([[n, SR_RL] for n, SR_RL in self.simulationtesting_sharperatio_av2std.items()])
+
+        # Mode 3
+        n_vs_SR_RL = np.array([[n, SR_RL] for n, SR_RL in self.simulationtesting_ttest.items()])
         self.best_n = int(n_vs_SR_RL[np.argmax(n_vs_SR_RL[:, 1]), 0]) + 1
 
         dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
-        print(f'Trained using N = {self.n_batches}; best reward obtained on batch n = {self.best_n}')
+        print(f'Trained using N = {self.n_batches}, numbered (0, ..., {self.n_batches - 1}).')
+        print(f'Best performance obtained by using estimate q_n for n = {self.best_n - 1}')
 
         print('Summaries:')
         for n in range(self.n_batches):
-            print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
+            print(f'Average RL reward for batch {n}: {self.reward_RL[n]}')
 
         for n in range(self.n_batches):
-            print(f'Average RL backtesting Sharpe ratio for batch {n + 1}: {self.backtesting_sharperatio[n]}')
+            print(f'Average RL backtesting Sharpe ratio for batch {n}: {self.backtesting_sharperatio[n]}')
 
         for n in range(self.n_batches):
-            print(f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
+            print(f'Average/Std RL simulation Sharpe ratio for batch {n}: {self.simulationtesting_sharperatio_av2std[n]}')
 
         for n in range(self.n_batches):
-            print(f'Average/Std RL simulation wealth-net-risk for batch {n + 1}: {self.simulationtesting_wealthnetrisk_av2std[n]}')
+            print(f'Average/Std RL simulation wealth-net-risk for batch {n}: {self.simulationtesting_wealthnetrisk_av2std[n]}')
+
+        for n in range(self.n_batches):
+            print(f'T-statistics for Welch\'s test WNRRL>WRNGP for batch {n}: {self.simulationtesting_ttest[n]}')
 
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self.agent.print_proportion_missing_polynomial_optima()
@@ -233,7 +242,7 @@ class AgentTrainer:
         backtester.execute_backtesting()
         backtester.make_plots()
         simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=1000, t_=self.t_)
+        simulationTester.execute_simulation_testing(j_=10, t_=self.t_)
         simulationTester.make_plots(j_trajectories_plot=10)
 
         self.backtesting_sharperatio[n] = backtester._sharpe_ratio_all['RL']
@@ -241,6 +250,7 @@ class AgentTrainer:
             simulationTester._sharpe_ratio_all['RL'].mean()/simulationTester._sharpe_ratio_all['RL'].std()
         self.simulationtesting_wealthnetrisk_av2std[n] =\
             simulationTester._means['RL']['wealth_net_risk']/simulationTester._stds['RL']['wealth_net_risk']
+        self.simulationtesting_ttest[n] = simulationTester.tTester.t_test_result['statistic']
 
         del backtester, simulationTester
 
