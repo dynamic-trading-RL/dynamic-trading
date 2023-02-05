@@ -207,6 +207,7 @@ class AgentTrainer:
         n_vs_goodness = []
 
         if riskDriverDynamicsType == RiskDriverDynamicsType.Linear and factorDynamicsType == FactorDynamicsType.AR:
+            print('Performing hypothesis testing for a benchmark case: want p-value to be as large as possible')
             # Benchmark
             # H0: RL = GP
             # H1: RL != GP
@@ -216,6 +217,7 @@ class AgentTrainer:
             n_vs_goodness = np.array(n_vs_goodness)
             best_n = int(n_vs_goodness[np.argmax(n_vs_goodness[:, 1]), 0]) + 1
         else:
+            print('Performing hypothesis testing for an alternative case: want p-value to be as small as possible')
             # Alternative
             # H0: RL <= GP
             # H1: RL > GP
