@@ -1,13 +1,13 @@
 field,value
 activation,relu
-alpha_ewma,0.9
+alpha_ewma,0.7
 alpha_sarsa,0.9
 average_across_models,Yes
 use_quadratic_cost_in_markowitz,Yes
 decrease_eps,Yes
 early_stopping,No
 end_date,
-eps_start,0.03
+eps_start,0.3
 factorComputationType,MovingAverage
 factorDynamicsType,AR
 factorTransformationType,LogDiff
