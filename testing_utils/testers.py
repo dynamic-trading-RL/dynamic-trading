@@ -1158,24 +1158,8 @@ class SimulationTester(Tester):
 
         self._compute_means_and_stds()
 
-        # self._final_wealth_diff_between_RL_and_GP =\
-        #     self._cum_wealth_net_risk_all['RL'][:, -1] - self._cum_wealth_net_risk_all['GP'][:, -1]
-        # sample_a = self._final_wealth_diff_between_RL_and_GP
-        # sampe_b = np.zeros(len(self._final_wealth_diff_between_RL_and_GP))
-
-        sample_a = self._cum_wealth_net_risk_all['RL'][:, -1]
-        sample_b = self._cum_wealth_net_risk_all['GP'][:, -1]
-
-        self.tTester = TTester(t_test_id=self._ticker,
-                               sample_a=sample_a,
-                               sample_b=sample_b,
-                               equal_var=False,
-                               nan_policy='omit',
-                               permutations=self.j_,
-                               random_state=789,
-                               alternative='greater',
-                               on_the_fly=self._on_the_fly,
-                               n=self._n)
+        # Execute hypothesis testing
+        self._execute_hypothesis_testing()
 
     def _compute_means_and_stds(self):
 
@@ -1234,6 +1218,37 @@ class SimulationTester(Tester):
             ttm -= 1
 
         return strategy_j, trades_j, value_j, cost_j, risk_j
+
+    def _execute_hypothesis_testing(self):
+        marketDynamics = self._market.marketDynamics
+        riskDriverDynamicsType = marketDynamics.riskDriverDynamics.riskDriverDynamicsType
+        factorDynamicsType = marketDynamics.factorDynamics.factorDynamicsType
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear and factorDynamicsType == FactorDynamicsType.AR:
+            # Benchmark
+            # H0: RL = GP
+            # H1: RL != GP
+            # low p-value -> reject H0 -> conclude that RL != GP (RL does not recover benchmark) -> we want high p-value
+            alternative = 'two-sided'
+        else:
+            # Alternative
+            # H0: RL <= GP
+            # H1: RL > GP
+            # low p-value -> reject H0 -> conclude that RL > GP (RL outperforms the benchmark)
+            alternative = 'greater'
+
+        sample_a = self._cum_wealth_net_risk_all['RL'][:, -1]
+        sample_b = self._cum_wealth_net_risk_all['GP'][:, -1]
+
+        self.tTester = TTester(t_test_id=self._ticker,
+                               sample_a=sample_a,
+                               sample_b=sample_b,
+                               equal_var=False,
+                               nan_policy='omit',
+                               permutations=self.j_,
+                               random_state=789,
+                               alternative=alternative,
+                               on_the_fly=self._on_the_fly,
+                               n=self._n)
 
 
 def read_out_of_sample_parameters():
