@@ -171,8 +171,7 @@ class AgentTrainer:
         # self.best_n = max(np.argmax(average_q_per_batch), 1)
 
         # Mode 3
-        n_vs_SR_RL = np.array([[n, SR_RL] for n, SR_RL in self.simulationtesting_ttest.items()])
-        self.best_n = int(n_vs_SR_RL[np.argmax(n_vs_SR_RL[:, 1]), 0]) + 1
+        self.best_n = self._get_best_n_based_on_tTest()
 
         dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
         print(f'Trained using N = {self.n_batches}, numbered (0, ..., {self.n_batches - 1}).')
@@ -192,10 +191,41 @@ class AgentTrainer:
             print(f'Average/Std RL simulation wealth-net-risk for batch {n}: {self.simulationtesting_wealthnetrisk_av2std[n]}')
 
         for n in range(self.n_batches):
-            print(f'T-statistics for Welch\'s test WNRRL>WRNGP for batch {n}: {self.simulationtesting_ttest[n]}')
+            stat = self.simulationtesting_ttest[n]['statistic']
+            pval = self.simulationtesting_ttest[n]['pvalue']
+            print(f'T-statistics for Welch\'s test WNRRL vs WRNGP for batch {n}: statistic={stat}, pvalue={pval}')
 
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self.agent.print_proportion_missing_polynomial_optima()
+
+    def _get_best_n_based_on_tTest(self):
+
+        marketDynamics = self.market.marketDynamics
+        riskDriverDynamicsType = marketDynamics.riskDriverDynamics.riskDriverDynamicsType
+        factorDynamicsType = marketDynamics.factorDynamics.factorDynamicsType
+
+        n_vs_goodness = []
+
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear and factorDynamicsType == FactorDynamicsType.AR:
+            # Benchmark
+            # H0: RL = GP
+            # H1: RL != GP
+            # low p-value -> reject H0 -> conclude that RL != GP (RL does not recover benchmark) -> we want high p-value
+            for n in range(len(self.simulationtesting_ttest)):
+                n_vs_goodness.append([n, self.simulationtesting_ttest[n]['pvalue']])
+            n_vs_goodness = np.array(n_vs_goodness)
+            best_n = int(n_vs_goodness[np.argmax(n_vs_goodness[:, 1]), 0]) + 1
+        else:
+            # Alternative
+            # H0: RL <= GP
+            # H1: RL > GP
+            # low p-value -> reject H0 -> conclude that RL > GP (RL outperforms the benchmark)
+            for n in range(len(self.simulationtesting_ttest)):
+                n_vs_goodness.append([n, self.simulationtesting_ttest[n]['pvalue']])
+            n_vs_goodness = np.array(n_vs_goodness)
+            best_n = int(n_vs_goodness[np.argmin(n_vs_goodness[:, 1]), 0]) + 1
+
+        return best_n
 
     def _average_q_per_batch(self):
         average_q_per_batch = []
@@ -242,7 +272,7 @@ class AgentTrainer:
         backtester.execute_backtesting()
         backtester.make_plots()
         simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=1000, t_=self.t_)
+        simulationTester.execute_simulation_testing(j_=10000, t_=self.t_)
         simulationTester.make_plots(j_trajectories_plot=5)
 
         self.backtesting_sharperatio[n] = backtester._sharpe_ratio_all['RL']
@@ -250,7 +280,8 @@ class AgentTrainer:
             simulationTester._sharpe_ratio_all['RL'].mean()/simulationTester._sharpe_ratio_all['RL'].std()
         self.simulationtesting_wealthnetrisk_av2std[n] =\
             simulationTester._means['RL']['wealth_net_risk']/simulationTester._stds['RL']['wealth_net_risk']
-        self.simulationtesting_ttest[n] = simulationTester.tTester.t_test_result['statistic']
+        self.simulationtesting_ttest[n] = {'statistic': simulationTester.tTester.t_test_result['statistic'],
+                                           'pvalue': simulationTester.tTester.t_test_result['pvalue']}
 
         del backtester, simulationTester
 
