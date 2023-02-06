@@ -1,0 +1,2 @@
+statistic:-0.417468
+pvalue:0.676932
