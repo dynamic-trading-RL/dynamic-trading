@@ -224,6 +224,9 @@ class Agent:
                 q_value_model = self._q_value_models[-1]
                 qvl = q_value_model.predict(q_value_model_input)
 
+        if np.ndim(qvl) > 0:
+            qvl = qvl.item()
+
         return qvl
 
     def _optimize_q_value_trading(self, state: State):

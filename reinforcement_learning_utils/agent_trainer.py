@@ -352,7 +352,7 @@ class AgentTrainer:
 
             if t == self.t_ + 1:
                 if self._add_absorbing_state:
-                    q = 0
+                    q = 0.
                     state_action_grid.append([state, action])
                     q_grid.append(q)
                     continue
