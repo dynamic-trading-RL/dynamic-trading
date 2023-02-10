@@ -172,6 +172,8 @@ def read_trading_parameters_training():
     else:
         raise NameError('Invalid value for parameter use_best_n_batch in settings.csv')
 
+    use_best_n_batch_mode = df_trad_params.loc['use_best_n_batch_mode'][0]
+
     # if True, the agent observes the reward GP would obtain and forces its strategy to be GP's if such reward is higher
     # than the one learned automatically
     if df_trad_params.loc['train_benchmarking_GP_reward'][0] == 'Yes':
@@ -236,4 +238,5 @@ def read_trading_parameters_training():
             predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward,
             optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter,
             n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state,
-            max_polynomial_regression_degree, max_complexity_no_gridsearch, alpha_ewma, parallel_computing_sim)
+            max_polynomial_regression_degree, max_complexity_no_gridsearch, alpha_ewma, parallel_computing_sim,
+            use_best_n_batch_mode)

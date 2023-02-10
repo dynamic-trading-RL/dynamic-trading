@@ -18,8 +18,9 @@ if __name__ == '__main__':
         '/figures/simulationtesting/',
         '/figures/training/',
         '/reports/calibrations/',
-        '/reports/sharpe_ratios/',
-        '/reports/t-tests/'
+        '/reports/backtesting/',
+        '/reports/simulationtesting/',
+        '/reports/training/'
     )
 
     for folder in folders_2b_emptied:
