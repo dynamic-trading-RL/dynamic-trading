@@ -54,7 +54,7 @@ class Tester:
 
         # Training parameters
         (shares_scale, _, n_batches, t_, _, n_cores, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-         parallel_computing_sim) = read_trading_parameters_training()
+         parallel_computing_sim, _) = read_trading_parameters_training()
 
         self._ticker = ticker
         self._riskDriverDynamicsType = riskDriverDynamicsType
@@ -224,17 +224,31 @@ class BackTester(Tester):
         # Output
         self._compute_backtesting_output()
 
-        # Print Sharpe ratios
-        self._print_sharpe_ratios()
+        # Print statistics
+        self._print_backtesting_statistics()
 
         if self._agents['RL']._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self._agents['RL'].print_proportion_missing_polynomial_optima()
 
-    def _print_sharpe_ratios(self):
+    def _print_backtesting_statistics(self):
+
         df = pd.DataFrame.from_dict(data=self._sharpe_ratio_all,
                                     orient='index', columns=['sharpe_ratio'])
         df.index.name = 'agent_type'
-        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/sharpe_ratios/{self._n_str}sharpe_ratios_complete_series.csv'
+
+        df['final_cost'] = np.nan
+        df['final_risk'] = np.nan
+        df['final_value'] = np.nan
+        df['final_wealth'] = np.nan
+        df['final_wealth_net_risk'] = np.nan
+        for agent_type in df.index:
+            df.loc[agent_type, 'final_cost'] = self._cum_cost_all[agent_type][-1]
+            df.loc[agent_type, 'final_risk'] = self._cum_risk_all[agent_type][-1]
+            df.loc[agent_type, 'final_value'] = self._cum_value_all[agent_type][-1]
+            df.loc[agent_type, 'final_wealth'] = self._cum_wealth_all[agent_type][-1]
+            df.loc[agent_type, 'final_wealth_net_risk'] = self._cum_wealth_net_risk_all[agent_type][-1]
+
+        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/backtesting/{self._n_str}complete_series.csv'
         df.to_csv(filename)
 
         # in chunks
@@ -243,9 +257,16 @@ class BackTester(Tester):
             for agent_type in self._sharpe_ratio_chunks.keys():
                 for chunk_id in self._sharpe_ratio_chunks[agent_type].keys():
                     sharpe_ratio = self._sharpe_ratio_chunks[agent_type][chunk_id]
-                    li.append([agent_type, chunk_id, sharpe_ratio])
-            df = pd.DataFrame(data=li, columns=['agent_type', 'chunk_id', 'sharpe_ratio'])
-            filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/sharpe_ratios/{self._n_str}sharpe_ratios_across_chunks.csv'
+                    final_cost = self._cum_cost_chunks[agent_type][chunk_id][-1]
+                    final_risk = self._cum_risk_chunks[agent_type][chunk_id][-1]
+                    final_value = self._cum_value_chunks[agent_type][chunk_id][-1]
+                    final_wealth = self._cum_wealth_chunks[agent_type][chunk_id][-1]
+                    final_wealth_net_risk = self._cum_wealth_net_risk_chunks[agent_type][chunk_id][-1]
+                    li.append([agent_type, chunk_id, sharpe_ratio, final_cost, final_risk, final_value, final_wealth,
+                               final_wealth_net_risk])
+            df = pd.DataFrame(data=li, columns=['agent_type', 'chunk_id', 'sharpe_ratio', 'final_cost', 'final_risk',
+                                                'final_value', 'final_wealth', 'final_wealth_net_risk'])
+            filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/backtesting/{self._n_str}across_chunks.csv'
             df.to_csv(filename, index=False)
 
     def make_plots(self):
@@ -757,6 +778,7 @@ class SimulationTester(Tester):
 
         # todo: should also plot average cumulative returns with dispersion
 
+        self._print_means_and_stds()
         self._plot_shares(j_trajectories_plot)
         self._plot_value()
         self._plot_value_diff()
@@ -771,6 +793,19 @@ class SimulationTester(Tester):
         self._plot_wealth_net_risk_scatter()
         self._plot_trades_scatter()
         self._plot_sharpe_ratio()
+
+    def _print_means_and_stds(self):
+        ll = []
+        for agent_type in self._means.keys():
+            for item in self._means[agent_type].keys():
+                mean = self._means[agent_type][item]
+                std = self._stds[agent_type][item]
+                ll.append([agent_type, item, mean, std])
+
+        df = pd.DataFrame(data=ll, columns=['agent_type', 'statistic', 'mean', 'std'])
+
+        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/simulationtesting/{self._n_str}statistics.csv'
+        df.to_csv(filename)
 
     def _plot_shares(self, j_trajectories_plot):
 
@@ -1170,9 +1205,9 @@ class SimulationTester(Tester):
             self._means[agent_type] = {}
             self._stds[agent_type] = {}
 
-            values = self._cum_value_all[agent_type][:, -1]
-            self._means[agent_type]['value'] = values.mean()
-            self._stds[agent_type]['value'] = values.std()
+            values = self._sharpe_ratio_all[agent_type]
+            self._means[agent_type]['sharpe_ratio'] = values.mean()
+            self._stds[agent_type]['sharpe_ratio'] = values.std()
 
             values = self._cum_cost_all[agent_type][:, -1]
             self._means[agent_type]['cost'] = values.mean()
@@ -1181,6 +1216,10 @@ class SimulationTester(Tester):
             values = self._cum_risk_all[agent_type][:, -1]
             self._means[agent_type]['risk'] = values.mean()
             self._stds[agent_type]['risk'] = values.std()
+
+            values = self._cum_value_all[agent_type][:, -1]
+            self._means[agent_type]['value'] = values.mean()
+            self._stds[agent_type]['value'] = values.std()
 
             values = self._cum_wealth_all[agent_type][:, -1]
             self._means[agent_type]['wealth'] = values.mean()

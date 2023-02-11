@@ -195,38 +195,36 @@ class Agent:
     def _q_value_trading(self, state: State, action: Action):
 
         if len(self._q_value_models) == 0:
-
             if self._initialQvalueEstimateType == InitialQvalueEstimateType.random:
                 qvl = np.random.randn()
-
             elif self._initialQvalueEstimateType == InitialQvalueEstimateType.zero:
                 qvl = 0.
+        else:
+            q_value_model_input = self.extract_q_value_model_input_trading(state, action)
+            qvl = self.qvl_from_ravel_input(q_value_model_input)
+
+            if np.ndim(qvl) > 0:
+                qvl = qvl.item()
+
+        return qvl
+
+    def qvl_from_ravel_input(self, q_value_model_input):
+        if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            poly = instantiate_polynomialFeatures(degree=self.polynomial_regression_degree)
+
+            q_value_model_input = poly.fit_transform(q_value_model_input)
+        if self._average_across_models:
+
+            q_value_model = self._q_value_models[0]
+            qvl = q_value_model.predict(q_value_model_input)
+            alpha_ewma = self._alpha_ewma
+            for q_value_model in self._q_value_models[1:]:
+                qvl_new = q_value_model.predict(q_value_model_input)
+                qvl = alpha_ewma * qvl_new + (1 - alpha_ewma) * qvl
 
         else:
-
-            q_value_model_input = self.extract_q_value_model_input_trading(state, action)
-
-            if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
-                poly = instantiate_polynomialFeatures(degree=self.polynomial_regression_degree)
-
-                q_value_model_input = poly.fit_transform(q_value_model_input)
-
-            if self._average_across_models:
-
-                q_value_model = self._q_value_models[0]
-                qvl = q_value_model.predict(q_value_model_input)
-                alpha_ewma = self._alpha_ewma
-                for q_value_model in self._q_value_models[1:]:
-                    qvl_new = q_value_model.predict(q_value_model_input)
-                    qvl = alpha_ewma * qvl_new + (1 - alpha_ewma) * qvl
-
-            else:
-                q_value_model = self._q_value_models[-1]
-                qvl = q_value_model.predict(q_value_model_input)
-
-        if np.ndim(qvl) > 0:
-            qvl = qvl.item()
-
+            q_value_model = self._q_value_models[-1]
+            qvl = q_value_model.predict(q_value_model_input)
         return qvl
 
     def _optimize_q_value_trading(self, state: State):
