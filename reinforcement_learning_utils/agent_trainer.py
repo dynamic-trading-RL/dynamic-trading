@@ -52,7 +52,8 @@ class AgentTrainer:
                  max_polynomial_regression_degree: int = 3,
                  max_complexity_no_gridsearch: bool = True,
                  alpha_ewma: float = 0.5,
-                 use_best_n_batch_mode: str = 't_test'):
+                 use_best_n_batch_mode: str = 't_test',
+                 restrict_evaluation_grid: bool = True):
 
         self.t_ = None
         self.n_batches = None
@@ -115,6 +116,8 @@ class AgentTrainer:
         if use_best_n_batch_mode not in self._available_use_best_n_batch_mode_lst:
             raise NameError(f'Invalid use_best_n_batch_mode: {use_best_n_batch_mode}. Should be in {self._available_use_best_n_batch_mode_lst}')
         self._use_best_n_batch_mode = use_best_n_batch_mode
+
+        self._restrict_evaluation_grid = restrict_evaluation_grid
 
         self.agent = Agent(self.environment,
                            optimizerType=self._optimizerType,
@@ -756,8 +759,11 @@ class AgentTrainer:
         x_array = np.array(x_grid).squeeze()
         y_array = np.array(y_grid).squeeze()
 
-        if n == 0:
+        if self._restrict_evaluation_grid:
             self._store_x_evaluation_grid(x_array)
+        else:
+            if n == 0:
+                self._store_x_evaluation_grid(x_array)
 
         return x_array, y_array
 
