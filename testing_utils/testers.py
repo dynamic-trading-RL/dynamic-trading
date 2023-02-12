@@ -438,7 +438,9 @@ class BackTester(Tester):
                 dates_chunks_lst.append(current_chunk)
                 current_chunk = [date]
                 counter = 1
-        dates_chunks_lst.append(current_chunk)
+
+        if len(current_chunk) > 1:
+            dates_chunks_lst.append(current_chunk)
 
         return dates_chunks_lst
 
