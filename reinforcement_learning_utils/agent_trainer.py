@@ -225,6 +225,7 @@ class AgentTrainer:
         self.q_grid_dict = {}
         self.reward_RL = {}
         self.reward_GP = {}
+        self._model_evaluations = {}
         self.model_convergence = {}
         self.backtesting_sharperatio = {}
         self.simulationtesting_sharperatio_av2std = {}
@@ -340,7 +341,7 @@ class AgentTrainer:
         backtester.execute_backtesting()
         backtester.make_plots()
         simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=10000, t_=self.t_)
+        simulationTester.execute_simulation_testing(j_=10, t_=self.t_)
         simulationTester.make_plots(j_trajectories_plot=5)
         self.backtesting_sharperatio[n] = backtester._sharpe_ratio_all['RL']
         self.simulationtesting_sharperatio_av2std[n] =\
@@ -768,8 +769,6 @@ class AgentTrainer:
         return x_array, y_array
 
     def _store_x_evaluation_grid(self, x_array):
-
-        self._model_evaluations = {}
 
         num_col = x_array.shape[1]
         x_evaluation_grid_mins = [np.quantile(x_array[:, j], 0.001) for j in range(num_col)]
