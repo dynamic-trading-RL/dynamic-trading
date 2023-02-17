@@ -15,8 +15,8 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType, \
-    InitialQvalueEstimateType
+from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType,\
+    InitialQvalueEstimateType, StrategyType
 from gen_utils.utils import instantiate_polynomialFeatures, available_ann_architectures
 from market_utils.market import instantiate_market
 from reinforcement_learning_utils.agent import Agent
@@ -52,7 +52,7 @@ class AgentTrainer:
                  max_polynomial_regression_degree: int = 3,
                  max_complexity_no_gridsearch: bool = True,
                  alpha_ewma: float = 0.5,
-                 use_best_n_batch_mode: str = 't_test',
+                 use_best_n_batch_mode: str = 't_test_statistic',
                  restrict_evaluation_grid: bool = True):
 
         self.t_ = None
@@ -112,7 +112,11 @@ class AgentTrainer:
         dump(self._alpha_ewma,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/alpha_ewma.joblib')
 
-        self._available_use_best_n_batch_mode_lst = ['t_test', 'reward', 'average_q', 'model_convergence']
+        self._available_use_best_n_batch_mode_lst = ['t_test_pvalue',
+                                                     't_test_statistic',
+                                                     'reward',
+                                                     'average_q',
+                                                     'model_convergence']
         if use_best_n_batch_mode not in self._available_use_best_n_batch_mode_lst:
             raise NameError(f'Invalid use_best_n_batch_mode: {use_best_n_batch_mode}. Should be in {self._available_use_best_n_batch_mode_lst}')
         self._use_best_n_batch_mode = use_best_n_batch_mode
@@ -199,7 +203,7 @@ class AgentTrainer:
 
     def _compute_best_batch(self):
 
-        if self._use_best_n_batch_mode == 't_test':
+        if self._use_best_n_batch_mode in ('t_test_pvalue', 't_test_statistic'):
             self.best_n = self._get_best_n_based_on_tTest()
 
         elif self._use_best_n_batch_mode == 'reward':
@@ -263,10 +267,36 @@ class AgentTrainer:
         marketDynamics = self.market.marketDynamics
         riskDriverDynamicsType = marketDynamics.riskDriverDynamics.riskDriverDynamicsType
         factorDynamicsType = marketDynamics.factorDynamics.factorDynamicsType
+        strategyType = StrategyType.Unconstrained
 
+        if self._use_best_n_batch_mode == 't_test_statistic':
+
+            best_n = self._compute_best_n_based_on_statistic()
+
+        elif self._use_best_n_batch_mode == 't_test_pvalue':
+
+            best_n = self._compute_best_n_based_on_pvalue(factorDynamicsType, riskDriverDynamicsType,
+                                                          strategyType)
+
+        else:
+            raise NameError(f'Invalid use_best_n_batch_mode: {self._use_best_n_batch_mode}')
+
+        return best_n
+
+    def _compute_best_n_based_on_statistic(self):
         n_vs_goodness = []
+        print('Performing hypothesis testing: want statistic to be as large as possible')
+        for n in range(len(self.simulationtesting_ttest)):
+            n_vs_goodness.append([n, self.simulationtesting_ttest[n]['statistic']])
+        n_vs_goodness = np.array(n_vs_goodness)
+        best_n = int(n_vs_goodness[np.argmin(n_vs_goodness[:, 1]), 0]) + 1
+        return best_n
 
-        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear and factorDynamicsType == FactorDynamicsType.AR:
+    def _compute_best_n_based_on_pvalue(self, factorDynamicsType, riskDriverDynamicsType, strategyType):
+        n_vs_goodness = []
+        if (riskDriverDynamicsType == RiskDriverDynamicsType.Linear
+                and factorDynamicsType == FactorDynamicsType.AR
+                and strategyType == StrategyType.Unconstrained):
             print('Performing hypothesis testing for a benchmark case: want p-value to be as large as possible')
             # Benchmark
             # H0: RL = GP
@@ -286,7 +316,6 @@ class AgentTrainer:
                 n_vs_goodness.append([n, self.simulationtesting_ttest[n]['pvalue']])
             n_vs_goodness = np.array(n_vs_goodness)
             best_n = int(n_vs_goodness[np.argmin(n_vs_goodness[:, 1]), 0]) + 1
-
         return best_n
 
     def _average_q_per_batch(self):
