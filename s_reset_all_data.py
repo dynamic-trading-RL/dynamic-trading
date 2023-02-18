@@ -17,6 +17,7 @@ if __name__ == '__main__':
         '/figures/on_the_fly_simulationtesting/',
         '/figures/polynomial/',
         '/figures/simulationtesting/',
+        '/figures/time_series/',
         '/figures/training/',
         '/reports/calibrations/',
         '/reports/backtesting/',
