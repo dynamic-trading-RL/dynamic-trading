@@ -55,7 +55,9 @@ class FinancialTimeSeries:
             self.factorSourceType = FactorSourceType.Exogenous
 
         else:
-
+            self.factor_ticker = self.ticker +\
+                                 '_' + self.info.loc['factorComputationType'].item() +\
+                                 '_' + str(self.info.loc['window'].item())
             self.factorSourceType = FactorSourceType.Constructed
 
         if self._forcePnL:
