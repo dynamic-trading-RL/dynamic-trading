@@ -12,6 +12,7 @@ if __name__ == '__main__':
         '/data/financial_time_series_data/financial_time_series_info/',
         '/data/supervised_regressors/',
         '/figures/backtesting/',
+        '/figures/residuals/',
         '/figures/on_the_fly_backtesting/',
         '/figures/on_the_fly_simulationtesting/',
         '/figures/polynomial/',
@@ -19,6 +20,7 @@ if __name__ == '__main__':
         '/figures/training/',
         '/reports/calibrations/',
         '/reports/backtesting/',
+        '/reports/model_choice/',
         '/reports/simulationtesting/',
         '/reports/training/'
     )
