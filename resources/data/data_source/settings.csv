@@ -3,7 +3,7 @@ activation,relu
 alpha_ewma,0.7
 alpha_sarsa,0.9
 average_across_models,Yes
-use_quadratic_cost_in_markowitz,Yes
+use_quadratic_cost_in_markowitz,No
 decrease_eps,Yes
 early_stopping,No
 end_date,
