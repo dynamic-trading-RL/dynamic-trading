@@ -99,7 +99,7 @@ def _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots):
     ddyy = dp2(xx)
 
     dpi = plt.rcParams['figure.dpi']
-    fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
+    plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
     plt.plot(xx, yy, label='Polinomial')
     plt.plot(xx, dyy, label='Polynomial 1st derivative')
     plt.plot(xx, ddyy, label='Polynomial 2nd derivative')
@@ -126,8 +126,7 @@ def read_trading_parameters_training():
 
     if df_trad_params.loc['parallel_computing_train'][0] == 'Yes':
         parallel_computing_train = True
-        n_cores = int(df_trad_params.loc['n_cores'][0])
-        n_cores = min(n_cores, mp.cpu_count())
+        n_cores = min(int(df_trad_params.loc['n_cores'][0]), mp.cpu_count())
     elif df_trad_params.loc['parallel_computing_train'][0] == 'No':
         parallel_computing_train = False
         n_cores = None
@@ -136,8 +135,7 @@ def read_trading_parameters_training():
 
     if df_trad_params.loc['parallel_computing_sim'][0] == 'Yes':
         parallel_computing_sim = True
-        n_cores = int(df_trad_params.loc['n_cores'][0])
-        n_cores = min(n_cores, mp.cpu_count())
+        n_cores = min(int(df_trad_params.loc['n_cores'][0]), mp.cpu_count())
     elif df_trad_params.loc['parallel_computing_sim'][0] == 'No':
         parallel_computing_sim = False
         n_cores = None

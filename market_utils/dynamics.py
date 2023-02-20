@@ -72,7 +72,8 @@ class Dynamics:
 
         return filename
 
-    def _read_risk_driver_start_price_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
+    @staticmethod
+    def _read_risk_driver_start_price_from_calibrator(dynamicsCalibrator: DynamicsCalibrator):
 
         start_price = dynamicsCalibrator.financialTimeSeries.info['start_price']
 
@@ -91,7 +92,7 @@ class Dynamics:
             raise NameError('Invalid dynamics')
 
         self.riskDriverType = dynamicsCalibrator.riskDriverType
-        param_dict = dynamicsCalibrator.get_param_dict(var_type, dynamicsType)
+        param_dict = dynamicsCalibrator.get_params_dict(var_type, dynamicsType)
         self._set_parameters_from_dict_impl(param_dict)
 
     def _set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):

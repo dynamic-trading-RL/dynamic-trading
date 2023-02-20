@@ -18,7 +18,8 @@ class AgentBenchmark:
         self._set_attributes()
         self._set_lam()
 
-    def _check_input(self, market: Market):
+    @staticmethod
+    def _check_input(market: Market):
 
         if market.marketDynamics.riskDriverDynamics.riskDriverDynamicsType != RiskDriverDynamicsType.Linear:
             raise NameError('riskDriverDynamicsType for benchmark agent should be Linear')
@@ -61,7 +62,8 @@ class AgentBenchmark:
 
         return gamma, kappa, strategyType
 
-    def _get_df_trad_params(self):
+    @staticmethod
+    def _get_df_trad_params():
         filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         return df_trad_params
@@ -159,8 +161,7 @@ class AgentGP(AgentBenchmark):
 
     def policy(self, factor: float, rescaled_shares: float, shares_scale: float = 1,
                price: float = None):
-        shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares,
-                                                                          price, shares_scale)
+        shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares, price, shares_scale)
 
         trade = self._get_gp_trade(shares, pnl, sig2)
 
@@ -186,8 +187,8 @@ class AgentGP(AgentBenchmark):
 
     def _get_gp_rescaling(self, a):
         if self.market.riskDriverType != RiskDriverType.PnL:
-            warnings.warn('Trying to use GP with a model not on PnL. The model is actually on '
-                          + self.market.riskDriverType.value)
+            print('Trying to use GP with a model not on PnL. ',
+                  f'The model is actually on {self.market.riskDriverType.value}')
 
         Phi = self._read_Phi()
 

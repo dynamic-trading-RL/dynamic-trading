@@ -126,7 +126,9 @@ class FinancialTimeSeries:
             raise NameError(f'Invalid modeType: {self.modeType.value}')
 
         self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
-        self.time_series.insert(len(self.time_series.columns), 'average_past_pnl', self.time_series['pnl'].rolling(window=self.window, min_periods=1).mean())
+        self.time_series.insert(len(self.time_series.columns),
+                                'average_past_pnl',
+                                self.time_series['pnl'].rolling(window=self.window, min_periods=1).mean())
 
     def _set_risk_driver_time_series(self):
 

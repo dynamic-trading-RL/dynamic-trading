@@ -37,8 +37,8 @@ class TTester:
         else:
             self._n_str = ''
 
-        self.t_test_result = {'statistic': None,
-                              'pvalue': None}
+        self.t_test_result = {'statistic': np.nan,
+                              'pvalue': np.nan}
 
         self.execute_t_test()
         self.print_t_test_result()
@@ -62,7 +62,7 @@ class TTester:
 
         with open(out_path + file_name, 'w') as f:
             for key, value in self.t_test_result.items():
-                f.write('%s:%f\n' % (key, value))
+                f.write(f'{key}:{value}\n')
 
 
 if __name__ == '__main__':

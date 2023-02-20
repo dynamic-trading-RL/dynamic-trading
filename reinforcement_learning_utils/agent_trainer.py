@@ -23,7 +23,6 @@ from reinforcement_learning_utils.agent import Agent
 from reinforcement_learning_utils.environment import Environment
 from reinforcement_learning_utils.state_action_utils import State, Action
 
-
 # TODO: methods should be generalized, then specialized with a "trading" keyword in the name
 from testing_utils.testers import BackTester, SimulationTester
 
@@ -93,6 +92,7 @@ class AgentTrainer:
         dump(self._supervisedRegressorType,
              os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/supervisedRegressorType.joblib')
 
+        self._n_cores = None
         self._max_ann_depth = max_ann_depth
         self._early_stopping = early_stopping
         self._max_iter = max_iter
@@ -118,7 +118,9 @@ class AgentTrainer:
                                                      'average_q',
                                                      'model_convergence']
         if use_best_n_batch_mode not in self._available_use_best_n_batch_mode_lst:
-            raise NameError(f'Invalid use_best_n_batch_mode: {use_best_n_batch_mode}. Should be in {self._available_use_best_n_batch_mode_lst}')
+            raise NameError(
+                f'Invalid use_best_n_batch_mode: {use_best_n_batch_mode}. Should be in '
+                f'{self._available_use_best_n_batch_mode_lst}')
         self._use_best_n_batch_mode = use_best_n_batch_mode
 
         self._restrict_evaluation_grid = restrict_evaluation_grid
@@ -182,16 +184,19 @@ class AgentTrainer:
             print(f'Average RL reward for batch {n}: {self.reward_RL[n]}')
 
         for n in range(self.n_batches):
-            print(f'|model_{n} - model_{n-1}|  / |model_{n-1}|: {self.model_convergence[n]}')
+            print(f'|model_{n} - model_{n - 1}|  / |model_{n - 1}|: {self.model_convergence[n]}')
 
         for n in range(self.n_batches):
             print(f'Average RL backtesting Sharpe ratio for batch {n}: {self.backtesting_sharperatio[n]}')
 
         for n in range(self.n_batches):
-            print(f'Average/Std RL simulation Sharpe ratio for batch {n}: {self.simulationtesting_sharperatio_av2std[n]}')
+            print(
+                f'Average/Std RL simulation Sharpe ratio for batch {n}: {self.simulationtesting_sharperatio_av2std[n]}')
 
         for n in range(self.n_batches):
-            print(f'Average/Std RL simulation wealth-net-risk for batch {n}: {self.simulationtesting_wealthnetrisk_av2std[n]}')
+            print(
+                f'Average/Std RL simulation wealth-net-risk for batch {n}: '
+                f'{self.simulationtesting_wealthnetrisk_av2std[n]}')
 
         for n in range(self.n_batches):
             stat = self.simulationtesting_ttest[n]['statistic']
@@ -212,7 +217,7 @@ class AgentTrainer:
 
         elif self._use_best_n_batch_mode == 'average_q':
             average_q_per_batch = self._average_q_per_batch()
-            self.best_n = max(np.argmax(average_q_per_batch), 1)
+            self.best_n = max(int(np.argmax(average_q_per_batch)), 1)
 
         elif self._use_best_n_batch_mode == 'model_convergence':
             # todo: should modify in such way that if model convergence is not improving more than tol, the batch
@@ -245,9 +250,9 @@ class AgentTrainer:
         df_backtesting_sharperatio = pd.DataFrame.from_dict(data=self.backtesting_sharperatio, orient='index',
                                                             columns=['backtesting_sharperatio'])
         df_backtesting_sharperatio.index.name = 'batch'
-        df_simulationtesting_sharperatio_av2std = pd.DataFrame.from_dict(data=self.simulationtesting_sharperatio_av2std,
-                                                                         orient='index', columns=[
-                'simulationtesting_sharperatio_av2std'])
+        df_simulationtesting_sharperatio_av2std =\
+            pd.DataFrame.from_dict(data=self.simulationtesting_sharperatio_av2std,
+                                   orient='index', columns=['simulationtesting_sharperatio_av2std'])
         df_simulationtesting_sharperatio_av2std.index.name = 'batch'
         df_simulationtesting_wealthnetrisk_av2std = pd.DataFrame.from_dict(
             data=self.simulationtesting_wealthnetrisk_av2std, orient='index',
@@ -360,23 +365,26 @@ class AgentTrainer:
 
         print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
         print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]}')
-        print(f'|model_{n+1} - model_{n}|  / |model_{n}| : {self.model_convergence[n]}')
+        print(f'|model_{n + 1} - model_{n}|  / |model_{n}| : {self.model_convergence[n]}')
         print(f'Average RL backtesting Sharpe ratio for batch {n + 1}: {self.backtesting_sharperatio[n]}')
-        print(f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
-        print(f'Average/Std RL simulation wealth-net-risk for batch {n + 1}: {self.simulationtesting_wealthnetrisk_av2std[n]}')
+        print(
+            f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
+        print(
+            f'Average/Std RL simulation wealth-net-risk for batch {n + 1}: '
+            f'{self.simulationtesting_wealthnetrisk_av2std[n]}')
 
     def _execute_otf_bkt_and_smt(self, n):
         backtester = BackTester(split_strategy=False, on_the_fly=True, n=n)
         backtester.execute_backtesting()
         backtester.make_plots()
         simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=10000, t_=self.t_)
+        simulationTester.execute_simulation_testing(j_=10, t_=self.t_)
         simulationTester.make_plots(j_trajectories_plot=5)
-        self.backtesting_sharperatio[n] = backtester._sharpe_ratio_all['RL']
+        self.backtesting_sharperatio[n] = backtester.sharpe_ratio_all['RL']
         self.simulationtesting_sharperatio_av2std[n] =\
-            simulationTester._sharpe_ratio_all['RL'].mean() / simulationTester._sharpe_ratio_all['RL'].std()
+            simulationTester.sharpe_ratio_all['RL'].mean() / simulationTester.sharpe_ratio_all['RL'].std()
         self.simulationtesting_wealthnetrisk_av2std[n] =\
-            simulationTester._means['RL']['wealth_net_risk'] / simulationTester._stds['RL']['wealth_net_risk']
+            simulationTester.means['RL']['wealth_net_risk'] / simulationTester.stds['RL']['wealth_net_risk']
         self.simulationtesting_ttest[n] = {'statistic': simulationTester.tTester.t_test_result['statistic'],
                                            'pvalue': simulationTester.tTester.t_test_result['pvalue']}
         del backtester, simulationTester
@@ -459,7 +467,7 @@ class AgentTrainer:
                 if reward_GP > reward_RL:  # if reward_GP > reward_RL, choose GP action
 
                     action = state.action_GP
-                    reward_RL, next_state = \
+                    reward_RL, next_state =\
                         self._get_reward_next_state_trading(state=state, action=action, n=n, j=j, t=t)
 
             reward_RL_j += reward_RL
@@ -494,7 +502,7 @@ class AgentTrainer:
 
     def _get_reward_next_state_trading(self, state: State, action: Action, n: int, j: int, t: int):
 
-        next_state, reward = \
+        next_state, reward =\
             self.environment.compute_reward_and_next_state(state=state, action=action, n=n, j=j, t=t,
                                                            predict_pnl_for_reward=self._predict_pnl_for_reward)
 
@@ -529,7 +537,7 @@ class AgentTrainer:
         if n == 0:
             self.model_convergence[n] = 0.
         else:
-            prev_model_evaluations = self._model_evaluations[n-1]
+            prev_model_evaluations = self._model_evaluations[n - 1]
             curr_model_evaluations = self._model_evaluations[n]
             sup_norm_prev = np.linalg.norm(prev_model_evaluations, ord=np.inf)
             sup_norm_diff = np.linalg.norm(curr_model_evaluations - prev_model_evaluations, ord=np.inf)
@@ -537,8 +545,9 @@ class AgentTrainer:
 
     def _store_model_evaluations(self, n):
 
-        model_evaluations = self.agent.qvl_from_ravel_input(np.column_stack(tuple([self._x_evaluation_meshgrid[j].ravel()
-                                                                 for j in range(len(self._x_evaluation_meshgrid))])))
+        model_evaluations = self.agent.qvl_from_ravel_input(
+            np.column_stack(tuple([self._x_evaluation_meshgrid[j].ravel()
+                                   for j in range(len(self._x_evaluation_meshgrid))])))
         self._model_evaluations[n] = model_evaluations
 
     def _dump_model_2_agent(self, model):
@@ -546,7 +555,7 @@ class AgentTrainer:
         self.agent.dump_q_value_models()
 
     def _set_and_fit_supervised_regressor_model(self, x_array, y_array, n):
-        alpha_ann, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation = \
+        alpha_ann, max_iter, n_iter_no_change, early_stopping, validation_fraction, activation =\
             self._set_supervised_regressor_parameters()
         model = self._fit_supervised_regressor_model(alpha_ann, max_iter, n_iter_no_change,
                                                      early_stopping, validation_fraction, activation, x_array, y_array,
@@ -725,8 +734,8 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   f'/figures/training/training_batch_{n}_realized_vs_predicted_q.png'
+        filename = os.path.dirname(os.path.dirname(__file__))
+        filename += f'/figures/training/training_batch_{n}_realized_vs_predicted_q.png'
         plt.savefig(filename)
 
         # --------- Plotting detail of regressor
@@ -742,8 +751,8 @@ class AgentTrainer:
             plt.xlabel(variable)
             plt.ylabel('q')
             plt.title('Realized (blue) / predicted (red) q')
-            filename = os.path.dirname(os.path.dirname(__file__)) + \
-                       f'/figures/training/training_batch_{n}_{variable}.png'
+            filename = os.path.dirname(os.path.dirname(__file__))
+            filename += f'/figures/training/training_batch_{n}_{variable}.png'
             plt.savefig(filename)
 
         plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
@@ -757,8 +766,8 @@ class AgentTrainer:
         plt.xlabel('action')
         plt.ylabel('q')
         plt.title('Realized (blue) / predicted (red) q')
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
-                   f'/figures/training/training_batch_{n}_action.png'
+        filename = os.path.dirname(os.path.dirname(__file__))
+        filename += f'/figures/training/training_batch_{n}_action.png'
         plt.savefig(filename)
 
     def _set_supervised_regressor_parameters(self):
@@ -814,5 +823,3 @@ class AgentTrainer:
         if j >= self.j_episodes:
             raise NameError(f'Trying to simulate episode j = {j + 1}, '
                             + f'but only {self.j_episodes + 1} market paths have been simulated.')
-
-

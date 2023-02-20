@@ -250,19 +250,22 @@ class Market:
         norm = np.random.randn(j_, t_)
         return factor, norm, risk_driver, t_
 
-    def _initialize_factor_simulations(self, delta_stationary, j_, t_):
+    @staticmethod
+    def _initialize_factor_simulations(delta_stationary, j_, t_):
         t_stationary = t_ + delta_stationary
         factor = np.zeros((j_, t_stationary))
         norm = np.random.randn(j_, t_stationary)
         return factor, norm, t_stationary
 
-    def _initialize_arch_simulations(self, j_, omega, t_stationary):
+    @staticmethod
+    def _initialize_arch_simulations(j_, omega, t_stationary):
         sig = np.zeros((j_, t_stationary))
         sig[:, 0] = np.sqrt(omega)
         epsi = np.zeros((j_, t_stationary))
         return epsi, sig
 
-    def _get_next_step_sig2_arch(self, alpha, beta, epsi, omega, sig, t):
+    @staticmethod
+    def _get_next_step_sig2_arch(alpha, beta, epsi, omega, sig, t):
 
         sig2 = omega + alpha * (epsi[:, t - 1] ** 2) + beta * (sig[:, t - 1] ** 2)
 
@@ -273,7 +276,8 @@ class Market:
         sig2[epsi[:, t - 1] < c] += gamma * (epsi[epsi[:, t - 1] < c, t - 1] ** 2)
         return sig2
 
-    def _get_next_step_arch(self, epsi, factor, mu, norm, sig, sig2, t):
+    @staticmethod
+    def _get_next_step_arch(epsi, factor, mu, norm, sig, sig2, t):
 
         sig[:, t] = np.sqrt(sig2)
         epsi[:, t] = sig[:, t] * norm[:, t]
@@ -294,19 +298,22 @@ class Market:
         c = parameters['c']
         return alpha, beta, c, gamma, mu, omega
 
-    def _get_garch_parameters(self, parameters):
+    @staticmethod
+    def _get_garch_parameters(parameters):
         mu = parameters['mu']
         omega = parameters['omega']
         alpha = parameters['alpha']
         beta = parameters['beta']
         return alpha, beta, mu, omega
 
-    def _get_threshold_indexes(self, c, f, t):
+    @staticmethod
+    def _get_threshold_indexes(c, f, t):
         ind_0 = f[:, t - 1] < c
         ind_1 = f[:, t - 1] >= c
         return ind_0, ind_1
 
-    def _get_threshold_params(self, parameters):
+    @staticmethod
+    def _get_threshold_params(parameters):
         c = parameters['c']
         mu_0 = parameters['mu_0']
         B_0 = parameters['B_0']
@@ -316,7 +323,8 @@ class Market:
         sig2_1 = parameters['sig2_1']
         return B_0, B_1, c, mu_0, mu_1, sig2_0, sig2_1
 
-    def _get_linear_params(self, parameters):
+    @staticmethod
+    def _get_linear_params(parameters):
         mu = parameters['mu']
         B = parameters['B']
         sig2 = parameters['sig2']
@@ -330,7 +338,8 @@ class Market:
         risk_driver[ind_0, t] = np.vectorize(self.next_step_risk_driver,
                                              otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[ind_0, t]
 
-    def _next_step_factor_linear(self, B, f, ind, mu, norm, sig2, t):
+    @staticmethod
+    def _next_step_factor_linear(B, f, ind, mu, norm, sig2, t):
         f[ind, t] = mu + B * f[ind, t - 1] + np.sqrt(sig2) * norm[ind, t]
 
     def _set_market_attributes(self):
@@ -349,7 +358,7 @@ class Market:
 
         riskDriverDynamicsType = self.marketDynamics.riskDriverDynamics.riskDriverDynamicsType
         factorDynamicsType = self.marketDynamics.factorDynamics.factorDynamicsType
-        self.market_id = riskDriverDynamicsType.value + '-' + factorDynamicsType.value
+        self.market_id = f'{riskDriverDynamicsType.value}-{factorDynamicsType.value}'
 
     def _set_start_price(self):
 
@@ -384,7 +393,7 @@ def read_trading_parameters_market():
     filename = os.path.dirname(os.path.dirname(__file__)) +\
                '/data/data_source/settings/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
-    ticker =df_trad_params.loc['ticker'][0]
+    ticker = df_trad_params.loc['ticker'][0]
     riskDriverDynamicsType = RiskDriverDynamicsType(df_trad_params.loc['riskDriverDynamicsType'][0])
     factorDynamicsType = FactorDynamicsType(df_trad_params.loc['factorDynamicsType'][0])
     riskDriverType = RiskDriverType(df_trad_params.loc['riskDriverType'][0])

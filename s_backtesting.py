@@ -1,6 +1,5 @@
 import numpy as np
 
-from gen_utils.utils import read_ticker
 from testing_utils.testers import BackTester
 import warnings
 

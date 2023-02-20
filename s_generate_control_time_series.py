@@ -2,10 +2,8 @@ import os
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
-from statsmodels.tsa.ar_model import AutoReg
 
 if __name__ == '__main__':
 

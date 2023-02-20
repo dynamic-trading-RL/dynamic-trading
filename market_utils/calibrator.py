@@ -37,7 +37,7 @@ class DynamicsCalibrator:
         self._set_riskDriverType()
         self.print_results()
 
-    def _get_params_dict(self, var_type, dynamicsType):
+    def get_params_dict(self, var_type, dynamicsType):
 
         param_dict = self.all_dynamics_param_dict[var_type][dynamicsType]
 
@@ -61,8 +61,8 @@ class DynamicsCalibrator:
         for riskDriverDynamicsType in RiskDriverDynamicsType:
             try:
                 self._fit_risk_driver_dynamics_param(riskDriverDynamicsType, scale, c)
-            except:
-                print(f'Could not fit {riskDriverDynamicsType} for {self.financialTimeSeries.ticker}')
+            except RuntimeError as e:
+                raise Exception(f'Could not fit {riskDriverDynamicsType} for {self.financialTimeSeries.ticker}') from e
 
     def _fit_all_factor_dynamics_param(self, scale_f: float, c: float):
 
@@ -73,8 +73,8 @@ class DynamicsCalibrator:
         for factorDynamicsType in FactorDynamicsType:
             try:
                 self._fit_factor_dynamics_param(factorDynamicsType, scale_f, c)
-            except:
-                print(f'Could not fit {factorDynamicsType} for {self.financialTimeSeries.ticker}')
+            except RuntimeError as e:
+                raise Exception(f'Could not fit {factorDynamicsType} for {self.financialTimeSeries.ticker}') from e
 
     def _fit_risk_driver_dynamics_param(self, riskDriverDynamicsType: RiskDriverDynamicsType, scale: float, c: float):
 
@@ -88,7 +88,7 @@ class DynamicsCalibrator:
                                                        scale=scale, c=c)
 
         else:
-            raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
+            raise NameError(f'Invalid riskDriverDynamicsType: {riskDriverDynamicsType.value}')
 
     def _fit_factor_dynamics_param(self, factorDynamicsType: FactorDynamicsType, scale_f: float, c: float):
 
@@ -107,7 +107,7 @@ class DynamicsCalibrator:
 
         else:
 
-            raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
+            raise NameError(f'Invalid factorDynamicsType: {factorDynamicsType.value}')
 
     def _execute_general_linear_regression(self, tgt_key, var_type: str, scale: float):
 
@@ -210,7 +210,7 @@ class DynamicsCalibrator:
                 from arch import arch_model
                 model = arch_model(df_model, p=1, o=1, q=1, rescale=False)
 
-            model_fit = model.fit(disp=0)
+            model_fit = model.fit(disp=False)
             params = model_fit.params.copy()
 
             abs_epsi_autocorr, epsi = self._get_arch_abs_epsi_autocorr(model_fit, scale_f)
@@ -231,7 +231,7 @@ class DynamicsCalibrator:
             model = ARX(df_model, lags=1, rescale=False)
             model.volatility = GARCH(p=1, o=1, q=1)
 
-            model_fit = model.fit(disp=0)
+            model_fit = model.fit(disp=False)
             params = model_fit.params.copy()
             params.rename(index={'Const': 'mu'}, inplace=True)
 
@@ -242,11 +242,12 @@ class DynamicsCalibrator:
             self._set_ar_tarch_params(B, alpha, beta, factorDynamicsType, gamma, mu, omega, abs_epsi_autocorr, epsi)
 
         else:
-            raise NameError('Invalid factorDynamicsType: ' + factorDynamicsType.value)
+            raise NameError(f'Invalid factorDynamicsType: {factorDynamicsType.value}')
 
         self.all_dynamics_model_dict['factor'][factorDynamicsType] = [model_fit]
 
-    def _get_arch_abs_epsi_autocorr(self, model_fit, scale_f):
+    @staticmethod
+    def _get_arch_abs_epsi_autocorr(model_fit, scale_f):
         resid = model_fit.resid / scale_f
         sigma = model_fit.conditional_volatility / scale_f
         epsi = np.divide(resid, sigma)
@@ -284,7 +285,8 @@ class DynamicsCalibrator:
 
         return df_model
 
-    def _extract_B_mu_sig2_from_reg(self, model_fit, scale: float):
+    @staticmethod
+    def _extract_B_mu_sig2_from_reg(model_fit, scale: float):
 
         B = model_fit.params['factor']
         mu = model_fit.params['const'] / scale
@@ -292,7 +294,8 @@ class DynamicsCalibrator:
 
         return B, mu, sig2
 
-    def _extract_B_mu_sig2_from_auto_reg(self, auto_reg, scale_f: float):
+    @staticmethod
+    def _extract_B_mu_sig2_from_auto_reg(auto_reg, scale_f: float):
 
         B = auto_reg.params.iloc[1]
         mu = auto_reg.params.iloc[0] / scale_f
@@ -307,7 +310,8 @@ class DynamicsCalibrator:
 
         return alpha, beta, gamma, mu, omega
 
-    def _extract_garch_params_from_model_fit(self, params, scale_f):
+    @staticmethod
+    def _extract_garch_params_from_model_fit(params, scale_f):
 
         mu = params['mu'] / scale_f
         omega = params['omega'] / scale_f ** 2
@@ -353,9 +357,9 @@ class DynamicsCalibrator:
         ticker = self.financialTimeSeries.ticker
         riskDriverType = self.riskDriverType
 
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/financial_time_series_data/financial_time_series_calibrations/' +\
-                   ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
+        filename = os.path.dirname(os.path.dirname(__file__))
+        filename += f'/data/financial_time_series_data/financial_time_series_calibrations/{ticker}'
+        filename += f'-riskDriverType-{riskDriverType.value}-{var_type}-calibrations.xlsx'
 
         writer = pd.ExcelWriter(filename)
         workbook = writer.book
@@ -388,7 +392,7 @@ class DynamicsCalibrator:
                         fh.write(model.summary().as_text())
 
             except:
-                continue
+                print(f'Could not write report for {var_type}, {dynamicsType}')
 
         writer.close()
 
@@ -414,7 +418,8 @@ class DynamicsCalibrator:
 
         return filename
 
-    def _check_var_type(self, var_type: str):
+    @staticmethod
+    def _check_var_type(var_type: str):
 
         if var_type not in ('risk-driver', 'factor'):
             raise NameError('var_type must be equal to risk-driver or factor')
@@ -545,9 +550,9 @@ class AllSeriesDynamicsCalibrator:
             risk_driver = financialTimeSeries.time_series['risk-driver']
             linear_model = dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.Linear][0]
             nonlinear_model0 =\
-            dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.NonLinear][0]
+                dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.NonLinear][0]
             nonlinear_model1 =\
-            dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.NonLinear][1]
+                dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.NonLinear][1]
             xlim = [np.quantile(factor, 0.01), np.quantile(factor, 0.99)]
             ylim = [np.quantile(risk_driver, 0.01), np.quantile(risk_driver, 0.99)]
             plt.scatter(factor, risk_driver, s=2)
@@ -559,6 +564,8 @@ class AllSeriesDynamicsCalibrator:
             plt.legend()
             plt.xlabel('Factor')
             plt.ylabel(f'{financialTimeSeries.riskDriverType.value}')
+            plt.xlim(xlim)
+            plt.ylim(ylim)
             plt.savefig(os.path.dirname(os.path.dirname(__file__))
                         + '/figures/residuals/'
                         + ticker + '-prediction.png')
@@ -567,6 +574,7 @@ class AllSeriesDynamicsCalibrator:
     def _print_residuals_analysis(self):
 
         ll = []
+        abs_epsi_autocorr = None
 
         for ticker, d1 in self.best_factorDynamicsType_resid.items():
 
@@ -581,8 +589,8 @@ class AllSeriesDynamicsCalibrator:
                 ll.append([ticker, factorDynamicsType.value] + [a for a in abs_epsi_autocorr])
 
         df_report = pd.DataFrame(data=ll,
-                                 columns=['ticker', 'factorDynamicsType']
-                                         + ['autocorr_lag_%d' % a for a in range(len(abs_epsi_autocorr))])
+                                 columns=['ticker', 'factorDynamicsType'] +
+                                         ['autocorr_lag_%d' % a for a in range(len(abs_epsi_autocorr))])
 
         filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/model_choice/residuals_analysis.csv'
         df_report.to_csv(filename, index=False)
@@ -615,7 +623,7 @@ class AllSeriesDynamicsCalibrator:
 
             dpi = plt.rcParams['figure.dpi']
             fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-            ax1 = plt.subplot2grid((2, 1), (0, 0))
+            plt.subplot2grid((2, 1), (0, 0))
             plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
             plt.legend()
             plt.title('Residuals for ' + s)
@@ -650,7 +658,7 @@ class AllSeriesDynamicsCalibrator:
 
                 dpi = plt.rcParams['figure.dpi']
                 fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-                ax1 = plt.subplot2grid((2, 1), (0, 0))
+                plt.subplot2grid((2, 1), (0, 0))
                 plt.plot(resid, '.', alpha=0.5, markersize=2, label=s)
                 plt.legend()
                 plt.title('Residuals for ' + s)

@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import os
@@ -43,7 +45,7 @@ class Agent:
             self._average_across_models = True
         self._alpha_ewma = alpha_ewma
 
-        self._tol = 10**-10  # numerical tolerance for bound conditions requirements
+        self._tol = 10 ** -10  # numerical tolerance for bound conditions requirements
 
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self.total_polynomial_optimizations = 0
@@ -60,7 +62,8 @@ class Agent:
 
         if np.abs(state.rescaled_shares + action.rescaled_trade) > 1 + self._tol:
             raise NameError(
-                f'Shares went out of bound!! \n  rescaled_shares: {state.rescaled_shares:.2f} \n  rescaled_trade: {action.rescaled_trade:.2f}')
+                f'Shares went out of bound!! \n  rescaled_shares: {state.rescaled_shares:.2f} \n  rescaled_trade: '
+                f'{action.rescaled_trade:.2f}')
 
         return action
 
@@ -96,7 +99,6 @@ class Agent:
             except:
                 print(f'Trying to load q{n} but it is not fitted. Possible cause: on-the-fly testing.')
 
-
     def _greedy_policy(self, state: State):
 
         action = self._greedy_policy_trading(state)
@@ -125,7 +127,7 @@ class Agent:
         if len(self._q_value_models) == 0:  # We are at batch 0: use initialization
 
             if self.randomActionType in (RandomActionType.RandomUniform,
-                                                   RandomActionType.RandomTruncNorm):
+                                         RandomActionType.RandomTruncNorm):
 
                 action = self._random_action(state)
 
@@ -139,7 +141,7 @@ class Agent:
                 action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
             else:
-                raise NameError('Invalid randomActionType: ' + self.randomActionType.value)
+                raise NameError(f'Invalid randomActionType: {self.randomActionType.value}')
 
         else:
             rescaled_trade = self._optimize_q_value_trading(state)
@@ -171,14 +173,18 @@ class Agent:
 
         return action
 
-    def _get_trade_loc(self, lower_bound, upper_bound):
+    @staticmethod
+    def _get_trade_loc(lower_bound, upper_bound, return_mean=False):
 
-        # loc = 0.5 * (lower_bound + upper_bound)
-        loc = 0.
+        if return_mean:
+            loc = 0.5 * (lower_bound + upper_bound)
+        else:
+            loc = 0.
 
         return loc
 
-    def _get_trade_scale(self, lower_bound, upper_bound, alpha):
+    @staticmethod
+    def _get_trade_scale(lower_bound, upper_bound, alpha):
 
         scale = alpha * (upper_bound - lower_bound)
 
@@ -193,6 +199,8 @@ class Agent:
         return lower_bound, upper_bound
 
     def _q_value_trading(self, state: State, action: Action):
+
+        qvl = None
 
         if len(self._q_value_models) == 0:
             if self._initialQvalueEstimateType == InitialQvalueEstimateType.random:
@@ -269,12 +277,11 @@ class Agent:
         # aggregate all terms multiplying action^d
         aggregate_coef = []
         for d in range(self.polynomial_regression_degree + 1):
-
             # get positions of variables names that are multiplying action^d
             positions_d = [i for i in range(len(variables_names)) if f'{action_name}^{d}' in variables_names[i]]
 
             # get coefficient of action^d
-            coef_d = np.sum(coef[positions_d]*q_value_model_input[0, positions_d])
+            coef_d = np.sum(coef[positions_d] * q_value_model_input[0, positions_d])
 
             aggregate_coef.append(coef_d)
 
@@ -296,7 +303,7 @@ class Agent:
             proportion_missing = -1
         print(f'Total number of polynomial optimizations: {self.total_polynomial_optimizations}')
         print(f'Number of missing polynomial optima: {self.missing_polynomial_optima}')
-        print(f'Proportion of missing polynomial optima: {proportion_missing*100: .2f} %')
+        print(f'Proportion of missing polynomial optima: {proportion_missing * 100: .2f} %')
 
     def _optimize_general_q_value_trading(self, state, lower_bound, upper_bound):
 
@@ -375,6 +382,7 @@ class Agent:
             action_GP = state.action_GP
         except:
             action_GP = None
+            print(f'action_GP is not set')
 
         # fill list
         state_lst[0] = rescaled_shares
@@ -399,15 +407,15 @@ class Agent:
         filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        filename = os.path.dirname(os.path.dirname(__file__))
+        filename += '/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.environment.market.ticker]  # TODO: should it be self.environment.ticker?
 
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_lam_kappa.loc['kappa'])
 
-        randomActionType = \
+        randomActionType =\
             RandomActionType(str(df_trad_params.loc['randomActionType'][0]))
         strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
 
@@ -422,8 +430,12 @@ class Agent:
             self.environment.observe_GP = True
             self.environment.instantiate_market_benchmark_and_agent_GP()
 
+        self.best_n = None
         try:
             self.best_n = int(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib'))
         except:
-            self.best_n = None
-            print('Notice: agent is not yet trained')
+            print(f'Notice: agent is not yet trained, therefore it is impossible to set best_n')
+
+    @property
+    def supervisedRegressorType(self):
+        return self._supervisedRegressorType

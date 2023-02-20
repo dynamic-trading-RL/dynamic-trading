@@ -20,7 +20,8 @@ class Environment:
         self._random_initial_state = random_initial_state
         self._set_attributes()
 
-    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int, predict_pnl_for_reward: bool):
+    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int,
+                                      predict_pnl_for_reward: bool):
 
         next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
         reward = self._compute_reward(state=state, action=action, next_state=next_state,
@@ -173,8 +174,8 @@ class Environment:
         self.t_ = int(df_trad_params.loc['t_'][0])
 
         # lam
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        filename = os.path.dirname(os.path.dirname(__file__))
+        filename += '/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.ticker]
         lam = float(df_lam_kappa.loc['lam'])
