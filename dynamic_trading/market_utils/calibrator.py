@@ -23,17 +23,22 @@ class DynamicsCalibrator:
     """
     General class for executing the calibration of all the models considered for a given security.
 
-    :ivar FinancialTimeSeries financialTimeSeries: The financial time series to be calibrated.
-    :ivar RiskDriverType riskDriverType: Can be RiskDriverType.PnL (the security's model is on PnLs) or RiskDriverType.Return (the security's model is on returns).
-    :ivar dict all_dynamics_param_dict: Dictionary containing all the fitted parameters.
-    :ivar dict all_dynamics_model_dict: Dictionary containing all the fitted models.
-    :ivar dict all_dynamics_resid_dict: Dictionary containing all the fitted residuals.
-  """
+    Attributes
+    ----------
+    financialTimeSeries : FinancialTimeSeries
+        The financial time series to be calibrated.
+    riskDriverType : RiskDriverType
+        Can be RiskDriverType.PnL (the security's model is on PnLs) or RiskDriverType.Return (the security's model is on
+        returns).
+    all_dynamics_param_dict : dict
+         containing all the fitted parameters.
+     all_dynamics_model_dict : dict
+        Dictionary containing all the fitted models.
+    all_dynamics_resid_dict : dict
+        Dictionary containing all the fitted residuals.
+    """
 
     def __init__(self):
-        """
-        Class constructor.
-        """
 
         self.financialTimeSeries = None
         self.all_dynamics_param_dict = {}
@@ -47,10 +52,16 @@ class DynamicsCalibrator:
         """
         Fits all the dynamics considered on the given financial time series.
 
-        :param FinancialTimeSeries financialTimeSeries: Financial time series to fit.
-        :param float scale: Factor for rescaling the security time series.
-        :param float scale_f: Factor for rescaling the factor time series.
-        :param float c: Threshold for threshold models.
+        Parameters
+        ----------
+        financialTimeSeries : FinancialTimeSeries
+            Financial time series to fit.
+        scale : float
+            Factor for rescaling the security time series.
+        scale_f : float
+            Factor for rescaling the factor time series.
+        c : float
+            Threshold for threshold models.
         """
 
         self.financialTimeSeries = financialTimeSeries
@@ -61,11 +72,20 @@ class DynamicsCalibrator:
 
     def get_params_dict(self, var_type: str, dynamicsType: Union[RiskDriverDynamicsType, FactorDynamicsType]) -> dict:
         """
-        For a given var_type = ('risk-driver', 'factor') and dynamicsType, returns the dict containing the fitted parameters for that model.
+        For a given var_type = ('risk-driver', 'factor') and dynamicsType, returns the dict containing the fitted
+        parameters for that model.
 
-        :param str var_type: Can be 'risk-driver', 'factor'
-        :param Union[RiskDriverDynamicsType, FactorDynamicsType] dynamicsType: An instance of RiskDriverDynamicsType or FactorDynamicsType, depending on var_type.
-        :return: Dictionary with parameters.
+        Parameters
+        ----------
+        var_type : str
+            Can be 'risk-driver', 'factor'.
+        dynamicsType : Union[RiskDriverDynamicsType, FactorDynamicsType]
+            An instance of RiskDriverDynamicsType or FactorDynamicsType, depending on var_type.
+
+        Returns
+        -------
+        param_dict : dict
+            Dictionary with parameters.
         """
 
         param_dict = self.all_dynamics_param_dict[var_type][dynamicsType]
@@ -75,10 +95,7 @@ class DynamicsCalibrator:
     def print_results(self):
         """
         Prints the results of the models fitting for the risk-driver and the factor. Results are stored in
-
-        - resources/data/financial_time_series_data
-
-        - resources/reports/calibrations
+        resources/data/financial_time_series_data and in resources/reports/calibrations
         """
 
         self._print_results_impl('risk-driver')
@@ -467,9 +484,6 @@ class AllSeriesDynamicsCalibrator:
     """
 
     def __init__(self):
-        """
-        Class constructor.
-        """
 
         self._all_series_dynamics_calibrators = {}
         self._best_factorDynamicsType = {}
@@ -490,10 +504,7 @@ class AllSeriesDynamicsCalibrator:
     def print_all_series_dynamics_results(self):
         """
         Prints the results of the models fitting for all the risk-drivers and the factors. Results are stored in
-
-        - resources/data/financial_time_series_data
-
-        - resources/reports/calibrations
+        resources/data/financial_time_series_data and in resources/reports/calibrations
         """
 
         self._print_financial_time_series_summaries()

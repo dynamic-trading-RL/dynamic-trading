@@ -13,19 +13,26 @@ class AgentBenchmark:
     """
     Base class for benchmark agent.
 
-    :ivar float gamma: Reward discount factor.
-    :ivar float kappa: Agent's risk averions.
-    :ivar float lam: Cost parameter.
-    :ivar float market: The market on which the agent is operating.
-    :ivar StrategyType strategyType: The strategy being performed by the agent.
+    Parameters
+    ----------
+    market : Market
+        The market on which the agent is operating.
+
+    Attributes
+    ----------
+    gamma : float
+        The cumulative reward discount factor.
+    kappa : float
+        The agent's risk aversion.
+    lam : float
+        The cost friction parameter.
+    market : Market
+        The market on which the agent is operating.
+    strategyType: StrategyType
+        The strategy being performed by the agent. Refer to :obj:`StrategyType` for more details.
     """
 
     def __init__(self, market: Market):
-        """
-        Class constructor.
-
-        :param Market market: The market on which the agent is operating.
-        """
 
         self._check_input(market)
 
@@ -49,30 +56,48 @@ class AgentBenchmark:
         """
         Computes the trading cost associated to a specific trade.
 
-        :param float trade: Trade implemented by the agent.
-        :param float factor: Observation of the factor, used to predict the price change variance sig2.
-        :param float price: Price of the security.
-        :return: Trading cost.
-        """
-        sig2 = self.market.next_step_sig2(factor=factor, price=price)
+        Parameters
+        ----------
+        trade : float
+            Trade implemented by the agent.
+        factor: float
+            Observation of the factor, used to predict the price change variance sig2.
+        price : float
+            Price of the security.
 
-        return 0.5 * trade * self.lam * sig2 * trade
+        Returns
+        -------
+        trading_cost : float
+            The trading cost.
+        """
+
+        sig2 = self.market.next_step_sig2(factor=factor, price=price)
+        trading_cost = 0.5 * trade * self.lam * sig2 * trade
+
+        return trading_cost
 
     def compute_trading_risk(self, factor: float, price: float, rescaled_shares: float, shares_scale: float) -> float:
         """
         Computes the risk associated to a specific trade.
 
-        :param float factor: Observation of the factor, used to predict the price change variance sig2.
-        :param float price: Price of the security.
-        :param float rescaled_shares: Current position in the security, rescaled by the factor shares_scale.
-        :param float shares_scale: Factor to retrieve the shares as shares_scale * rescaled_shares.
-        :return: Trading risk.
+        Parameters
+        ----------
+        factor: float
+        price : float
+        rescaled_shares : float
+        shares_scale : float
+
+        Returns
+        -------
+        trading_risk : float
+            The trading risk.
         """
 
         sig2 = self.market.next_step_sig2(factor=factor, price=price)
         shares = rescaled_shares * shares_scale
+        trading_risk = 0.5 * shares * self.kappa * sig2 * shares
 
-        return 0.5 * shares * self.kappa * sig2 * shares
+        return trading_risk
 
     def _set_attributes(self):
 
@@ -151,15 +176,20 @@ class AgentBenchmark:
 
 class AgentMarkowitz(AgentBenchmark):
     """
-    Class implementing a Markowitz agent.
+    Base class for Markowitz agent agent.
+
+    Parameters
+    ----------
+    market : Market
+        The market on which the agent is operating.
+
+    Attributes
+    ----------
+    use_quadratic_cost_in_markowitz : bool
+        If ``True``, it uses the static Markowitz solution taking into account transaction costs.
     """
 
     def __init__(self, market: Market):
-        """
-        Class constructor.
-
-        :param Market market: The market on which the agent is operating.
-        """
 
         super().__init__(market)
         self._set_specific_markowitz_attributes()
@@ -169,11 +199,21 @@ class AgentMarkowitz(AgentBenchmark):
         """
         Implements the Markowitz policy.
 
-        :param float factor: Current factor observation.
-        :param float rescaled_shares: Current rescaled shares.
-        :param float shares_scale: Factor for rescaling the shares.
-        :param float price: Current price observation.
-        :return: Rescaled trade.
+        Parameters
+        ----------
+        factor : float
+            Current factor observation.
+        rescaled_shares : float
+            Current rescaled shares.
+        shares_scale : float
+            Factor for rescaling the shares.
+        price : float
+            Current price observation.
+
+        Returns
+        -------
+        rescaled_trade: float
+            The trade, rescaled by the factor `shares_scale`.
         """
 
         shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares, price, shares_scale)
@@ -212,17 +252,15 @@ class AgentMarkowitz(AgentBenchmark):
 
 class AgentGP(AgentBenchmark):
     """
-    Class implementing a GP agent.
+    Base class for GP agent.
 
-    :ivar bool use_quadratic_cost_in_markowitz: Boolean determining whether to consider quadratic cost in Markowitz strategy.
+    Parameters
+    ----------
+    market : Market
+        The market on which the agent is operating.
     """
 
     def __init__(self, market: Market):
-        """
-        Class constructor.
-
-        :param Market market: The market on which the agent is operating.
-        """
 
         super().__init__(market)
 
@@ -231,12 +269,23 @@ class AgentGP(AgentBenchmark):
         """
         Implements the GP policy.
 
-        :param float factor: Current factor observation.
-        :param float rescaled_shares: Current rescaled shares.
-        :param float shares_scale: Factor for rescaling the shares.
-        :param float price: Current price observation.
-        :return: Rescaled trade.
+        Parameters
+        ----------
+        factor : float
+            Current factor observation.
+        rescaled_shares : float
+            Current rescaled shares.
+        shares_scale : float
+            Factor for rescaling the shares.
+        price : float
+            Current price observation.
+
+        Returns
+        -------
+        rescaled_trade: float
+            The trade, rescaled by the factor `shares_scale`.
         """
+
         shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares, price, shares_scale)
 
         trade = self._get_gp_trade(shares, pnl, sig2)

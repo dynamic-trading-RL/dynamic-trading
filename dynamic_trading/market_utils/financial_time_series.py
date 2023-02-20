@@ -11,27 +11,42 @@ class FinancialTimeSeries:
     """
     General class for describing a financial time series.
 
-    :ivar FactorComputationType factorComputationType: Computation rule for factor, see FactorComputationType.
-    :ivar FactorSourceType factorSourceType: Determines whether the factor is constructed from the security or provided exogenously.
-    :ivar FactorTransformationType factorTransformationType: Transformation rule for factor, see FactorTransformationType.
-    :ivar str factor_ticker: ID for factor.
-    :ivar dict info: Dictionary containing information about the financialTimeSeries
-    :ivar ModeType modeType: Determines whether the time series is used in-sample or out-of-sample, see ModeType.
-    :ivar RiskDriverType riskDriverType: Determines the risk-driver type, see RiskDriverType.
-    :ivar str ticker: ID for security.
-    :ivar pandas.DataFrame time_series: Pandas DataFrame containing the financialTimeSeries historical data.
-    :ivar int window: Window used for factorComputationType.
+    Parameters
+    ----------
+    ticker : str
+        ID for security.
+    window : int
+        Window used for factorComputationType.
+    modeType : ModeType
+        Determines whether the time series is used in-sample or out-of-sample, see ModeType.
+    forcePnL : bool
+        Boolean determining whether to force the risk-driver to be a P\&L.
+
+    Attributes
+    ----------
+    factorComputationType : FactorComputationType
+        Computation rule for factor, see FactorComputationType.
+    factorSourceType : FactorSourceType
+        Determines whether the factor is constructed from the security or provided exogenously.
+    factorTransformationType : FactorTransformationType
+        Transformation rule for factor, see FactorTransformationType
+    factor_ticker : str
+        ID for factor.
+    info : dict
+       Dictionary containing information about the financialTimeSeries
+    modeType : ModeType
+        Determines whether the time series is used in-sample or out-of-sample, see ModeType.
+    riskDriverType : RiskDriverType
+        Determines the risk-driver type, see RiskDriverType
+    ticker : str
+        ID for security
+    time_series : pandas.DataFrame
+        Pandas DataFrame containing the financialTimeSeries historical data.
+    window : int
+        Window used for factorComputationType.
     """
 
     def __init__(self, ticker: str, window: int = None, modeType: ModeType = ModeType.InSample, forcePnL: bool = False):
-        """
-        Class constructor.
-
-        :param ticker: ID for security.
-        :param window: Window used for factorComputationType.
-        :param modeType: Determines whether the time series is used in-sample or out-of-sample, see ModeType.
-        :param forcePnL: Boolean determining whether to force the risk-driver to be a P\&L.
-        """
 
         self.ticker = ticker
         self._forcePnL = forcePnL
