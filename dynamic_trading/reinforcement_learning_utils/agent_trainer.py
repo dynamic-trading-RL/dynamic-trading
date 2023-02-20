@@ -294,7 +294,7 @@ class AgentTrainer:
         for n in range(len(self.simulationtesting_ttest)):
             n_vs_goodness.append([n, self.simulationtesting_ttest[n]['statistic']])
         n_vs_goodness = np.array(n_vs_goodness)
-        best_n = int(n_vs_goodness[np.argmin(n_vs_goodness[:, 1]), 0]) + 1
+        best_n = int(n_vs_goodness[np.argmax(n_vs_goodness[:, 1]), 0]) + 1
         return best_n
 
     def _compute_best_n_based_on_pvalue(self, factorDynamicsType, riskDriverDynamicsType, strategyType):
