@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import os
 
-from market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType
-from market_utils.financial_time_series import FinancialTimeSeries
+from src.market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
+from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType
+from src.market_utils.financial_time_series import FinancialTimeSeries
 
 
 class Market:
@@ -390,8 +390,8 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
 
 def read_trading_parameters_market():
 
-    filename = os.path.dirname(os.path.dirname(__file__)) +\
-               '/data/data_source/settings/settings.csv'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
+               '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
     ticker = df_trad_params.loc['ticker'][0]
     riskDriverDynamicsType = RiskDriverDynamicsType(df_trad_params.loc['riskDriverDynamicsType'][0])

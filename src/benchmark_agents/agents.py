@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, StrategyType
-from market_utils.market import Market, instantiate_market
+from src.enums import RiskDriverDynamicsType, RiskDriverType, FactorDynamicsType, StrategyType
+from src.market_utils.market import Market, instantiate_market
 
 
 class AgentBenchmark:
@@ -100,7 +100,7 @@ class AgentBenchmark:
         """
         Service method for reading input settings.
         """
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         return df_trad_params
 
@@ -108,8 +108,8 @@ class AgentBenchmark:
         """
         Service method for reading lam and kappa from input settings.
         """
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
+                   '/resources/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.market.ticker]
         return df_lam_kappa
@@ -163,8 +163,8 @@ class AgentBenchmark:
         returns: lam.
         """
 
-        filename = os.path.dirname(os.path.dirname(__file__)) +\
-                   '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
+                   '/resources/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.market.ticker]  # TODO: should it be self.environment.ticker?
 
@@ -343,8 +343,8 @@ class AgentGP(AgentBenchmark):
         """
         ticker = self.market.ticker
         riskDriverType = self.market.riskDriverType
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
-            '/data/financial_time_series_data/financial_time_series_calibrations/' + \
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + \
+            '/resources/data/financial_time_series_data/financial_time_series_calibrations/' + \
             ticker + '-riskDriverType-' + riskDriverType.value + '-factor-calibrations.xlsx'
         df_factor_params = pd.read_excel(filename, sheet_name='AR', index_col=0)
         Phi = 1 - df_factor_params.loc['B'][0]

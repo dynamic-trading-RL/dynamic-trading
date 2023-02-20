@@ -43,10 +43,10 @@ if __name__ == '__main__':
 
     df_f = pd.DataFrame(data=np.cumsum(f), index=dates, columns=['VALUE'])
     df_f.index.name = 'date'
-    filename = os.path.dirname(__file__) + '/data/data_source/market_data/fake_factor.xlsx'
+    filename = os.path.dirname(__file__) + '/resources/data/data_source/market_data/fake_factor.xlsx'
     df_f.to_excel(filename, sheet_name='fake_factor')
 
     df = pd.DataFrame(data=v, index=dates, columns=['VALUE'])
     df.index.name = 'DATE'
-    filename = os.path.dirname(__file__) + '/data/data_source/market_data/fake_asset_data.xlsx'
+    filename = os.path.dirname(__file__) + '/resources/data/data_source/market_data/fake_asset_data.xlsx'
     df.to_excel(filename, sheet_name='fake_asset')

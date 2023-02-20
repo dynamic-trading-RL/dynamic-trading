@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 import pandas as pd
 import os
@@ -7,10 +5,10 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType, SupervisedRegressorType
-from gen_utils.utils import instantiate_polynomialFeatures, find_polynomial_minimum
-from reinforcement_learning_utils.environment import Environment
-from reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
+from src.enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType, SupervisedRegressorType
+from src.gen_utils.utils import instantiate_polynomialFeatures, find_polynomial_minimum
+from src.reinforcement_learning_utils.environment import Environment
+from src.reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
 
 class Agent:
@@ -82,7 +80,7 @@ class Agent:
         for n in range(len(self._q_value_models)):
             q_value_model = self._q_value_models[n]
             dump(q_value_model,
-                 os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
+                 os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/supervised_regressors/q%d.joblib' % n)
 
     def load_q_value_models(self, n_batches: int):
 
@@ -94,7 +92,7 @@ class Agent:
         for n in range(n_batches):
             try:
                 q_value_model = load(
-                    os.path.dirname(os.path.dirname(__file__)) + '/data/supervised_regressors/q%d.joblib' % n)
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/supervised_regressors/q%d.joblib' % n)
                 self.update_q_value_models(q_value_model)
             except:
                 print(f'Trying to load q{n} but it is not fitted. Possible cause: on-the-fly testing.')
@@ -404,11 +402,11 @@ class Agent:
 
     def _set_agent_attributes(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
-        filename = os.path.dirname(os.path.dirname(__file__))
-        filename += '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += '/resources/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.environment.market.ticker]  # TODO: should it be self.environment.ticker?
 
@@ -432,7 +430,7 @@ class Agent:
 
         self.best_n = None
         try:
-            self.best_n = int(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib'))
+            self.best_n = int(load(os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/best_n.joblib'))
         except:
             print(f'Notice: agent is not yet trained, therefore it is impossible to set best_n')
 

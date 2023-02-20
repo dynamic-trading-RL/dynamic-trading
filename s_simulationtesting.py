@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from testing_utils.testers import SimulationTester, read_out_of_sample_parameters
+from src.testing_utils.testers import SimulationTester, read_out_of_sample_parameters
 import warnings
 warnings.filterwarnings("ignore")
 

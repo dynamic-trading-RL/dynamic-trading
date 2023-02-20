@@ -57,7 +57,7 @@ class TTester:
 
     def print_t_test_result(self):
 
-        out_path = os.path.dirname(os.path.dirname(__file__)) + '/reports/simulationtesting/'
+        out_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/simulationtesting/'
         file_name = f'{self._on_the_fly_str}{self._n_str}t_test_result_{self.t_test_id}.txt'
 
         with open(out_path + file_name, 'w') as f:

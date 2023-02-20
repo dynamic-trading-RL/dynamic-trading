@@ -9,7 +9,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from numpy.polynomial import Polynomial
 from scipy.stats import truncnorm
 
-from enums import InitialQvalueEstimateType, OptimizerType, SupervisedRegressorType
+from src.enums import InitialQvalueEstimateType, OptimizerType, SupervisedRegressorType
 
 available_ann_architectures = [(64,),
                                (64, 32),
@@ -20,7 +20,7 @@ available_ann_architectures = [(64,),
 
 def read_ticker():
 
-    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
     ticker = str(df_trad_params.loc['ticker'][0])
 
@@ -108,17 +108,17 @@ def _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots):
     plt.legend()
     plt.xlim(bounds)
 
-    filename = os.path.dirname(os.path.dirname(__file__)) + f'/figures/polynomial/polynomial{int(eps_plots*10**5)}.png'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/polynomial/polynomial{int(eps_plots*10**5)}.png'
 
     plt.savefig(filename)
 
 
 def read_trading_parameters_training():
-    filename = os.path.dirname(os.path.dirname(__file__)) + \
-               '/data/data_source/settings/settings.csv'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + \
+               '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
 
-    shares_scale = float(load(os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/shares_scale.joblib'))
+    shares_scale = float(load(os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/shares_scale.joblib'))
 
     j_episodes = int(df_trad_params.loc['j_episodes'][0])
     n_batches = int(df_trad_params.loc['n_batches'][0])

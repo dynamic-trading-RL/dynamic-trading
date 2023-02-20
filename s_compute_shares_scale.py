@@ -3,9 +3,9 @@ from joblib import dump
 import numpy as np
 from tqdm import tqdm
 
-from benchmark_agents.agents import AgentMarkowitz
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
-from market_utils.market import read_trading_parameters_market, instantiate_market
+from src.benchmark_agents.agents import AgentMarkowitz
+from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from src.market_utils.market import read_trading_parameters_market, instantiate_market
 
 if __name__ == '__main__':
 
@@ -49,4 +49,4 @@ if __name__ == '__main__':
 
     print(f'shares_scale = {shares_scale}')
 
-    dump(shares_scale, os.path.dirname(__file__) + '/data/data_tmp/shares_scale.joblib')
+    dump(shares_scale, os.path.dirname(__file__) + '/resources/data/data_tmp/shares_scale.joblib')

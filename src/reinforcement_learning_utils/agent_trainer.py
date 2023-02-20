@@ -15,16 +15,16 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType,\
+from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType,\
     InitialQvalueEstimateType, StrategyType
-from gen_utils.utils import instantiate_polynomialFeatures, available_ann_architectures
-from market_utils.market import instantiate_market
-from reinforcement_learning_utils.agent import Agent
-from reinforcement_learning_utils.environment import Environment
-from reinforcement_learning_utils.state_action_utils import State, Action
+from src.gen_utils.utils import instantiate_polynomialFeatures, available_ann_architectures
+from src.market_utils.market import instantiate_market
+from src.reinforcement_learning_utils.agent import Agent
+from src.reinforcement_learning_utils.environment import Environment
+from src.reinforcement_learning_utils.state_action_utils import State, Action
 
 # TODO: methods should be generalized, then specialized with a "trading" keyword in the name
-from testing_utils.testers import BackTester, SimulationTester
+from src.testing_utils.testers import BackTester, SimulationTester
 
 
 class AgentTrainer:
@@ -64,13 +64,13 @@ class AgentTrainer:
         self._predict_pnl_for_reward = predict_pnl_for_reward
         self._optimizerType = optimizerType
         dump(self._optimizerType,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/optimizerType.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/optimizerType.joblib')
         self._average_across_models = average_across_models
         dump(self._average_across_models,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/average_across_models.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/average_across_models.joblib')
         self._use_best_n_batch = use_best_n_batch
         dump(self._use_best_n_batch,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/use_best_n_batch.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/use_best_n_batch.joblib')
 
         self.environment = Environment(market=self.market, random_initial_state=random_initial_state)
         self._add_absorbing_state = self.environment.add_absorbing_state
@@ -90,7 +90,7 @@ class AgentTrainer:
         self._supervisedRegressorType = supervisedRegressorType
         print(f'Fitting a {supervisedRegressorType.value} regressor')
         dump(self._supervisedRegressorType,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/supervisedRegressorType.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/supervisedRegressorType.joblib')
 
         self._n_cores = None
         self._max_ann_depth = max_ann_depth
@@ -110,7 +110,7 @@ class AgentTrainer:
 
         self._alpha_ewma = alpha_ewma
         dump(self._alpha_ewma,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/alpha_ewma.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/alpha_ewma.joblib')
 
         self._available_use_best_n_batch_mode_lst = ['t_test_pvalue',
                                                      't_test_statistic',
@@ -227,7 +227,7 @@ class AgentTrainer:
                                                if n > 0])
             self.best_n = int(n_vs_model_convergence[np.argmax(n_vs_model_convergence[:, 1]), 0]) + 1
 
-        dump(self.best_n, os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/best_n.joblib')
+        dump(self.best_n, os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/best_n.joblib')
 
     def _initialize_dicts_for_reporting(self):
         self.state_action_grid_dict = {}
@@ -264,7 +264,7 @@ class AgentTrainer:
                         df_simulationtesting_sharperatio_av2std,
                         df_simulationtesting_wealthnetrisk_av2std],
                        axis=1)
-        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/training/training_report.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/training/training_report.csv'
         df.to_csv(filename)
 
     def _get_best_n_based_on_tTest(self):
@@ -378,7 +378,7 @@ class AgentTrainer:
         backtester.execute_backtesting()
         backtester.make_plots()
         simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=10, t_=self.t_)
+        simulationTester.execute_simulation_testing(j_=10000, t_=self.t_)
         simulationTester.make_plots(j_trajectories_plot=5)
         self.backtesting_sharperatio[n] = backtester.sharpe_ratio_all['RL']
         self.simulationtesting_sharperatio_av2std[n] =\
@@ -696,7 +696,7 @@ class AgentTrainer:
 
         self.agent.polynomial_regression_degree = self._polynomial_regression_degree
         dump(self._polynomial_regression_degree,
-             os.path.dirname(os.path.dirname(__file__)) + '/data/data_tmp/polynomial_regression_degree.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/polynomial_regression_degree.joblib')
 
     def _make_regressor_plots(self, model, n, x_array, y_array):
 
@@ -734,8 +734,8 @@ class AgentTrainer:
         plt.ylabel('Predicted q')
         plt.legend()
         plt.title('Realized vs predicted q')
-        filename = os.path.dirname(os.path.dirname(__file__))
-        filename += f'/figures/training/training_batch_{n}_realized_vs_predicted_q.png'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/figures/training/training_batch_{n}_realized_vs_predicted_q.png'
         plt.savefig(filename)
 
         # --------- Plotting detail of regressor
@@ -751,8 +751,8 @@ class AgentTrainer:
             plt.xlabel(variable)
             plt.ylabel('q')
             plt.title('Realized (blue) / predicted (red) q')
-            filename = os.path.dirname(os.path.dirname(__file__))
-            filename += f'/figures/training/training_batch_{n}_{variable}.png'
+            filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            filename += f'/resources/figures/training/training_batch_{n}_{variable}.png'
             plt.savefig(filename)
 
         plt.figure(figsize=(1000 / dpi, 600 / dpi), dpi=dpi)
@@ -766,8 +766,8 @@ class AgentTrainer:
         plt.xlabel('action')
         plt.ylabel('q')
         plt.title('Realized (blue) / predicted (red) q')
-        filename = os.path.dirname(os.path.dirname(__file__))
-        filename += f'/figures/training/training_batch_{n}_action.png'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/figures/training/training_batch_{n}_action.png'
         plt.savefig(filename)
 
     def _set_supervised_regressor_parameters(self):

@@ -1,4 +1,4 @@
-from market_utils.calibrator import AllSeriesDynamicsCalibrator
+from src.market_utils.calibrator import AllSeriesDynamicsCalibrator
 
 if __name__ == '__main__':
 

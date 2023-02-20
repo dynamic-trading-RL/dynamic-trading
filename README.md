@@ -6,7 +6,7 @@ This is a work-in-progress. For any questions, please refer to Federico Giorgi (
 Project requirements are listed in the requirements.txt file.
 
 ## Data
-The folder dynamic-trading/data/data_source/market_data contains all the relevant data used to fit market dynamics, in particular
+The folder dynamic-trading/resources/data/data_source/market_data contains all the relevant data used to fit market dynamics, in particular
 - assets_data.xlsx contains commodity futures time series taken into considerations
 - SP500.xlsx contains the S&P 500 time series, which could be used as predicting factor
 - VIX.xlsx contains the S&P 500 time series, which could be used as predicting factor
@@ -14,7 +14,7 @@ The folder dynamic-trading/data/data_source/market_data contains all the relevan
 
 If the user provides a ticker that is not listed among the names of the commodity futures, the code will try to download that ticker from Yahoo Finance.
 
-The folder dynamic-trading/data/data_source/settings contains the main settings that the code reads in order to fit the dynamics, train the agent and perform backtesting. Various options for the factor definition are available. In particular:
+The folder dynamic-trading/resources/data/data_source/settings contains the main settings that the code reads in order to fit the dynamics, train the agent and perform backtesting. Various options for the factor definition are available. In particular:
 - ticker: specifies the ticker of the asset to be taken into consideration (e.g. 'WTI')
 - riskDriverDynamicsType: the dynamics for the variable 'x', can be 'Linear' or 'NonLinear' in the factor
 - riskDriverType: the nature of the variable 'x', can be 'PnL' or 'Return'

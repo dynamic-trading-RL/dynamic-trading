@@ -3,11 +3,11 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from gen_utils.utils import get_available_futures_tickers
+from src.gen_utils.utils import get_available_futures_tickers
 
 if __name__ == '__main__':
 
-    mkt_data_path = f'{os.path.dirname(__file__)}/data/data_source/market_data/'
+    mkt_data_path = f'{os.path.dirname(__file__)}/resources/data/data_source/market_data/'
 
     assets_data_path = f'{mkt_data_path}assets_data.xlsx'
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
         plt.title(ticker)
         plt.ylabel('Value [$]')
         plt.xlabel('date')
-        filename = f'{os.path.dirname(__file__)}/figures/time_series/asset_{ticker}_time_series.png'
+        filename = f'{os.path.dirname(__file__)}/resources/figures/time_series/asset_{ticker}_time_series.png'
         plt.savefig(filename)
         plt.close()
 
@@ -40,6 +40,6 @@ if __name__ == '__main__':
         plt.title(factor_ticker)
         plt.ylabel('Value')
         plt.xlabel('date')
-        filename = f'{os.path.dirname(__file__)}/figures/time_series/factor_{factor_ticker}_time_series.png'
+        filename = f'{os.path.dirname(__file__)}/resources/figures/time_series/factor_{factor_ticker}_time_series.png'
         plt.savefig(filename)
         plt.close()

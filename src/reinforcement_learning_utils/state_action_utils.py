@@ -1,4 +1,4 @@
-from enums import StrategyType
+from src.enums import StrategyType
 
 
 class Action:

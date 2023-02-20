@@ -8,9 +8,9 @@ from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
-from enums import RiskDriverDynamicsType, FactorDynamicsType
-from gen_utils.utils import get_available_futures_tickers
-from market_utils.financial_time_series import FinancialTimeSeries
+from src.enums import RiskDriverDynamicsType, FactorDynamicsType
+from src.gen_utils.utils import get_available_futures_tickers
+from src.market_utils.financial_time_series import FinancialTimeSeries
 
 import warnings
 
@@ -357,8 +357,8 @@ class DynamicsCalibrator:
         ticker = self.financialTimeSeries.ticker
         riskDriverType = self.riskDriverType
 
-        filename = os.path.dirname(os.path.dirname(__file__))
-        filename += f'/data/financial_time_series_data/financial_time_series_calibrations/{ticker}'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/data/financial_time_series_data/financial_time_series_calibrations/{ticker}'
         filename += f'-riskDriverType-{riskDriverType.value}-{var_type}-calibrations.xlsx'
 
         writer = pd.ExcelWriter(filename)
@@ -403,13 +403,13 @@ class DynamicsCalibrator:
         if dynamicsType in (RiskDriverDynamicsType.Linear, FactorDynamicsType.AR, FactorDynamicsType.GARCH,
                             FactorDynamicsType.TARCH, FactorDynamicsType.AR_TARCH):
             filename = os.path.dirname(
-                os.path.dirname(__file__)) + '/reports/calibrations/' + self.financialTimeSeries.ticker +\
+                os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/calibrations/' + self.financialTimeSeries.ticker +\
                        '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
                        '-' + dynamicsType.value + '.txt'
         elif dynamicsType in (RiskDriverDynamicsType.NonLinear, FactorDynamicsType.SETAR):
             filename = os.path.dirname(
-                os.path.dirname(__file__)) + '/reports/calibrations/' + self.financialTimeSeries.ticker +\
+                os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/calibrations/' + self.financialTimeSeries.ticker +\
                        '-riskDriverType-' + riskDriverType.value +\
                        '-' + var_type +\
                        '-' + dynamicsType.value + str(i) + '.txt'
@@ -474,7 +474,7 @@ class AllSeriesDynamicsCalibrator:
         df_out = pd.DataFrame(data=ll, columns=['ticker', 'start_date', 'end_date',
                                                 'price_average', 'price_std', 'price_min', 'price_max',
                                                 'pnl_average', 'pnl_std', 'pnl_min', 'pnl_max'])
-        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/calibrations/assets_summaries.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/calibrations/assets_summaries.xlsx'
         df_out.to_excel(filename, sheet_name='assets_summaries', index=False)
 
     def _print_calibration_results(self):
@@ -521,7 +521,7 @@ class AllSeriesDynamicsCalibrator:
                                         columns=ll_model_summary[0])
         info = f'{self.financialTimeSeries.riskDriverType.value}' +\
                f'-{self.financialTimeSeries.factor_ticker}-{self.financialTimeSeries.factorTransformationType.value}'
-        filename = os.path.dirname(os.path.dirname(__file__)) + f'/reports/calibrations/models_summary_{info}.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/calibrations/models_summary_{info}.xlsx'
         df_model_summary.to_excel(filename, sheet_name='models_summary', index=False)
 
     def _plot_financial_time_series(self):
@@ -537,8 +537,8 @@ class AllSeriesDynamicsCalibrator:
             plt.title(ticker + ' time series')
             plt.xlabel('Date')
             plt.ylabel('Value [$]')
-            plt.savefig(os.path.dirname(os.path.dirname(__file__))
-                        + '/figures/residuals/'
+            plt.savefig(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                        + '/resources/figures/residuals/'
                         + ticker + '-time-series.png')
             plt.close(fig)
 
@@ -566,8 +566,8 @@ class AllSeriesDynamicsCalibrator:
             plt.ylabel(f'{financialTimeSeries.riskDriverType.value}')
             plt.xlim(xlim)
             plt.ylim(ylim)
-            plt.savefig(os.path.dirname(os.path.dirname(__file__))
-                        + '/figures/residuals/'
+            plt.savefig(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                        + '/resources/figures/residuals/'
                         + ticker + '-prediction.png')
             plt.close(fig)
 
@@ -592,7 +592,7 @@ class AllSeriesDynamicsCalibrator:
                                  columns=['ticker', 'factorDynamicsType'] +
                                          ['autocorr_lag_%d' % a for a in range(len(abs_epsi_autocorr))])
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/model_choice/residuals_analysis.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/model_choice/residuals_analysis.csv'
         df_report.to_csv(filename, index=False)
 
     def _print_prices_and_stds(self):
@@ -605,7 +605,7 @@ class AllSeriesDynamicsCalibrator:
                                                       columns=['Standard Deviation of Price Changes'])
         out_dict = pd.concat([average_prices_per_contract_df, std_price_changes_df], axis=1)
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/reports/model_choice/prices_and_stds.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/model_choice/prices_and_stds.csv'
         out_dict.to_csv(filename, index=True)
 
     def _plot_residuals(self):
@@ -640,8 +640,8 @@ class AllSeriesDynamicsCalibrator:
 
             plt.tight_layout()
 
-            plt.savefig(os.path.dirname(os.path.dirname(__file__))
-                        + '/figures/residuals/'
+            plt.savefig(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                        + '/resources/figures/residuals/'
                         + ticker + '-residuals-best-' + factorDynamicsType.value + '.png')
 
             plt.close(fig)
@@ -675,8 +675,8 @@ class AllSeriesDynamicsCalibrator:
 
                 plt.tight_layout()
 
-                plt.savefig(os.path.dirname(os.path.dirname(__file__))
-                            + '/figures/residuals/'
+                plt.savefig(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                            + '/resources/figures/residuals/'
                             + ticker + '-residuals-non-best-' + factorDynamicsType.value + '.png')
 
                 plt.close(fig)
@@ -742,15 +742,15 @@ class AllSeriesDynamicsCalibrator:
 
 
 def build_filename_calibrations(riskDriverType, ticker, var_type):
-    filename = os.path.dirname(os.path.dirname(__file__)) +\
-               '/data/financial_time_series_data/financial_time_series_calibrations/' +\
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
+               '/resources/data/financial_time_series_data/financial_time_series_calibrations/' +\
                ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
 
     return filename
 
 
 def get_futures_data_filename():
-    filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/market_data/assets_data.xlsx'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/market_data/assets_data.xlsx'
     return filename
 
 

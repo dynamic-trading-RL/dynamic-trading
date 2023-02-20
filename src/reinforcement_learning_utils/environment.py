@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import os
 
-from benchmark_agents.agents import AgentGP
-from enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
-from reinforcement_learning_utils.state_action_utils import Action, State
-from market_utils.market import Market, instantiate_market
+from src.benchmark_agents.agents import AgentGP
+from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from src.reinforcement_learning_utils.state_action_utils import Action, State
+from src.market_utils.market import Market, instantiate_market
 
 
 class Environment:
@@ -164,7 +164,7 @@ class Environment:
     def _set_trading_attributes(self):
 
         # input file
-        filename = os.path.dirname(os.path.dirname(__file__)) + '/data/data_source/settings/settings.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
         # ticker
@@ -174,8 +174,8 @@ class Environment:
         self.t_ = int(df_trad_params.loc['t_'][0])
 
         # lam
-        filename = os.path.dirname(os.path.dirname(__file__))
-        filename += '/data/data_source/market_data/commodities-summary-statistics.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += '/resources/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
         df_lam_kappa = df_lam_kappa.loc[self.ticker]
         lam = float(df_lam_kappa.loc['lam'])

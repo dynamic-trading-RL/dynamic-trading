@@ -1,7 +1,7 @@
-from enums import ModeType
-from gen_utils.utils import read_ticker
-from market_utils.calibrator import DynamicsCalibrator
-from market_utils.financial_time_series import FinancialTimeSeries
+from src.enums import ModeType
+from src.gen_utils.utils import read_ticker
+from src.market_utils.calibrator import DynamicsCalibrator
+from src.market_utils.financial_time_series import FinancialTimeSeries
 
 
 if __name__ == '__main__':

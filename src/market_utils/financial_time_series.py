@@ -2,8 +2,8 @@ import pandas as pd
 import os
 import numpy as np
 
-from enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
-from gen_utils.utils import get_available_futures_tickers
+from src.enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
+from src.gen_utils.utils import get_available_futures_tickers
 
 
 class FinancialTimeSeries:
@@ -31,15 +31,15 @@ class FinancialTimeSeries:
 
     def _print_info(self):
 
-        filename = os.path.dirname(os.path.dirname(__file__)) + \
-                   '/data/financial_time_series_data/financial_time_series_info/' + self.ticker + '-info.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + \
+                   '/resources/data/financial_time_series_data/financial_time_series_info/' + self.ticker + '-info.csv'
         self.info.to_csv(filename)
 
     def _set_settings_from_file(self, window):
 
         filename = \
-            os.path.dirname(os.path.dirname(__file__)) + \
-            '/data/data_source/settings/settings.csv'
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + \
+            '/resources/data/data_source/settings.csv'
         self.info = pd.read_csv(filename, index_col=0)
 
         if window is not None:
@@ -72,14 +72,14 @@ class FinancialTimeSeries:
 
         if self.ticker in get_available_futures_tickers():
 
-            time_series = pd.read_excel(os.path.dirname(os.path.dirname(__file__))
-                                        + '/data/data_source/market_data/assets_data.xlsx',
+            time_series = pd.read_excel(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                                        + '/resources/data/data_source/market_data/assets_data.xlsx',
                                         sheet_name=self.ticker, index_col=0)
 
         elif self.ticker == 'fake_asset':
 
-            time_series = pd.read_excel(os.path.dirname(os.path.dirname(__file__))
-                                        + '/data/data_source/market_data/fake_asset_data.xlsx',
+            time_series = pd.read_excel(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                                        + '/resources/data/data_source/market_data/fake_asset_data.xlsx',
                                         sheet_name=self.ticker, index_col=0)
 
         else:
@@ -147,8 +147,8 @@ class FinancialTimeSeries:
             v = self.time_series[self.ticker]
 
         elif self.factorSourceType == FactorSourceType.Exogenous:
-            filename = os.path.dirname(os.path.dirname(__file__)) +\
-                       '/data/data_source/market_data/' + self.factor_ticker + '.xlsx'
+            filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
+                       '/resources/data/data_source/market_data/' + self.factor_ticker + '.xlsx'
             v = pd.read_excel(filename, index_col=0, parse_dates=True)
 
         else:
