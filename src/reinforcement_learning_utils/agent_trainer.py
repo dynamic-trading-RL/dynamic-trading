@@ -184,7 +184,7 @@ class AgentTrainer:
             print(f'Average RL reward for batch {n}: {self.reward_RL[n]}')
 
         for n in range(self.n_batches):
-            print(f'|model_{n} - model_{n - 1}|  / |model_{n - 1}|: {self.model_convergence[n]}')
+            print(f'|model_{n} - model_{n - 1}| / |model_{n - 1}|: {self.model_convergence[n]}')
 
         for n in range(self.n_batches):
             print(f'Average RL backtesting Sharpe ratio for batch {n}: {self.backtesting_sharperatio[n]}')
@@ -365,7 +365,7 @@ class AgentTrainer:
 
         print(f'Average RL reward for batch {n + 1}: {self.reward_RL[n]}')
         print(f'Average GP reward for batch {n + 1}: {self.reward_GP[n]}')
-        print(f'|model_{n + 1} - model_{n}|  / |model_{n}| : {self.model_convergence[n]}')
+        print(f'|model_{n + 1} - model_{n}| / |model_{n}| : {self.model_convergence[n]}')
         print(f'Average RL backtesting Sharpe ratio for batch {n + 1}: {self.backtesting_sharperatio[n]}')
         print(
             f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self.simulationtesting_sharperatio_av2std[n]}')
