@@ -15,16 +15,16 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType,\
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType,\
     InitialQvalueEstimateType, StrategyType
-from src.gen_utils.utils import instantiate_polynomialFeatures, available_ann_architectures
-from src.market_utils.market import instantiate_market
-from src.reinforcement_learning_utils.agent import Agent
-from src.reinforcement_learning_utils.environment import Environment
-from src.reinforcement_learning_utils.state_action_utils import State, Action
+from dynamic_trading.gen_utils.utils import instantiate_polynomialFeatures, available_ann_architectures
+from dynamic_trading.market_utils.market import instantiate_market
+from dynamic_trading.reinforcement_learning_utils.agent import Agent
+from dynamic_trading.reinforcement_learning_utils.environment import Environment
+from dynamic_trading.reinforcement_learning_utils.state_action_utils import State, Action
 
 # TODO: methods should be generalized, then specialized with a "trading" keyword in the name
-from src.testing_utils.testers import BackTester, SimulationTester
+from dynamic_trading.testing_utils.testers import BackTester, SimulationTester
 
 
 class AgentTrainer:

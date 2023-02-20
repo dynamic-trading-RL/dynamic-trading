@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import os
+from typing import Union, Tuple, Any
 
 import numpy as np
 import pandas as pd
@@ -9,7 +10,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from numpy.polynomial import Polynomial
 from scipy.stats import truncnorm
 
-from src.enums import InitialQvalueEstimateType, OptimizerType, SupervisedRegressorType
+from dynamic_trading.enums.enums import InitialQvalueEstimateType, OptimizerType, SupervisedRegressorType
 
 available_ann_architectures = [(64,),
                                (64, 32),
@@ -18,7 +19,12 @@ available_ann_architectures = [(64,),
                                (64, 32, 16, 8, 4)]
 
 
-def read_ticker():
+def read_ticker() -> str:
+    """
+    Reads security's ticker from settings file
+
+    :return: ticker
+    """
 
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
@@ -27,14 +33,27 @@ def read_ticker():
     return ticker
 
 
-def get_available_futures_tickers():
+def get_available_futures_tickers() -> list:
+    """
+    Returns the pre-defined list of available tickers for the securities in resources/data/data_source/market_data/
+
+    :return: List of available securities tickers
+    """
+
     lst = ['cocoa', 'coffee', 'copper', 'WTI', 'WTI-spot', 'gold', 'lead', 'nat-gas-rngc1d', 'nat-gas-reuter',
            'nickel', 'silver', 'sugar', 'unleaded', 'zinc']  # 'tin', 'gasoil'
 
     return lst
 
 
-def instantiate_polynomialFeatures(degree):
+def instantiate_polynomialFeatures(degree) -> PolynomialFeatures:
+    """
+    Instantiates a scikit-learn PolynomialFeatures object for a given polynomial degree. By default, interactions are
+    considered and bias is included.
+
+    :param int degree: Polynomial degree.
+    :return: PolynomialFeatures object
+    """
 
     poly = PolynomialFeatures(degree=degree,
                               interaction_only=False,
@@ -43,7 +62,18 @@ def instantiate_polynomialFeatures(degree):
     return poly
 
 
-def find_polynomial_minimum(coef, bounds):
+def find_polynomial_minimum(coef: Union[list, np.ndarray, tuple],
+                            bounds: Union[list, np.ndarray, tuple]) -> Tuple[float, bool]:
+    """
+    Given a set of polynomial coefficients coef = (a0, a1, ..., a_n), it computes the minimum of the polynomial
+    a0 + a1 * x + ... + an * x^n in a given interval [bounds[0], bounds[1]]. If the minimum is not found, a random
+    output is given as determined by the scipy.stats.truncnorm distribution function on the given interval and a flag
+    is returned.
+
+    :param array_like coef: Polynomial coefficients, expressed in an array_like format.
+    :param array_like bounds: Domain bounds, expressed in an array_like format.
+    :return: Polynomial minimum and flag determining whether the minimum existed in the interval.
+    """
 
     x_optim_when_error = truncnorm.rvs(a=bounds[0], b=bounds[1], loc=0., scale=0.01 * (bounds[1] - bounds[0]))
     flag_error = False
@@ -113,7 +143,72 @@ def _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots):
     plt.savefig(filename)
 
 
-def read_trading_parameters_training():
+def read_trading_parameters_training() -> tuple[float, int, int, int, bool, int | None, InitialQvalueEstimateType, bool,
+                                                bool, bool, bool, OptimizerType, SupervisedRegressorType, float, int,
+                                                bool, int, int, str, float, bool, bool, int, bool, float, bool, Any]:
+    # todo: move output description to README in settings.csv description
+    """
+    Service function that reads the trading parameters from the disk.
+
+    :return: tuple (shares_scale, j_episodes, n_batches, t\_, parallel_computing_train, n_cores, initialQvalueEstimateType, predict_pnl_for_reward, average_across_models, use_best_n_batch, train_benchmarking_GP_reward, optimizerType, supervisedRegressorType, eps_start, max_ann_depth, early_stopping, max_iter, n_iter_no_change, activation, alpha_sarsa, decrease_eps, random_initial_state, max_polynomial_regression_degree, max_complexity_no_gridsearch, alpha_ewma, parallel_computing_sim, use_best_n_batch_mode)
+
+            where
+
+        - shares_scale: Factor for rescaling the shares.
+
+        - j_episodes: Number of episodes to generate within each batch.
+
+        - n_batches: Number of batches.
+
+        - t\_: Length of each episode.
+
+        - parallel_computing_train: Boolean determining whether training is performed via parallel computing.
+
+        - n_cores: Number of cores to use in parallel computing.
+
+        - initialQvalueEstimateType: Setting for the initialization of the state-action value function.
+
+        - predict_pnl_for_reward: Boolean determining whether the PnL is predicted in terms of the factor in the reward definition.
+
+        - average_across_models: Boolean determining whether the SARSA algorithm performs model averaging acros batches.
+
+        - use_best_n_batch: Boolean determining whether the SARSA algorithm should output the index of the batch where agent has performed best.
+
+        - train_benchmarking_GP_reward: Boolean determining whether the RL agent is being trained by benchmarking a GP agent. If this is true, then a AgentGP is instantiated; for each trade, both the RL and the GP rewards are computed. If the GP agent has outperformed the RL agent on the given trade, then the RL trade is substituted.
+
+        - optimizerType: Determines which global optimizer to use in the greedy policy optimization.
+
+        - supervisedRegressorType: Determines what kind of supervised regressor should be used to fit the state-action value function.
+
+        - eps_start: Starting parameter for the epsilon-greedy policy
+
+        - max_ann_depth: Integer determining the depth of the Neural Network used to fit the state-action value function. It acts on pre-defined architectures given by [(64,), (64, 32), (64, 32, 8), (64, 32, 16, 8), (64, 32, 16, 8, 4)]
+
+        - early_stopping: Whether to use early stopping in the Neural Network fit. Refer to scikit-learn for more details.
+
+        - max_iter: Maximum iteration in supervised regressor fit. Refer to scikit-learn for more details.
+
+        - n_iter_no_change: Refer to scikit-learn for more details.
+
+        - activation: Activation function used in Neural Network. Refer to scikit-learn for more details.
+
+        - alpha_sarsa: Learning rate in SARSA updating formula.
+
+        - decrease_eps: Boolean determining whether epsilon should be decreased across batches.
+
+        - random_initial_state: Boolean determining whether the initial state s_0 is selected randomly.
+
+        - max_polynomial_regression_degree: Maximum polynomial degree to be considered.
+
+        - max_complexity_no_gridsearch: Boolean determining whether the maximum Neural Network or Polynomial complexity should be used (True), or if a GridSearchCV should be performed (False). Refer to scikit-learn for more details on GridSearchCV.
+
+        - alpha_ewma: Speed of the exponential weighting in the SARSA model averaging across batches.
+
+        - parallel_computing_sim: Boolean determining whether simulation testing is performed via parallel computing.
+
+        - use_best_n_batch_mode: Determines the mode with which the "best batch" is selected. Can be any of the following: 't_test_pvalue', best choice is based on equality/outperforming criteria with respect to the benchmark based on the p-value of specific hypothesis tests; 't_test_statistic', best choice is based on equality/outperforming criteria with respect to the benchmark based on the statistic of specific hypothesis tests; 'reward', best choice is based on the reward obtained in the training phase; 'average_q', best choice is based on the average state-action value obtained in the training phase; 'model_convergence', best choice is based on a convergence criterion on the norm of two subsequent state-action value function estimates.
+    """
+
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + \
                '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)

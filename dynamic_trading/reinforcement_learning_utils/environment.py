@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import os
 
-from src.benchmark_agents.agents import AgentGP
-from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
-from src.reinforcement_learning_utils.state_action_utils import Action, State
-from src.market_utils.market import Market, instantiate_market
+from dynamic_trading.benchmark_agents.agents import AgentGP
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from dynamic_trading.reinforcement_learning_utils.state_action_utils import Action, State
+from dynamic_trading.market_utils.market import Market, instantiate_market
 
 
 class Environment:

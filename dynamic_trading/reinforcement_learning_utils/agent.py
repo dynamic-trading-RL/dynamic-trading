@@ -5,10 +5,10 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from src.enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType, SupervisedRegressorType
-from src.gen_utils.utils import instantiate_polynomialFeatures, find_polynomial_minimum
-from src.reinforcement_learning_utils.environment import Environment
-from src.reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
+from dynamic_trading.enums.enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType, SupervisedRegressorType
+from dynamic_trading.gen_utils.utils import instantiate_polynomialFeatures, find_polynomial_minimum
+from dynamic_trading.reinforcement_learning_utils.environment import Environment
+from dynamic_trading.reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
 
 
 class Agent:

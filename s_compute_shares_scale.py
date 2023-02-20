@@ -3,9 +3,9 @@ from joblib import dump
 import numpy as np
 from tqdm import tqdm
 
-from src.benchmark_agents.agents import AgentMarkowitz
-from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
-from src.market_utils.market import read_trading_parameters_market, instantiate_market
+from dynamic_trading.benchmark_agents.agents import AgentMarkowitz
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from dynamic_trading.market_utils.market import read_trading_parameters_market, instantiate_market
 
 if __name__ == '__main__':
 

@@ -11,14 +11,14 @@ from joblib import load
 from tqdm import tqdm
 from timeit import default_timer as timer
 
-from src.benchmark_agents.agents import AgentMarkowitz, AgentGP
-from src.market_utils.market import read_trading_parameters_market, instantiate_market
-from src.reinforcement_learning_utils.agent import Agent
-from src.gen_utils.utils import read_trading_parameters_training
-from src.reinforcement_learning_utils.environment import Environment
-from src.reinforcement_learning_utils.state_action_utils import State, Action
-from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType, SupervisedRegressorType
-from src.testing_utils.hypothesis_testing import TTester
+from dynamic_trading.benchmark_agents.agents import AgentMarkowitz, AgentGP
+from dynamic_trading.market_utils.market import read_trading_parameters_market, instantiate_market
+from dynamic_trading.reinforcement_learning_utils.agent import Agent
+from dynamic_trading.gen_utils.utils import read_trading_parameters_training
+from dynamic_trading.reinforcement_learning_utils.environment import Environment
+from dynamic_trading.reinforcement_learning_utils.state_action_utils import State, Action
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType, SupervisedRegressorType
+from dynamic_trading.testing_utils.hypothesis_testing import TTester
 
 
 class Tester:

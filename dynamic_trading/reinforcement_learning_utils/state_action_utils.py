@@ -1,4 +1,4 @@
-from src.enums import StrategyType
+from dynamic_trading.enums.enums import StrategyType
 
 
 class Action:

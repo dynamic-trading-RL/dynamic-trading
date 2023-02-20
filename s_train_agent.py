@@ -1,8 +1,8 @@
 import numpy as np
 
-from src.market_utils.market import read_trading_parameters_market
-from src.reinforcement_learning_utils.agent_trainer import AgentTrainer
-from src.gen_utils.utils import read_trading_parameters_training
+from dynamic_trading.market_utils.market import read_trading_parameters_market
+from dynamic_trading.reinforcement_learning_utils.agent_trainer import AgentTrainer
+from dynamic_trading.gen_utils.utils import read_trading_parameters_training
 
 import warnings
 

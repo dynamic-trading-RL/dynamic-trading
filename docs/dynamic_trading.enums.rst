@@ -1,13 +1,13 @@
-src.benchmark\_agents package
-=============================
+dynamic\_trading.enums package
+==============================
 
 Submodules
 ----------
 
-src.benchmark\_agents.agents module
+dynamic\_trading.enums.enums module
 -----------------------------------
 
-.. automodule:: src.benchmark_agents.agents
+.. automodule:: dynamic_trading.enums.enums
    :members:
    :undoc-members:
    :show-inheritance:
@@ -15,7 +15,7 @@ src.benchmark\_agents.agents module
 Module contents
 ---------------
 
-.. automodule:: src.benchmark_agents
+.. automodule:: dynamic_trading.enums
    :members:
    :undoc-members:
    :show-inheritance:

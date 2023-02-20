@@ -1,12 +1,25 @@
+from typing import Tuple
+
 import pandas as pd
 
-from src.market_utils.calibrator import DynamicsCalibrator, build_filename_calibrations
-from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
+from dynamic_trading.market_utils.calibrator import DynamicsCalibrator, _build_filename_calibrations
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 
 
 class Dynamics:
+    """
+    Base class for expressing the dynamics of a risk-driver or factor.
+
+    :ivar FactorDynamicsType factorDynamicsType: Dynamics assigned to the factor.
+    :ivar dict parameters: Dictionary containing the dynamics parameter.
+    :ivar RiskDriverDynamicsType riskDriverDynamicsType: Dynamics assigned to the risk-driver.
+    :ivar RiskDriverType riskDriverType: Type of risk-driver.
+  """
 
     def __init__(self):
+        """
+        Class constructor.
+        """
 
         self.factorDynamicsType = None
         self.riskDriverDynamicsType = None
@@ -68,7 +81,7 @@ class Dynamics:
 
         riskDriverType = self.riskDriverType
 
-        filename = build_filename_calibrations(riskDriverType, ticker, var_type)
+        filename = _build_filename_calibrations(riskDriverType, ticker, var_type)
 
         return filename
 
@@ -191,47 +204,108 @@ class Dynamics:
 
 
 class RiskDriverDynamics(Dynamics):
+    """
+    General class for expressing the dynamics of a risk-driver.
+
+    :ivar RiskDriverDynamicsType riskDriverDynamicsType: Dynamics assigned to the risk-driver.
+  """
 
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType):
+        """
+        Class constructur.
+
+        :param RiskDriverDynamicsType riskDriverDynamicsType: Dynamics assigned to the risk-driver.
+        """
 
         super().__init__()
         self.riskDriverDynamicsType = riskDriverDynamicsType
 
     def set_parameters_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
+        """
+        Set class attributes starting from a DynamicsCalibrator.
+
+        :param DynamicsCalibrator dynamicsCalibrator: DynamicsCalibrator used to calibrate the model.
+        """
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
 
     def set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):
+        """
+        Set class attributes starting from a file.
+
+        :param str ticker: Ticker of the security.
+        :param RiskDriverType riskDriverType: Type of risk-driver.
+        """
 
         super()._set_parameters_from_file(ticker, riskDriverType)
 
 
 class FactorDynamics(Dynamics):
+    """
+    General class for expressing the dynamics of a factor.
+
+    :ivar FactorDriverDynamicsType factorDriverDynamicsType: Dynamics assigned to the factor.
+    """
 
     def __init__(self, factorDynamicsType: FactorDynamicsType):
+        """
+        Class constructur.
+
+        :param FactorDynamicsType factorDynamicsType: Dynamics assigned to the factor.
+        """
 
         super().__init__()
         self.factorDynamicsType = factorDynamicsType
 
     def set_parameters_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
+        """
+        Set class attributes starting from a DynamicsCalibrator.
+
+        :param DynamicsCalibrator dynamicsCalibrator: DynamicsCalibrator used to calibrate the model.
+        """
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
 
     def set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):
+        """
+        Set class attributes starting from a file.
+
+        :param str ticker: Ticker of the security.
+        :param RiskDriverType riskDriverType: Type of risk-driver.
+        """
 
         super()._set_parameters_from_file(ticker, riskDriverType)
 
 
 class MarketDynamics:
+    """
+    General class for expressing the market dynamics combining risk-driver and factor dynamics'.
+
+    :ivar FactorDynamics factorDynamics: Instance of FactorDynamics.
+    :ivar RiskDriverDynamics riskDriverDynamics: Instance of RiskDriverDynamics.
+    :ivar RiskDriverType riskDriverType: Type of risk-driver.
+    :ivar float start_price: Price of the security at time :math:`t=0`.
+    """
 
     def __init__(self, riskDriverDynamics: RiskDriverDynamics, factorDynamics: FactorDynamics):
+        """
+        Class constructur.
+
+        :param RiskDriverDynamics riskDriverDynamics: Dynamics assigned to the risk-driver.
+        :param FactorDynamics factorDynamics: Dynamics assigned to the factor.
+        """
 
         self.riskDriverDynamics = riskDriverDynamics
         self.factorDynamics = factorDynamics
         self._set_riskDriverType()
         self._set_start_price()
 
-    def get_riskDriverDynamicsType_and_parameters(self):
+    def get_riskDriverDynamicsType_and_parameters(self) -> Tuple[RiskDriverDynamicsType, dict]:
+        """
+        Service function that returns the riskDriverDynamicsType with its parameters.
+
+        :return: riskDriverDynamicsType and parameters.
+        """
 
         return self.riskDriverDynamics.riskDriverDynamicsType, self.riskDriverDynamics.parameters
 

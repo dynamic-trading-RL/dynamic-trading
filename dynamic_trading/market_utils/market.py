@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import os
 
-from src.market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
-from src.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType
-from src.market_utils.financial_time_series import FinancialTimeSeries
+from dynamic_trading.market_utils.dynamics import MarketDynamics, RiskDriverDynamics, FactorDynamics
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType
+from dynamic_trading.market_utils.financial_time_series import FinancialTimeSeries
 
 
 class Market:

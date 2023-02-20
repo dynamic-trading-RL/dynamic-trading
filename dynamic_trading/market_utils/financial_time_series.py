@@ -2,13 +2,36 @@ import pandas as pd
 import os
 import numpy as np
 
-from src.enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
-from src.gen_utils.utils import get_available_futures_tickers
+from dynamic_trading.enums.enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
+from dynamic_trading.gen_utils.utils import get_available_futures_tickers
 
 
 class FinancialTimeSeries:
+    # todo: see if any of the below can go hidden
+    """
+    General class for describing a financial time series.
+
+    :ivar FactorComputationType factorComputationType: Computation rule for factor, see FactorComputationType.
+    :ivar FactorSourceType factorSourceType: Determines whether the factor is constructed from the security or provided exogenously.
+    :ivar FactorTransformationType factorTransformationType: Transformation rule for factor, see FactorTransformationType.
+    :ivar str factor_ticker: ID for factor.
+    :ivar dict info: Dictionary containing information about the financialTimeSeries
+    :ivar ModeType modeType: Determines whether the time series is used in-sample or out-of-sample, see ModeType.
+    :ivar RiskDriverType riskDriverType: Determines the risk-driver type, see RiskDriverType.
+    :ivar str ticker: ID for security.
+    :ivar pandas.DataFrame time_series: Pandas DataFrame containing the financialTimeSeries historical data.
+    :ivar int window: Window used for factorComputationType.
+    """
 
     def __init__(self, ticker: str, window: int = None, modeType: ModeType = ModeType.InSample, forcePnL: bool = False):
+        """
+        Class constructor.
+
+        :param ticker: ID for security.
+        :param window: Window used for factorComputationType.
+        :param modeType: Determines whether the time series is used in-sample or out-of-sample, see ModeType.
+        :param forcePnL: Boolean determining whether to force the risk-driver to be a P\&L.
+        """
 
         self.ticker = ticker
         self._forcePnL = forcePnL
@@ -49,14 +72,14 @@ class FinancialTimeSeries:
                 raise NameError('financialTimeSeries was instantiated without window, therefore window must be '
                                 + 'written in time-series-info.csv')
 
-        if type(self.info.loc['factor_ticker'].item()) == str:
+        if type(self.info.loc['_factor_ticker'].item()) == str:
 
-            self.factor_ticker = self.info.loc['factor_ticker'].item()
+            self.factor_ticker = self.info.loc['_factor_ticker'].item()
             self.factorSourceType = FactorSourceType.Exogenous
 
         else:
             self.factor_ticker = self.ticker +\
-                                 '_' + self.info.loc['factorComputationType'].item() +\
+                                 '_' + self.info.loc['_factorComputationType'].item() +\
                                  '_' + str(self.info.loc['window'].item())
             self.factorSourceType = FactorSourceType.Constructed
 
@@ -64,9 +87,9 @@ class FinancialTimeSeries:
             self.riskDriverType = RiskDriverType.PnL
         else:
             self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
-        self.factorComputationType = FactorComputationType(self.info.loc['factorComputationType'][0])
+        self.factorComputationType = FactorComputationType(self.info.loc['_factorComputationType'][0])
         self.window = int(self.info.loc['window'][0])
-        self.factorTransformationType = FactorTransformationType(self.info.loc['factorTransformationType'].item())
+        self.factorTransformationType = FactorTransformationType(self.info.loc['_factorTransformationType'].item())
 
     def _set_asset_time_series(self, start_date: str, end_date: str, in_sample_proportion: float):
 
@@ -164,7 +187,7 @@ class FinancialTimeSeries:
             x = np.log(v).diff()
 
         else:
-            raise NameError('factorTransformationType not correctly specified')
+            raise NameError('_factorTransformationType not correctly specified')
 
         self._get_factor_time_series_from_x(x)
 
@@ -188,7 +211,7 @@ class FinancialTimeSeries:
                                         'out_of_sample_proportion_len',
                                         'window',
                                         'riskDriverType',
-                                        'factorComputationType'],
+                                        '_factorComputationType'],
                                  data=[self.ticker,
                                        self.time_series.index[-1],
                                        self.time_series[self.ticker].iloc[-1],

@@ -1,3 +1,5 @@
+from typing import Union
+
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
@@ -8,9 +10,9 @@ from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
-from src.enums import RiskDriverDynamicsType, FactorDynamicsType
-from src.gen_utils.utils import get_available_futures_tickers
-from src.market_utils.financial_time_series import FinancialTimeSeries
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType
+from dynamic_trading.gen_utils.utils import get_available_futures_tickers
+from dynamic_trading.market_utils.financial_time_series import FinancialTimeSeries
 
 import warnings
 
@@ -18,8 +20,20 @@ warnings.filterwarnings('ignore', message='A date index has been provided, but i
 
 
 class DynamicsCalibrator:
+    """
+    General class for executing the calibration of all the models considered for a given security.
+
+    :ivar FinancialTimeSeries financialTimeSeries: The financial time series to be calibrated.
+    :ivar RiskDriverType riskDriverType: Can be RiskDriverType.PnL (the security's model is on PnLs) or RiskDriverType.Return (the security's model is on returns).
+    :ivar dict all_dynamics_param_dict: Dictionary containing all the fitted parameters.
+    :ivar dict all_dynamics_model_dict: Dictionary containing all the fitted models.
+    :ivar dict all_dynamics_resid_dict: Dictionary containing all the fitted residuals.
+  """
 
     def __init__(self):
+        """
+        Class constructor.
+        """
 
         self.financialTimeSeries = None
         self.all_dynamics_param_dict = {}
@@ -30,6 +44,14 @@ class DynamicsCalibrator:
                                scale: float = 1,
                                scale_f: float = 1,
                                c: float = None):
+        """
+        Fits all the dynamics considered on the given financial time series.
+
+        :param FinancialTimeSeries financialTimeSeries: Financial time series to fit.
+        :param float scale: Factor for rescaling the security time series.
+        :param float scale_f: Factor for rescaling the factor time series.
+        :param float c: Threshold for threshold models.
+        """
 
         self.financialTimeSeries = financialTimeSeries
         self._fit_all_risk_driver_dynamics_param(scale, c)
@@ -37,13 +59,27 @@ class DynamicsCalibrator:
         self._set_riskDriverType()
         self.print_results()
 
-    def get_params_dict(self, var_type, dynamicsType):
+    def get_params_dict(self, var_type: str, dynamicsType: Union[RiskDriverDynamicsType, FactorDynamicsType]) -> dict:
+        """
+        For a given var_type = ('risk-driver', 'factor') and dynamicsType, returns the dict containing the fitted parameters for that model.
+
+        :param str var_type: Can be 'risk-driver', 'factor'
+        :param Union[RiskDriverDynamicsType, FactorDynamicsType] dynamicsType: An instance of RiskDriverDynamicsType or FactorDynamicsType, depending on var_type.
+        :return: Dictionary with parameters.
+        """
 
         param_dict = self.all_dynamics_param_dict[var_type][dynamicsType]
 
         return param_dict
 
     def print_results(self):
+        """
+        Prints the results of the models fitting for the risk-driver and the factor. Results are stored in
+
+        - resources/data/financial_time_series_data
+
+        - resources/reports/calibrations
+        """
 
         self._print_results_impl('risk-driver')
         self._print_results_impl('factor')
@@ -426,23 +462,39 @@ class DynamicsCalibrator:
 
 
 class AllSeriesDynamicsCalibrator:
+    """
+    General class for executing the calibration of all the models considered for all the considered securities.
+    """
 
     def __init__(self):
+        """
+        Class constructor.
+        """
 
-        self.all_series_dynamics_calibrators = {}
-        self.best_factorDynamicsType = {}
-        self.best_factorDynamicsType_resid = {}
-        self.non_best_factorDynamicsType_resid = {}
-        self.average_price_per_contract = {}
-        self.std_price_changes = {}
+        self._all_series_dynamics_calibrators = {}
+        self._best_factorDynamicsType = {}
+        self._best_factorDynamicsType_resid = {}
+        self._non_best_factorDynamicsType_resid = {}
+        self._average_price_per_contract = {}
+        self._std_price_changes = {}
 
     def fit_all_series_dynamics(self):
+        """
+        Fits all dynamics for all securities.
+        """
 
         for ticker in tqdm(get_available_futures_tickers(), 'Fitting all time series'):
             self._set_dynamicsCalibrator(ticker)
             self._get_best_factorDynamicsType_and_resid(ticker)
 
     def print_all_series_dynamics_results(self):
+        """
+        Prints the results of the models fitting for all the risk-drivers and the factors. Results are stored in
+
+        - resources/data/financial_time_series_data
+
+        - resources/reports/calibrations
+        """
 
         self._print_financial_time_series_summaries()
         self._plot_financial_time_series()
@@ -454,7 +506,7 @@ class AllSeriesDynamicsCalibrator:
     def _print_financial_time_series_summaries(self):
 
         ll = []
-        for ticker, dynamicsCalibrator in self.all_series_dynamics_calibrators.items():
+        for ticker, dynamicsCalibrator in self._all_series_dynamics_calibrators.items():
             time_series = dynamicsCalibrator.financialTimeSeries.time_series
             start_date = time_series.index[0]
             end_date = time_series.index[-1]
@@ -482,7 +534,7 @@ class AllSeriesDynamicsCalibrator:
         ll_model_summary = [['ticker', 'var_type', 'dynamicsType', 'i', 'aic', 'bic', 'nobs', 'ess', 'f_pvalue',
                              'fvalue', 'llf', 'mse_model', 'mse_resid', 'mse_total', 'rsquared', 'rsquared_adj']]
 
-        for ticker, dynamicsCalibrator in self.all_series_dynamics_calibrators.items():
+        for ticker, dynamicsCalibrator in self._all_series_dynamics_calibrators.items():
 
             for var_type in ('risk-driver', 'factor'):
 
@@ -519,14 +571,14 @@ class AllSeriesDynamicsCalibrator:
 
         df_model_summary = pd.DataFrame(data=ll_model_summary[1:],
                                         columns=ll_model_summary[0])
-        info = f'{self.financialTimeSeries.riskDriverType.value}' +\
-               f'-{self.financialTimeSeries.factor_ticker}-{self.financialTimeSeries.factorTransformationType.value}'
+        info = f'{self._riskDriverType.value}' +\
+               f'-{self._factor_ticker}-{self._factorTransformationType.value}'
         filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/calibrations/models_summary_{info}.xlsx'
         df_model_summary.to_excel(filename, sheet_name='models_summary', index=False)
 
     def _plot_financial_time_series(self):
 
-        for ticker, dynamicsCalibrator in self.all_series_dynamics_calibrators.items():
+        for ticker, dynamicsCalibrator in self._all_series_dynamics_calibrators.items():
             financialTimeSeries = dynamicsCalibrator.financialTimeSeries
             time_series = financialTimeSeries.time_series[ticker]
 
@@ -576,14 +628,14 @@ class AllSeriesDynamicsCalibrator:
         ll = []
         abs_epsi_autocorr = None
 
-        for ticker, d1 in self.best_factorDynamicsType_resid.items():
+        for ticker, d1 in self._best_factorDynamicsType_resid.items():
 
             factorDynamicsType = d1['factorDynamicsType']
             abs_epsi_autocorr = d1['abs_epsi_autocorr']
 
             ll.append([ticker, factorDynamicsType.value] + [a for a in abs_epsi_autocorr])
 
-            for factorDynamicsType, d2 in self.non_best_factorDynamicsType_resid[ticker].items():
+            for factorDynamicsType, d2 in self._non_best_factorDynamicsType_resid[ticker].items():
                 abs_epsi_autocorr = d2['abs_epsi_autocorr']
 
                 ll.append([ticker, factorDynamicsType.value] + [a for a in abs_epsi_autocorr])
@@ -597,10 +649,10 @@ class AllSeriesDynamicsCalibrator:
 
     def _print_prices_and_stds(self):
 
-        average_prices_per_contract_df = pd.DataFrame.from_dict(self.average_price_per_contract,
+        average_prices_per_contract_df = pd.DataFrame.from_dict(self._average_price_per_contract,
                                                                 orient='index',
                                                                 columns=['Average Price Per Contract'])
-        std_price_changes_df = pd.DataFrame.from_dict(self.std_price_changes,
+        std_price_changes_df = pd.DataFrame.from_dict(self._std_price_changes,
                                                       orient='index',
                                                       columns=['Standard Deviation of Price Changes'])
         out_dict = pd.concat([average_prices_per_contract_df, std_price_changes_df], axis=1)
@@ -614,7 +666,7 @@ class AllSeriesDynamicsCalibrator:
 
     def _plot_best_residuals(self):
 
-        for ticker, d in self.best_factorDynamicsType_resid.items():
+        for ticker, d in self._best_factorDynamicsType_resid.items():
             factorDynamicsType = d['factorDynamicsType']
             resid = d['resid']
             abs_epsi_autocorr = d['abs_epsi_autocorr']
@@ -648,7 +700,7 @@ class AllSeriesDynamicsCalibrator:
 
     def _plot_non_best_residuals(self):
 
-        for ticker, d1 in self.non_best_factorDynamicsType_resid.items():
+        for ticker, d1 in self._non_best_factorDynamicsType_resid.items():
 
             for factorDynamicsType, d in d1.items():
                 resid = d['resid']
@@ -683,11 +735,11 @@ class AllSeriesDynamicsCalibrator:
 
     def _get_best_factorDynamicsType_and_resid(self, ticker):
 
-        self.best_factorDynamicsType_resid[ticker] = {}
-        self.non_best_factorDynamicsType_resid[ticker] = {}
+        self._best_factorDynamicsType_resid[ticker] = {}
+        self._non_best_factorDynamicsType_resid[ticker] = {}
 
-        all_factor_params = self.all_series_dynamics_calibrators[ticker].all_dynamics_param_dict['factor']
-        all_factor_resids = self.all_series_dynamics_calibrators[ticker].all_dynamics_resid_dict['factor']
+        all_factor_params = self._all_series_dynamics_calibrators[ticker].all_dynamics_param_dict['factor']
+        all_factor_resids = self._all_series_dynamics_calibrators[ticker].all_dynamics_resid_dict['factor']
 
         factorDynamics_best = self._get_best_factorDynamicsType_and_resid_impl(all_factor_params, all_factor_resids,
                                                                                ticker)
@@ -711,10 +763,10 @@ class AllSeriesDynamicsCalibrator:
 
                 factorDynamics_best = factorDynamicsType
 
-        self.best_factorDynamicsType[ticker] = factorDynamics_best
-        self.best_factorDynamicsType_resid[ticker]['factorDynamicsType'] = factorDynamics_best
-        self.best_factorDynamicsType_resid[ticker]['resid'] = all_factor_resids[factorDynamics_best]
-        self.best_factorDynamicsType_resid[ticker]['abs_epsi_autocorr'] = abs_epsi_autocorr_best
+        self._best_factorDynamicsType[ticker] = factorDynamics_best
+        self._best_factorDynamicsType_resid[ticker]['factorDynamicsType'] = factorDynamics_best
+        self._best_factorDynamicsType_resid[ticker]['resid'] = all_factor_resids[factorDynamics_best]
+        self._best_factorDynamicsType_resid[ticker]['abs_epsi_autocorr'] = abs_epsi_autocorr_best
         return factorDynamics_best
 
     def _get_non_best_factorDynamicsType_and_resid(self, all_factor_params, all_factor_resids, factorDynamics_best,
@@ -724,7 +776,7 @@ class AllSeriesDynamicsCalibrator:
                                        if factorDynamicsType != factorDynamics_best]
 
         for factorDynamicsType in non_best_factorDynamicsType:
-            self.non_best_factorDynamicsType_resid[ticker][factorDynamicsType] =\
+            self._non_best_factorDynamicsType_resid[ticker][factorDynamicsType] =\
                 {'resid': all_factor_resids[factorDynamicsType],
                  'abs_epsi_autocorr': all_factor_params[factorDynamicsType]['abs_epsi_autocorr']}
 
@@ -732,16 +784,17 @@ class AllSeriesDynamicsCalibrator:
         financialTimeSeries = FinancialTimeSeries(ticker=ticker)
         dynamicsCalibrator = DynamicsCalibrator()
         dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries)
-        self.all_series_dynamics_calibrators[ticker] = dynamicsCalibrator
-        self.financialTimeSeries = financialTimeSeries
-        self.riskDriverType = self.financialTimeSeries.riskDriverType
-        self.factorComputationType = self.financialTimeSeries.factorComputationType
+        self._all_series_dynamics_calibrators[ticker] = dynamicsCalibrator
+        self._riskDriverType = financialTimeSeries.riskDriverType
+        self._factorComputationType = financialTimeSeries.factorComputationType
+        self._factor_ticker = financialTimeSeries.factor_ticker
+        self._factorTransformationType = financialTimeSeries.factorTransformationType
 
-        self.average_price_per_contract[ticker] = self.financialTimeSeries.time_series[ticker].mean()
-        self.std_price_changes[ticker] = self.financialTimeSeries.time_series[ticker].diff().std()
+        self._average_price_per_contract[ticker] = financialTimeSeries.time_series[ticker].mean()
+        self._std_price_changes[ticker] = financialTimeSeries.time_series[ticker].diff().std()
 
 
-def build_filename_calibrations(riskDriverType, ticker, var_type):
+def _build_filename_calibrations(riskDriverType, ticker, var_type):
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
                '/resources/data/financial_time_series_data/financial_time_series_calibrations/' +\
                ticker + '-riskDriverType-' + riskDriverType.value + '-' + var_type + '-calibrations.xlsx'
@@ -749,12 +802,12 @@ def build_filename_calibrations(riskDriverType, ticker, var_type):
     return filename
 
 
-def get_futures_data_filename():
+def _get_futures_data_filename():
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/market_data/assets_data.xlsx'
     return filename
 
 
-def read_futures_data_by_ticker(filename, ticker):
+def _read_futures_data_by_ticker(filename, ticker):
     time_series = pd.read_excel(filename, sheet_name=ticker, index_col=0)
     return time_series
 
@@ -765,8 +818,3 @@ if __name__ == '__main__':
     allSeriesDynamicsCalibrator = AllSeriesDynamicsCalibrator()
     allSeriesDynamicsCalibrator.fit_all_series_dynamics()
     allSeriesDynamicsCalibrator.print_all_series_dynamics_results()
-
-    # financialTimeSeries = FinancialTimeSeries(ticker='WTI')
-    # dynamicsCalibrator = DynamicsCalibrator()
-    # dynamicsCalibrator.fit_all_dynamics_param(financialTimeSeries, scale=1, scale_f=1, c=0)
-    # dynamicsCalibrator.print_results()

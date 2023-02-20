@@ -1,7 +1,7 @@
-src
-===
+dynamic_trading
+===============
 
 .. toctree::
    :maxdepth: 4
 
-   src
+   dynamic_trading

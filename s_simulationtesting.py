@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from src.testing_utils.testers import SimulationTester, read_out_of_sample_parameters
+from dynamic_trading.testing_utils.testers import SimulationTester, read_out_of_sample_parameters
 import warnings
 warnings.filterwarnings("ignore")
 

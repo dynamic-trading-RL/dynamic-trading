@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from src.gen_utils.utils import get_available_futures_tickers
+from dynamic_trading.gen_utils.utils import get_available_futures_tickers
 
 if __name__ == '__main__':
 
