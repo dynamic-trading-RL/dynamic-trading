@@ -69,6 +69,7 @@ def instantiate_polynomialFeatures(degree) -> PolynomialFeatures:
     poly : :obj:`PolynomialFeatures`
         :obj:`PolynomialFeatures` object defining the features of a polynomial regression. See :obj:`PolynomialFeatures`
         for more details.
+
     """
 
     poly = PolynomialFeatures(degree=degree,
@@ -99,6 +100,7 @@ def find_polynomial_minimum(coef: Union[list, np.ndarray, tuple],
         Polynomial minimum point.
     flag_error : bool
         Flag determining whether the minimum existed in the interval.
+
     """
 
     x_optim_when_error = truncnorm.rvs(a=bounds[0], b=bounds[1], loc=0., scale=0.01 * (bounds[1] - bounds[0]))
@@ -243,6 +245,7 @@ def read_trading_parameters_training() -> tuple[float, int, int, int, bool, int 
         the reward obtained in the training phase; 'average_q', best choice is based on the average state-action value
         obtained in the training phase; 'model_convergence', best choice is based on a convergence criterion on the norm
         of two subsequent state-action value function estimates.
+
     """
 
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + \

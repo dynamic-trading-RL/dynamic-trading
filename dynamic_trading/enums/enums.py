@@ -4,6 +4,7 @@ from enum import Enum
 class RiskDriverDynamicsType(Enum):
     """
     Enum determining the type of risk-driver dynamics.
+
     """
 
     Linear = 'Linear'  #: A linear model.
@@ -13,6 +14,7 @@ class RiskDriverDynamicsType(Enum):
 class FactorDynamicsType(Enum):
     """
     Enum determining the type of factor dynamics.
+
     """
 
     AR = 'AR'  #: AR(1) model.
@@ -25,6 +27,7 @@ class FactorDynamicsType(Enum):
 class FactorComputationType(Enum):
     """
     Enum determining the type of filtering on the factor time series transformed as in FactorTransformationType.
+
     """
 
     MovingAverage = 'MovingAverage'  #: Uses moving average.
@@ -34,6 +37,7 @@ class FactorComputationType(Enum):
 class FactorTransformationType(Enum):
     """
     Enum determining the type of factor transformation to consider.
+
     """
 
     NoTransformation = 'NoTransformation'  #: No transformation is applied to the factor time series.
@@ -44,6 +48,7 @@ class FactorTransformationType(Enum):
 class RiskDriverType(Enum):
     """
     Enum determining the type of risk driver.
+
     """
 
     PnL = 'PnL'  #: The variable :math:`x_t` coincides with the P\&L of the security.
@@ -53,6 +58,7 @@ class RiskDriverType(Enum):
 class FactorSourceType(Enum):
     """
     Enum determining whether the factor is provided exogenously or constructed.
+
     """
 
     Constructed = 'Constructed'  #: The factor is constructed starting from the security time series.
@@ -63,6 +69,7 @@ class ModeType(Enum):
     """
     Enum determining whether a FinancialTimeSeries object should be considered for in-sample purposes (e.g. estimation)
     or out-of-sample purposes (e.g. evaluation).
+
     """
 
     InSample = 'InSample'  #: In-sample mode.
@@ -73,6 +80,7 @@ class RandomActionType(Enum):
     """
     Enum determining the type of random action to be performed for state-action value initialization or for the
     epsilon-greedy exploration.
+
     """
 
     RandomUniform = 'RandomUniform'  #: Uniform on action space.
@@ -83,6 +91,7 @@ class RandomActionType(Enum):
 class StrategyType(Enum):
     """
     Enum determining what type of strategy an agent is following.
+
     """
 
     Unconstrained = 'Unconstrained'  #: Unconstrained strategy
@@ -93,6 +102,7 @@ class OptimizerType(Enum):
     """
     Enum determining what type of optimizer to use in the greedy policy computation. See scipy.optimize for more
     details.
+
     """
 
     basinhopping = 'basinhopping'  #: Basin-hopping algorithm
@@ -106,6 +116,7 @@ class OptimizerType(Enum):
 class SupervisedRegressorType(Enum):
     """
     Enum determining what type of supervised regressor to use for interpolating the state-action value function.
+
     """
 
     ann = 'ann'  #: Artificial neural network
@@ -116,6 +127,7 @@ class SupervisedRegressorType(Enum):
 class InitialQvalueEstimateType(Enum):
     """
     Enum determining what type of initialization should be used for the state-action value function.
+
     """
 
     zero = 'zero'  #: state-action value function is initialized to 0.

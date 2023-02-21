@@ -13,11 +13,6 @@ class AgentBenchmark:
     """
     Base class for benchmark agent.
 
-    Parameters
-    ----------
-    market : Market
-        The market on which the agent is operating.
-
     Attributes
     ----------
     gamma : float
@@ -30,9 +25,19 @@ class AgentBenchmark:
         The market on which the agent is operating.
     strategyType: StrategyType
         The strategy being performed by the agent. Refer to :obj:`StrategyType` for more details.
+
     """
 
     def __init__(self, market: Market):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        market : Market
+            The market on which the agent is operating.
+
+        """
 
         self._check_input(market)
 
@@ -69,6 +74,7 @@ class AgentBenchmark:
         -------
         trading_cost : float
             The trading cost.
+
         """
 
         sig2 = self.market.next_step_sig2(factor=factor, price=price)
@@ -91,6 +97,7 @@ class AgentBenchmark:
         -------
         trading_risk : float
             The trading risk.
+
         """
 
         sig2 = self.market.next_step_sig2(factor=factor, price=price)
@@ -178,18 +185,23 @@ class AgentMarkowitz(AgentBenchmark):
     """
     Base class for Markowitz agent agent.
 
-    Parameters
-    ----------
-    market : Market
-        The market on which the agent is operating.
-
     Attributes
     ----------
     use_quadratic_cost_in_markowitz : bool
         If ``True``, it uses the static Markowitz solution taking into account transaction costs.
+
     """
 
     def __init__(self, market: Market):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        market : Market
+            The market on which the agent is operating.
+
+        """
 
         super().__init__(market)
         self._set_specific_markowitz_attributes()
@@ -214,6 +226,7 @@ class AgentMarkowitz(AgentBenchmark):
         -------
         rescaled_trade: float
             The trade, rescaled by the factor `shares_scale`.
+
         """
 
         shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares, price, shares_scale)
@@ -254,13 +267,18 @@ class AgentGP(AgentBenchmark):
     """
     Base class for GP agent.
 
-    Parameters
-    ----------
-    market : Market
-        The market on which the agent is operating.
     """
 
     def __init__(self, market: Market):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        market : Market
+            The market on which the agent is operating.
+
+        """
 
         super().__init__(market)
 

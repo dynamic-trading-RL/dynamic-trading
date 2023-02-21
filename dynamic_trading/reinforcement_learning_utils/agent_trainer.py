@@ -542,7 +542,7 @@ class AgentTrainer:
         self._store_model_evaluations(n)
         self._evaluate_model(n)
 
-        del self.market.simulations_trading[n]
+        del self.market.simulations_training[n]
 
     def _evaluate_model(self, n):
 

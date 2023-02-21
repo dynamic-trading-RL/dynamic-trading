@@ -36,6 +36,7 @@ class DynamicsCalibrator:
         Dictionary containing all the fitted models.
     all_dynamics_resid_dict : dict
         Dictionary containing all the fitted residuals.
+
     """
 
     def __init__(self):
@@ -62,6 +63,7 @@ class DynamicsCalibrator:
             Factor for rescaling the factor time series.
         c : float
             Threshold for threshold models.
+
         """
 
         self.financialTimeSeries = financialTimeSeries
@@ -86,6 +88,7 @@ class DynamicsCalibrator:
         -------
         param_dict : dict
             Dictionary with parameters.
+
         """
 
         param_dict = self.all_dynamics_param_dict[var_type][dynamicsType]
@@ -96,6 +99,7 @@ class DynamicsCalibrator:
         """
         Prints the results of the models fitting for the risk-driver and the factor. Results are stored in
         resources/data/financial_time_series_data and in resources/reports/calibrations
+
         """
 
         self._print_results_impl('risk-driver')
@@ -481,6 +485,7 @@ class DynamicsCalibrator:
 class AllSeriesDynamicsCalibrator:
     """
     General class for executing the calibration of all the models considered for all the considered securities.
+
     """
 
     def __init__(self):
@@ -495,6 +500,7 @@ class AllSeriesDynamicsCalibrator:
     def fit_all_series_dynamics(self):
         """
         Fits all dynamics for all securities.
+
         """
 
         for ticker in tqdm(get_available_futures_tickers(), 'Fitting all time series'):
@@ -504,7 +510,8 @@ class AllSeriesDynamicsCalibrator:
     def print_all_series_dynamics_results(self):
         """
         Prints the results of the models fitting for all the risk-drivers and the factors. Results are stored in
-        resources/data/financial_time_series_data and in resources/reports/calibrations
+        resources/data/financial_time_series_data and in resources/reports/calibrations.
+
         """
 
         self._print_financial_time_series_summaries()
@@ -537,7 +544,8 @@ class AllSeriesDynamicsCalibrator:
         df_out = pd.DataFrame(data=ll, columns=['ticker', 'start_date', 'end_date',
                                                 'price_average', 'price_std', 'price_min', 'price_max',
                                                 'pnl_average', 'pnl_std', 'pnl_min', 'pnl_max'])
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/calibrations/assets_summaries.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/reports/calibrations/assets_summaries.xlsx'
         df_out.to_excel(filename, sheet_name='assets_summaries', index=False)
 
     def _print_calibration_results(self):
@@ -814,7 +822,8 @@ def _build_filename_calibrations(riskDriverType, ticker, var_type):
 
 
 def _get_futures_data_filename():
-    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/market_data/assets_data.xlsx'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    filename += '/resources/data/data_source/market_data/assets_data.xlsx'
     return filename
 
 

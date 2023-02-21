@@ -10,15 +10,52 @@ from dynamic_trading.market_utils.financial_time_series import FinancialTimeSeri
 
 
 class Market:
+    """
+    General class for describing a financial time series.
+
+    Attributes
+    ----------
+    financialTimeSeries : FinancialTimeSeries
+        Financial time series acting on the market. See :obj:`FinancialTimeSeries` for more details.
+    marketDynamics : MarketDynamics
+        Market dynamics of risk-driver and factor in the :obj:`FinancialTimeSeries`.
+    market_id : str
+        Identifier of this :obj:`Market` object.
+    riskDriverType : RiskDriverType
+        Risk-driver type assigned to the :obj:`FinancialTimeSeries`. See :obj:`RiskDriverType`. for more details.
+    simulations: dict
+        Dictionary indexes by market variable names 'risk-driver', 'factor', 'pnl', possibly 'sig' in case of ARCH
+        dynamics. Each value in the dictionary is a pandas.Dataframe containing the simulations of the specific market
+        variable.
+    simulations_training : pandas.DataFrame
+        Dictionary containing simulations used for training. As opposed to :obj:`simulations`, the primary key of this
+        dictionary is an integer `n` indicating the batch on which the training is operating.
+    start_price : float
+        Price of the security at time :math:`t=0`.
+    ticker : str
+        ID for security.
+
+    """
 
     def __init__(self, financialTimeSeries: FinancialTimeSeries, marketDynamics: MarketDynamics):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        financialTimeSeries : FinancialTimeSeries
+            Financial time series operating on the market.
+        marketDynamics : MarketDynamics
+            Market dynamics assigned to the financial time series.
+
+        """
 
         self.financialTimeSeries = financialTimeSeries
         self.marketDynamics = marketDynamics
         self._set_market_attributes()
-        self.simulations_trading = None
+        self.simulations_training = None
 
-    def next_step_risk_driver(self, factor: float):
+    def _next_step_risk_driver(self, factor: float):
 
         riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
 
@@ -37,14 +74,30 @@ class Market:
                 return parameters['mu_1'] + parameters['B_1']*factor
 
     def next_step_pnl(self, factor: float, price: float = None):
+        """
+        Computes the next step P\&L of the security given the current price and factor.
+
+        Parameters
+        ----------
+        factor : float
+            Current observation of the factor.
+        price : float
+            Current observation of the price.
+
+        Returns
+        -------
+        pnl : float
+            Next step P\&L.
+
+        """
 
         if self.riskDriverType == RiskDriverType.PnL:
 
-            pnl = self.next_step_risk_driver(factor)
+            pnl = self._next_step_risk_driver(factor)
 
         elif self.riskDriverType == RiskDriverType.Return:
 
-            ret = self.next_step_risk_driver(factor)
+            ret = self._next_step_risk_driver(factor)
             pnl = price * ret
 
         else:
@@ -53,6 +106,22 @@ class Market:
         return pnl
 
     def next_step_sig2(self, factor: float, price: float = None):
+        """
+        Computes the next-step P\&L variance for risk-cost evaluation purposes
+
+        Parameters
+        ----------
+        factor : float
+            Current observation of the factor.
+        price : float
+            Current observation of the price.
+
+        Returns
+        -------
+        sig2 : float
+            Next step P\&L variance.
+
+        """
 
         if self.riskDriverType == RiskDriverType.PnL:
 
@@ -69,17 +138,44 @@ class Market:
         return sig2
 
     def simulate(self, j_: int, t_: int, delta_stationary: int = 50):
+        """
+        Simulate all variables contained in the market.
+
+        Parameters
+        ----------
+        j_: int
+            Number of paths.
+        t_ : int
+            Length of each path.
+        delta_stationary : int
+            In order to get stationary simulations of the factor, it simulates paths of length
+            :obj:`t_ + delta_stationary`, then it drops the first :obj:`delta_stationary`.
+
+        """
 
         self._simulate_factor(j_, t_, delta_stationary)
         self._simulate_risk_driver_and_pnl_and_price()
 
     def simulate_market_trading(self, n: int, j_episodes: int, t_: int):
+        """
+        Simulate all variables contained in the market for training purposes.
 
-        if self.simulations_trading is None:
-            self.simulations_trading = {}
+        Parameters
+        ----------
+        n : int
+            Batch on which the training is being done.
+        j_episodes: int
+            Number of paths.
+        t_ : int
+            Length of each path.
+
+        """
+
+        if self.simulations_training is None:
+            self.simulations_training = {}
 
         self.simulate(j_=j_episodes, t_=t_)
-        self.simulations_trading[n] = copy.deepcopy(self.simulations)
+        self.simulations_training[n] = copy.deepcopy(self.simulations)
 
     def _get_sig2(self, factor: float = None):
 
@@ -208,7 +304,7 @@ class Market:
 
     def _simulate_risk_driver_linear(self, risk_driver, factor, norm, parameters):
         sig2 = parameters['sig2']
-        risk_driver[:, 1:] = self.next_step_risk_driver(factor[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
+        risk_driver[:, 1:] = self._next_step_risk_driver(factor[:, :-1]) + np.sqrt(sig2) * norm[:, 1:]
 
     def _simulate_risk_driver_non_linear(self, risk_driver, factor, norm, parameters, t_):
         c = parameters['c']
@@ -335,7 +431,7 @@ class Market:
         self.simulations['price'] = self.start_price + np.cumsum(self.simulations['pnl'], axis=1)
 
     def _get_next_step_risk_driver(self, risk_driver, f, ind_0, norm, sig2_0, t):
-        risk_driver[ind_0, t] = np.vectorize(self.next_step_risk_driver,
+        risk_driver[ind_0, t] = np.vectorize(self._next_step_risk_driver,
                                              otypes=[float])(f[ind_0, t - 1]) + np.sqrt(sig2_0) * norm[ind_0, t]
 
     @staticmethod
@@ -370,6 +466,27 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
                        ticker: str,
                        riskDriverType: RiskDriverType,
                        modeType: ModeType = ModeType.InSample):
+    """
+    Instantiates a :obj:`Market` object.
+
+    Parameters
+    ----------
+    riskDriverDynamicsType : RiskDriverDynamicsType
+        Dynamics type for the risk-driver, see :obj:`RiskDriverDynamicsType` for more details.
+    factorDynamicsType : FactorDynamicsType
+        Dynamics type for the factor, see :obj:`FactorDynamicsType` for more details.
+    ticker : str
+        ID for the security.
+    riskDriverType : RiskDriverType
+        Type of risk-driver, see :obj:`RiskDriverType` for more details.
+    modeType : ModeType
+        Whether to use the time series for in-sample or out-of-sample purposes. See :obj:`ModeType` for more details.
+
+    Returns
+    -------
+    market : Market
+        Instance of :obj:`Market` object with given attributes.
+    """
 
     # Instantiate financialTimeSeries
     financialTimeSeries = FinancialTimeSeries(ticker, modeType=modeType)
@@ -385,10 +502,28 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
     # Set dynamics
     marketDynamics = MarketDynamics(riskDriverDynamics, factorDynamics)
 
-    return Market(financialTimeSeries, marketDynamics)
+    # Instantiate market
+    market = Market(financialTimeSeries, marketDynamics)
+
+    return market
 
 
 def read_trading_parameters_market():
+    """
+    Reads trading parameters from input file.
+
+    Returns
+    -------
+    ticker : str
+        ID for the security.
+    riskDriverDynamicsType : RiskDriverDynamicsType
+        Dynamics type for the risk-driver, see :obj:`RiskDriverDynamicsType` for more details.
+    factorDynamicsType : FactorDynamicsType
+        Dynamics type for the factor, see :obj:`FactorDynamicsType` for more details.
+    riskDriverType : RiskDriverType
+        Type of risk-driver, see :obj:`RiskDriverType` for more details.
+
+    """
 
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
                '/resources/data/data_source/settings.csv'

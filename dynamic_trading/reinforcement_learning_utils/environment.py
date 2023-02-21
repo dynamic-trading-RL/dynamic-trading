@@ -36,11 +36,11 @@ class Environment:
         if self._random_initial_state:
             rescaled_shares = -1 + 2*np.random.rand()
             other_observable = 0.
-            pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=-1)
+            pnl, factor, price, average_past_pnl = self._get_market_simulations_training(n=n, j=j, t=-1)
         else:
             rescaled_shares = 0.
             other_observable = 0.
-            pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=0)
+            pnl, factor, price, average_past_pnl = self._get_market_simulations_training(n=n, j=j, t=0)
 
         ttm = self.t_
 
@@ -106,7 +106,7 @@ class Environment:
 
         next_rescaled_shares = rescaled_shares + action.rescaled_trade
 
-        pnl, factor, price, average_past_pnl = self._get_market_simulation_trading(n=n, j=j, t=t)
+        pnl, factor, price, average_past_pnl = self._get_market_simulations_training(n=n, j=j, t=t)
         next_factor = factor
         next_other_observable = 0.
         next_price = price
@@ -150,12 +150,12 @@ class Environment:
 
         return 0.5 * shares * self.kappa * sig2 * shares
 
-    def _get_market_simulation_trading(self, n: int, j: int, t: int):
+    def _get_market_simulations_training(self, n: int, j: int, t: int):
 
-        return (self.market.simulations_trading[n]['pnl'][j, t],
-                self.market.simulations_trading[n]['factor'][j, t],
-                self.market.simulations_trading[n]['price'][j, t],
-                self.market.simulations_trading[n]['average_past_pnl'][j, t])
+        return (self.market.simulations_training[n]['pnl'][j, t],
+                self.market.simulations_training[n]['factor'][j, t],
+                self.market.simulations_training[n]['price'][j, t],
+                self.market.simulations_training[n]['average_past_pnl'][j, t])
 
     def _set_attributes(self):
 

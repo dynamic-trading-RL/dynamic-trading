@@ -20,6 +20,7 @@ class Dynamics:
         Dynamics assigned to the risk-driver.
     riskDriverType : RiskDriverType
         Type of risk-driver.
+
     """
 
     def __init__(self):
@@ -210,18 +211,23 @@ class RiskDriverDynamics(Dynamics):
     """
     General class for expressing the dynamics of a risk-driver.
 
-    Parameters
-    ----------
-    riskDriverDynamicsType : RiskDriverDynamicsType
-        Dynamics assigned to the risk-driver.
-
     Attributes
     ----------
     riskDriverDynamicsType : RiskDriverDynamicsType
         Dynamics assigned to the risk-driver.
+
     """
 
     def __init__(self, riskDriverDynamicsType: RiskDriverDynamicsType):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        riskDriverDynamicsType : RiskDriverDynamicsType
+            Dynamics assigned to the risk-driver.
+
+        """
 
         super().__init__()
         self.riskDriverDynamicsType = riskDriverDynamicsType
@@ -230,17 +236,26 @@ class RiskDriverDynamics(Dynamics):
         """
         Set class attributes starting from a DynamicsCalibrator.
 
-        :param DynamicsCalibrator dynamicsCalibrator: DynamicsCalibrator used to calibrate the model.
+        Parameters
+        ----------
+        dynamicsCalibrator : DynamicsCalibrator
+            DynamicsCalibrator used to calibrate the model
+
         """
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
 
     def set_parameters_from_file(self, ticker: str, riskDriverType: RiskDriverType):
         """
-        Set class attributes starting from a file.
+        Set class attributes starting from a file
 
-        :param str ticker: Ticker of the security.
-        :param RiskDriverType riskDriverType: Type of risk-driver.
+        Parameters
+        ----------
+        ticker : str
+            Ticker of the security.
+        riskDriverType : RiskDriverType
+            Type of risk-driver
+
         """
 
         super()._set_parameters_from_file(ticker, riskDriverType)
@@ -250,18 +265,23 @@ class FactorDynamics(Dynamics):
     """
     General class for expressing the dynamics of a risk-driver.
 
-    Parameters
-    ----------
-    factorDynamicsType : FactorDynamicsType
-        Dynamics assigned to the factor.
-
     Attributes
     ----------
     factorDriverDynamicsType : FactorDriverDynamicsType
         Dynamics assigned to the factor.
+
     """
 
     def __init__(self, factorDynamicsType: FactorDynamicsType):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        factorDynamicsType : FactorDynamicsType
+            Dynamics assigned to the factor.
+
+        """
 
         super().__init__()
         self.factorDynamicsType = factorDynamicsType
@@ -274,6 +294,7 @@ class FactorDynamics(Dynamics):
         ----------
         dynamicsCalibrator : DynamicsCalibrator
             DynamicsCalibrator used to calibrate the model.
+
         """
 
         super()._set_parameters_from_calibrator(dynamicsCalibrator)
@@ -288,6 +309,7 @@ class FactorDynamics(Dynamics):
             Ticker of the security
         riskDriverType : RiskDriverType
             Type of risk-driver
+
         """
 
         super()._set_parameters_from_file(ticker, riskDriverType)
@@ -296,13 +318,6 @@ class FactorDynamics(Dynamics):
 class MarketDynamics:
     """
     General class for expressing the market dynamics combining risk-driver and factor dynamics'.
-
-    Parameters
-    ----------
-    riskDriverDynamics : RiskDriverDynamics
-        Dynamics assigned to the risk-driver.
-    factorDynamics : FactorDynamics
-        Dynamics assigned to the factor
 
     Attributes
     ----------
@@ -314,9 +329,21 @@ class MarketDynamics:
         Type of risk-driver
     start_price : float
         Price of the security at time :math:`t=0`.
+
     """
 
     def __init__(self, riskDriverDynamics: RiskDriverDynamics, factorDynamics: FactorDynamics):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        riskDriverDynamics : RiskDriverDynamics
+            Dynamics assigned to the risk-driver.
+        factorDynamics : FactorDynamics
+            Dynamics assigned to the factor
+
+        """
 
         self.riskDriverDynamics = riskDriverDynamics
         self.factorDynamics = factorDynamics
@@ -333,6 +360,7 @@ class MarketDynamics:
             riskDriverDynamicsType associated to the class.
         parameters : dict
             parameters of the risk-driver dynamics.
+
         """
 
         return self.riskDriverDynamics.riskDriverDynamicsType, self.riskDriverDynamics.parameters

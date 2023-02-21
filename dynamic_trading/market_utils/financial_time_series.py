@@ -7,46 +7,46 @@ from dynamic_trading.gen_utils.utils import get_available_futures_tickers
 
 
 class FinancialTimeSeries:
-    # todo: see if any of the below can go hidden
     """
     General class for describing a financial time series.
-
-    Parameters
-    ----------
-    ticker : str
-        ID for security.
-    window : int
-        Window used for factorComputationType.
-    modeType : ModeType
-        Determines whether the time series is used in-sample or out-of-sample, see ModeType.
-    forcePnL : bool
-        Boolean determining whether to force the risk-driver to be a P\&L.
 
     Attributes
     ----------
     factorComputationType : FactorComputationType
         Computation rule for factor, see FactorComputationType.
-    factorSourceType : FactorSourceType
-        Determines whether the factor is constructed from the security or provided exogenously.
     factorTransformationType : FactorTransformationType
         Transformation rule for factor, see FactorTransformationType
     factor_ticker : str
         ID for factor.
     info : dict
        Dictionary containing information about the financialTimeSeries
-    modeType : ModeType
-        Determines whether the time series is used in-sample or out-of-sample, see ModeType.
     riskDriverType : RiskDriverType
         Determines the risk-driver type, see RiskDriverType
     ticker : str
-        ID for security
+        ID for security.
     time_series : pandas.DataFrame
         Pandas DataFrame containing the financialTimeSeries historical data.
     window : int
         Window used for factorComputationType.
+
     """
 
     def __init__(self, ticker: str, window: int = None, modeType: ModeType = ModeType.InSample, forcePnL: bool = False):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        ticker : str
+            ID for security.
+        window : int
+            Window used for factorComputationType.
+        modeType : ModeType
+            Determines whether the time series is used in-sample or out-of-sample, see ModeType.
+        forcePnL : bool
+            Boolean determining whether to force the risk-driver to be a P\&L.
+
+        """
 
         self.ticker = ticker
         self._forcePnL = forcePnL
@@ -54,7 +54,7 @@ class FinancialTimeSeries:
 
     def _set_time_series(self, window: int, modeType: ModeType):
 
-        self.modeType = modeType
+        self._modeType = modeType
 
         # if window is None, then it is taken from financial_time_series_setting.csv
         self._set_settings_from_file(window)
@@ -90,13 +90,13 @@ class FinancialTimeSeries:
         if type(self.info.loc['factor_ticker'].item()) == str:
 
             self.factor_ticker = self.info.loc['factor_ticker'].item()
-            self.factorSourceType = FactorSourceType.Exogenous
+            self._factorSourceType = FactorSourceType.Exogenous
 
         else:
             self.factor_ticker = self.ticker +\
                                  '_' + self.info.loc['factorComputationType'].item() +\
                                  '_' + str(self.info.loc['window'].item())
-            self.factorSourceType = FactorSourceType.Constructed
+            self._factorSourceType = FactorSourceType.Constructed
 
         if self._forcePnL:
             self.riskDriverType = RiskDriverType.PnL
@@ -154,14 +154,14 @@ class FinancialTimeSeries:
         self._in_sample_proportion_len = int(self._time_series_len * in_sample_proportion)
         self._out_of_sample_proportion_len = self._time_series_len - self._in_sample_proportion_len
 
-        if self.modeType == ModeType.InSample:
+        if self._modeType == ModeType.InSample:
             self.time_series =\
                 time_series.iloc[-self._time_series_len: -self._time_series_len + self._in_sample_proportion_len]
-        elif self.modeType == ModeType.OutOfSample:
+        elif self._modeType == ModeType.OutOfSample:
             self.time_series =\
                 time_series.iloc[-self._out_of_sample_proportion_len:]
         else:
-            raise NameError(f'Invalid modeType: {self.modeType.value}')
+            raise NameError(f'Invalid modeType: {self._modeType.value}')
 
         self.time_series.insert(len(self.time_series.columns), 'pnl', np.array(self.time_series[self.ticker].diff()))
         self.time_series.insert(len(self.time_series.columns),
@@ -181,10 +181,10 @@ class FinancialTimeSeries:
 
     def _set_factor_time_series(self):
 
-        if self.factorSourceType == FactorSourceType.Constructed:
+        if self._factorSourceType == FactorSourceType.Constructed:
             v = self.time_series[self.ticker]
 
-        elif self.factorSourceType == FactorSourceType.Exogenous:
+        elif self._factorSourceType == FactorSourceType.Exogenous:
             filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
                        '/resources/data/data_source/market_data/' + self.factor_ticker + '.xlsx'
             v = pd.read_excel(filename, index_col=0, parse_dates=True)
