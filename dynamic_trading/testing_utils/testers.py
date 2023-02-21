@@ -23,9 +23,33 @@ from dynamic_trading.testing_utils.hypothesis_testing import TTester
 
 
 class Tester:
+    """
+    Base class to perform testing of the RL agent trained via :obj:`AgentTrainer`.
+
+    """
 
     def __init__(self, use_assessment_period: bool = False, assessment_proportion: float = 0.1,
                  on_the_fly: bool = False, n: int = None):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        use_assessment_period : bool
+            If `True`, the agent is not evaluated on the entire length of the time series, but only after an assessment
+            period.
+        assessment_proportion : float
+            Determines the assessment period length as a fraction of the episodes' length.
+        on_the_fly : bool
+            Boolean determining whether the tester is performing on-the-fly testing. If `True`, it means that the
+            test is being executed during the training phase, along the batch iteration. This feature enables the user
+            to evaluate how the training is going before the training is complete: at the end of each batch, the
+            currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
+            the folders /resources/reports/backtesting and /resources/reports/simulationtesting
+        n : int
+            If :obj:`on_the_fly` is `True`, :obj:`n` corresponds to the training batch index.
+
+        """
 
         # TODO: evaluating the introduction of the concept of assessment period
 
@@ -219,18 +243,51 @@ class Tester:
 
     @property
     def sharpe_ratio_all(self):
+        """
+        Sharpe ratio for all the strategies being tested.
+
+        """
         return self._sharpe_ratio_all
 
 
 class BackTester(Tester):
+    """
+    Class for executing backtesting of a RL agent. The RL agent performance is tested on the part of realized market
+    time series that has not been used to calibrate the market dynamics.
+
+    """
 
     def __init__(self, split_strategy: bool = True, on_the_fly: bool = False, n: int = None):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        split_strategy : bool
+            If `True`, the backtesting is also executed by creating sub-periods on the complete backtesting periods and
+            executing separate backtesting on each of them, in order to obtain more statistical informations about
+            the performance of the RL in the past. The chunks length is equal to the length of the episodes used to
+            train the agent.
+        on_the_fly : bool
+            Boolean determining whether the tester is performing on-the-fly testing. If `True`, it means that the
+            test is being executed during the training phase, along the batch iteration. This feature enables the user
+            to evaluate how the training is going before the training is complete: at the end of each batch, the
+            currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
+            the folders /resources/reports/backtesting and /resources/reports/simulationtesting
+        n : int
+            If :obj:`on_the_fly` is `True`, :obj:`n` corresponds to the training batch index.
+
+        """
 
         super().__init__(on_the_fly=on_the_fly, n=n)
         self._split_strategy = split_strategy
         self._read_out_of_sample_proportion_len()
 
     def execute_backtesting(self):
+        """
+        Execute backtesting.
+
+        """
 
         # Instantiate agents
         self._instantiate_agents_and_environment()
@@ -246,6 +303,22 @@ class BackTester(Tester):
 
         if self._agents['RL'].supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self._agents['RL'].print_proportion_missing_polynomial_optima()
+
+    def make_plots(self):
+        """
+        Make plots on the results of the backtesting.
+
+        """
+
+        self._plot_time_series()
+        self._plot_shares()
+        self._plot_value()
+        self._plot_cost()
+        self._plot_risk()
+        self._plot_wealth()
+        self._plot_wealth_net_risk()
+        self._plot_trades_scatter()
+        self._plot_sharpe_ratio()
 
     def _print_backtesting_statistics(self):
 
@@ -288,18 +361,6 @@ class BackTester(Tester):
             filename += f'/resources/reports/backtesting/{self._n_str}across_chunks.csv'
             df.to_csv(filename, index=False)
 
-    def make_plots(self):
-
-        self._plot_time_series()
-        self._plot_shares()
-        self._plot_value()
-        self._plot_cost()
-        self._plot_risk()
-        self._plot_wealth()
-        self._plot_wealth_net_risk()
-        self._plot_trades_scatter()
-        self._plot_sharpe_ratio()
-
     def _read_out_of_sample_proportion_len(self):
         filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
                    '/resources/data/financial_time_series_data/financial_time_series_info/' + self._ticker + '-info.csv'
@@ -322,8 +383,8 @@ class BackTester(Tester):
         factor_pnl_and_price.dropna(inplace=True)
 
         self._factor_pnl_and_price = factor_pnl_and_price
-        self.t_ = len(self._factor_pnl_and_price)
-        self.t_assessment = int(self.t_ * self._assessment_proportion)
+        self._t_ = len(self._factor_pnl_and_price)
+        self._t_assessment = int(self._t_ * self._assessment_proportion)
 
     def _compute_backtesting_output(self):
         # TODO: unify this and the corresponding in SimulationTester and move as much as possible to superclass
@@ -372,7 +433,7 @@ class BackTester(Tester):
 
                 rescaled_shares = 0.
 
-                ttm = self.t_
+                ttm = self._t_
 
                 for date in dates_chunk[:-1]:
                     factor, pnl, price, pnl_0, average_past_pnl_0 =\
@@ -465,7 +526,7 @@ class BackTester(Tester):
 
     def _get_dates_plot(self):
         if self._use_assessment_period:
-            dates = self._factor_pnl_and_price.index[self.t_assessment:-1]
+            dates = self._factor_pnl_and_price.index[self._t_assessment:-1]
         else:
             dates = self._factor_pnl_and_price.index[:-1]
         return dates
@@ -803,16 +864,47 @@ class BackTester(Tester):
 
 
 class SimulationTester(Tester):
+    """
+    Class for executing simulation-testing, or out-of-sample testing of a RL agent. The RL agent performance is tested on
+    the simulations of the market dynamics.
+
+    """
 
     # TODO: Finalize implementation of this class
 
     def __init__(self, on_the_fly: bool = False, n: int = None):
+        """
+        Class constructor.
+
+        Parameters
+        ----------
+        on_the_fly : bool
+            Boolean determining whether the tester is performing on-the-fly testing. If `True`, it means that the
+            test is being executed during the training phase, along the batch iteration. This feature enables the user
+            to evaluate how the training is going before the training is complete: at the end of each batch, the
+            currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
+            the folders /resources/reports/backtesting and /resources/reports/simulationtesting
+        n : int
+            If :obj:`on_the_fly` is `True`, :obj:`n` corresponds to the training batch index.
+
+        """
 
         super().__init__(on_the_fly=on_the_fly, n=n)
         self.t_ = None
         self.j_ = None
 
     def execute_simulation_testing(self, j_, t_):
+        """
+        Execute simulation testing.
+
+        Parameters
+        ----------
+        j_ : int
+            Number of market trajectories to be simulated.
+        t_ : int
+            Length of each trajectory.
+
+        """
 
         self.j_ = j_
         self.t_ = t_
@@ -830,6 +922,10 @@ class SimulationTester(Tester):
             self._agents['RL'].print_proportion_missing_polynomial_optima()
 
     def make_plots(self, j_trajectories_plot):
+        """
+        Make plots on the results of the simulation testing.
+
+        """
 
         # todo: should also plot average cumulative returns with dispersion
 
@@ -1362,14 +1458,47 @@ class SimulationTester(Tester):
 
     @property
     def means(self):
+        """
+        Dict containing the mean value of several statistics being computed in simulation testing. In particular, it
+        contains the following fields
+        - sharpe_ratio: the annualized sharpe ratio of the strategies
+        - cost: the cost path of the strategies
+        - risk: the risk path of the strategies
+        - value: the value of the portfolio for each strategy
+        - wealth: the wealth, i.e. value - cost, of each strategy
+        - wealth_net_risk: the difference wealth - risk
+
+        """
         return self._means
 
     @property
     def stds(self):
+        """
+        Dict containing the standard deviations of several statistics being computed in simulation testing. In
+        particular, it contains the following fields
+        - sharpe_ratio: the annualized sharpe ratio of the strategies
+        - cost: the cost path of the strategies
+        - risk: the risk path of the strategies
+        - value: the value of the portfolio for each strategy
+        - wealth: the wealth, i.e. value - cost, of each strategy
+        - wealth_net_risk: the difference wealth - risk
+
+        """
         return self._stds
 
 
 def read_out_of_sample_parameters():
+    """
+    Service function to read number of simulations and length of episodes to be used in simulation testing.
+
+    Returns
+    -------
+    j_oos : int
+        Number of paths.
+    t_ : int
+        Length of each path.
+
+    """
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
                '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)

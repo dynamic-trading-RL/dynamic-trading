@@ -10,7 +10,7 @@ Welcome to dynamic-trading's documentation!
    :parser: myst_parser.sphinx_
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 5
    :caption: Contents:
 
    modules

@@ -82,10 +82,10 @@ def instantiate_polynomialFeatures(degree) -> PolynomialFeatures:
 def find_polynomial_minimum(coef: Union[list, np.ndarray, tuple],
                             bounds: Union[list, np.ndarray, tuple]) -> Tuple[float, bool]:
     """
-    Given a set of polynomial coefficients coef = (a0, a1, ..., a_n), it computes the minimum of the polynomial
-    a0 + a1 * x + ... + an * x^n in a given interval [bounds[0], bounds[1]]. If the minimum is not found, a random
-    output is given as determined by the scipy.stats.truncnorm distribution function on the given interval and a flag
-    is returned.
+    Given a set of polynomial coefficients coef = :math:`(a_0, a_1, ..., a_n)`, it computes the minimum of the
+    polynomial :math:`p(x) = a_0 + a_1  x + ... + a_n x^n` in a given interval [bounds[0], bounds[1]]. If the minimum is
+    not found, a random output is given as determined by the scipy.stats.truncnorm distribution function on the given
+    interval and a flag is returned.
 
     Parameters
     ----------
@@ -198,7 +198,7 @@ def read_trading_parameters_training() -> tuple[float, int, int, int, bool, int 
     predict_pnl_for_reward : bool
         Boolean determining whether the PnL is predicted in terms of the factor in the reward definition.
     average_across_models : bool
-        Boolean determining whether the SARSA algorithm performs model averaging acros batches.
+        Boolean determining whether the SARSA algorithm performs model averaging across batches.
     use_best_n_batch : bool
         Boolean determining whether the SARSA algorithm should output the index of the batch where agent has performed
         best.

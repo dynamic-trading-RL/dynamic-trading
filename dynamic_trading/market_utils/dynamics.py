@@ -24,6 +24,10 @@ class Dynamics:
     """
 
     def __init__(self):
+        """
+        Class constructor.
+
+        """
 
         self.factorDynamicsType = None
         self.riskDriverDynamicsType = None
@@ -230,6 +234,10 @@ class RiskDriverDynamics(Dynamics):
         """
 
         super().__init__()
+        """
+        Class constructor.
+        
+        """
         self.riskDriverDynamicsType = riskDriverDynamicsType
 
     def set_parameters_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
@@ -284,6 +292,10 @@ class FactorDynamics(Dynamics):
         """
 
         super().__init__()
+        """
+        Class constructor.
+        
+        """
         self.factorDynamicsType = factorDynamicsType
 
     def set_parameters_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):

@@ -40,6 +40,10 @@ class DynamicsCalibrator:
     """
 
     def __init__(self):
+        """
+        Class constructor.
+
+        """
 
         self.financialTimeSeries = None
         self.all_dynamics_param_dict = {}
@@ -98,7 +102,7 @@ class DynamicsCalibrator:
     def print_results(self):
         """
         Prints the results of the models fitting for the risk-driver and the factor. Results are stored in
-        resources/data/financial_time_series_data and in resources/reports/calibrations
+        resources/data/financial_time_series_data and in resources/reports/calibrations.
 
         """
 
@@ -487,6 +491,10 @@ class AllSeriesDynamicsCalibrator:
     """
 
     def __init__(self):
+        """
+        Class constructor.
+
+        """
 
         self._all_series_dynamics_calibrators = {}
         self._best_factorDynamicsType = {}

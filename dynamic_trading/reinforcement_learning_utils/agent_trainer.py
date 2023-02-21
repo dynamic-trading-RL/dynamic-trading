@@ -63,32 +63,70 @@ class AgentTrainer:
 
         Parameters
         ----------
-        riskDriverDynamicsType
-        factorDynamicsType
-        ticker
-        riskDriverType
-        shares_scale
-        predict_pnl_for_reward
-        optimizerType
-        average_across_models
-        use_best_n_batch
-        train_benchmarking_GP_reward
-        plot_regressor
-        supervisedRegressorType
-        initialQvalueEstimateType
-        max_ann_depth
-        early_stopping
-        max_iter
-        n_iter_no_change
-        activation
-        alpha_sarsa
-        decrease_eps
-        random_initial_state
-        max_polynomial_regression_degree
-        max_complexity_no_gridsearch
-        alpha_ewma
-        use_best_n_batch_mode
-        restrict_evaluation_grid
+        riskDriverDynamicsType : RiskDriverDynamicsType
+            Dynamics assigned to the risk-driver.
+        factorDynamicsType : FactorDynamicsType
+            Dynamics assigned to the factor.
+        ticker : str
+            ID for security.
+        riskDriverType : RiskDriverType
+            Risk-driver type assigned to the :obj:`FinancialTimeSeries`. See :obj:`RiskDriverType`. for more details.
+        shares_scale : float
+            Factor for rescaling the shares.
+        predict_pnl_for_reward : bool
+            Boolean determining whether the PnL is predicted in terms of the factor in the reward definition.
+        optimizerType : OptimizerType
+            Determines which global optimizer to use in the greedy policy optimization.
+        average_across_models : bool
+            Boolean determining whether the SARSA algorithm performs model averaging across batches
+        use_best_n_batch : bool
+            Boolean determining whether the SARSA algorithm should output the index of the batch where agent has performed
+            best.
+        train_benchmarking_GP_reward : bool
+            Boolean determining whether the RL agent is being trained by benchmarking a GP agent. If this is true, then a
+            AgentGP is instantiated; for each trade, both the RL and the GP rewards are computed. If the GP agent has
+            outperformed the RL agent on the given trade, then the RL trade is substituted.
+        plot_regressor : bool
+            Boolean determining whether plots of the supervised regressor are generated.
+        supervisedRegressorType : SupervisedRegressorType
+            Determines what kind of supervised regressor should be used to fit the state-action value function.
+        initialQvalueEstimateType : InitialQvalueEstimateType
+             Initialization type for state-action value function. See :obj:`InitialQvalueEstimateType` for more details.
+        max_ann_depth : int
+            Integer determining the depth of the Neural Network used to fit the state-action value function. It acts on
+            pre-defined architectures given by [(64,), (64, 32), (64, 32, 8), (64, 32, 16, 8), (64, 32, 16, 8, 4)]
+        early_stopping : bool
+            Whether to use early stopping in the Neural Network fit. Refer to scikit-learn for more details.
+            max_iter
+        n_iter_no_change : int
+            Refer to scikit-learn for more details.
+        activation : str
+            Activation function used in Neural Network. Refer to scikit-learn for more details.
+        alpha_sarsa : float
+            Learning rate in SARSA updating formula.
+        decrease_eps : bool
+            Boolean determining whether epsilon should be decreased across batches.
+        random_initial_state : bool
+            Boolean determining whether the initial state s_0 is selected randomly.
+        max_polynomial_regression_degree : int
+            Maximum polynomial degree to be considered.
+        max_complexity_no_gridsearch : bool
+            Boolean determining whether the maximum Neural Network or Polynomial complexity should be used (True), or if a
+            GridSearchCV should be performed (False). Refer to scikit-learn for more details on GridSearchCV.
+        alpha_ewma : float
+            Speed of the exponential weighting in the SARSA model averaging across batches.
+        use_best_n_batch_mode : str
+            Determines the mode with which the "best batch" is selected. Can be any of the following: 't_test_pvalue',
+            best choice is based on equality/outperforming criteria with respect to the benchmark based on the p-value of
+            specific hypothesis tests; 't_test_statistic', best choice is based on equality/outperforming criteria with
+            respect to the benchmark based on the statistic of specific hypothesis tests; 'reward', best choice is based on
+            the reward obtained in the training phase; 'average_q', best choice is based on the average state-action value
+            obtained in the training phase; 'model_convergence', best choice is based on a convergence criterion on the norm
+            of two subsequent state-action value function estimates.
+        restrict_evaluation_grid : bool
+            If True, the evaluation grid for computing the norm of two consecutive state-action value function models is
+            restricted in such a way that the model evaluation is done on points that are in the fitting domain of both
+            regressors.
 
         """
 
