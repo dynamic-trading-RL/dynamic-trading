@@ -116,7 +116,8 @@ class AgentTrainer:
                                                      't_test_statistic',
                                                      'reward',
                                                      'average_q',
-                                                     'model_convergence']
+                                                     'model_convergence',
+                                                     'wealth_net_risk']
         if use_best_n_batch_mode not in self._available_use_best_n_batch_mode_lst:
             raise NameError(
                 f'Invalid use_best_n_batch_mode: {use_best_n_batch_mode}. Should be in '
@@ -227,7 +228,14 @@ class AgentTrainer:
                                                if n > 0])
             self.best_n = int(n_vs_model_convergence[np.argmax(n_vs_model_convergence[:, 1]), 0]) + 1
 
-        dump(self.best_n, os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/best_n.joblib')
+        elif self._use_best_n_batch_mode == 'wealth_net_risk':
+            n_vs_wealthnetrisk_av2std =\
+                np.array([[n, wealthnetrisk_av2std]
+                          for n, wealthnetrisk_av2std in self.simulationtesting_wealthnetrisk_av2std.items()])
+            self.best_n = int(n_vs_wealthnetrisk_av2std[np.argmax(n_vs_wealthnetrisk_av2std[:, 1]), 0]) + 1
+
+        dump(self.best_n,
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/best_n.joblib')
 
     def _initialize_dicts_for_reporting(self):
         self.state_action_grid_dict = {}
