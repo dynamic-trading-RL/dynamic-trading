@@ -15,17 +15,17 @@ from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
-from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType, SupervisedRegressorType,\
-    InitialQvalueEstimateType, StrategyType
+from dynamic_trading.enums.enums import (RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, OptimizerType,
+                                         SupervisedRegressorType, InitialQvalueEstimateType, StrategyType)
 from dynamic_trading.gen_utils.utils import instantiate_polynomialFeatures, available_ann_architectures
 from dynamic_trading.market_utils.market import instantiate_market
 from dynamic_trading.reinforcement_learning_utils.agent import Agent
 from dynamic_trading.reinforcement_learning_utils.environment import Environment
 from dynamic_trading.reinforcement_learning_utils.state_action_utils import State, Action
-
-# TODO: methods should be generalized, then specialized with a "trading" keyword in the name
 from dynamic_trading.testing_utils.testers import BackTester, SimulationTester
 
+
+# TODO: methods should be generalized, then specialized with a "trading" keyword in the name
 
 class AgentTrainer:
 
@@ -51,7 +51,7 @@ class AgentTrainer:
                  max_polynomial_regression_degree: int = 3,
                  max_complexity_no_gridsearch: bool = True,
                  alpha_ewma: float = 0.5,
-                 use_best_n_batch_mode: str = 't_test_statistic',
+                 use_best_n_batch_mode: str = 'wealth_net_risk',
                  restrict_evaluation_grid: bool = True):
 
         self.t_ = None
@@ -64,13 +64,16 @@ class AgentTrainer:
         self._predict_pnl_for_reward = predict_pnl_for_reward
         self._optimizerType = optimizerType
         dump(self._optimizerType,
-             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/optimizerType.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+             + '/resources/data/data_tmp/optimizerType.joblib')
         self._average_across_models = average_across_models
         dump(self._average_across_models,
-             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/average_across_models.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+             + '/resources/data/data_tmp/average_across_models.joblib')
         self._use_best_n_batch = use_best_n_batch
         dump(self._use_best_n_batch,
-             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/use_best_n_batch.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+             + '/resources/data/data_tmp/use_best_n_batch.joblib')
 
         self.environment = Environment(market=self.market, random_initial_state=random_initial_state)
         self._add_absorbing_state = self.environment.add_absorbing_state
@@ -90,7 +93,8 @@ class AgentTrainer:
         self._supervisedRegressorType = supervisedRegressorType
         print(f'Fitting a {supervisedRegressorType.value} regressor')
         dump(self._supervisedRegressorType,
-             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/supervisedRegressorType.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+             + '/resources/data/data_tmp/supervisedRegressorType.joblib')
 
         self._n_cores = None
         self._max_ann_depth = max_ann_depth

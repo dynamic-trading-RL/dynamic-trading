@@ -45,5 +45,5 @@ t_,50
 ticker,WTI
 train_benchmarking_GP_reward,No
 use_best_n_batch,Yes
-use_best_n_batch_mode,t_test_pvalue
+use_best_n_batch_mode,wealth_net_risk
 window,5
