@@ -115,9 +115,10 @@ class AgentTrainer:
 
         self._environment = Environment(market=self._market, random_initial_state=random_initial_state)
         self._add_absorbing_state = self._environment.add_absorbing_state
+        self._gamma = self._environment.gamma
 
         if train_benchmarking_GP_reward and not self._environment.observe_GP:
-            self._environment.observe_GP = True
+            self._environment._observe_GP = True
             self._environment.instantiate_market_benchmark_and_agent_GP()
 
         self._observe_GP = self._environment.observe_GP
@@ -174,6 +175,26 @@ class AgentTrainer:
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
+        """
+        Execute agent's training.
+
+        Parameters
+        ----------
+        j_episodes : int
+            Number of episodes to generate.
+        n_batches : int
+            Number of batches to generate.
+        t_ : int
+            Length of each episode.
+        eps_start : float
+            Starting point for epsilon-greedy strategy.
+        parallel_computing : bool
+            Boolean determining whether parallel computing should be used.
+        n_cores : int
+            If is :obj:`parallel_computing` is `True`, this parameter determines the cores used for parallel computing.
+            If the provided value is larger than the CPUs available, it is set equal to :obj:`os.cpu_count()`.
+
+        """
 
         self._j_episodes = j_episodes
         self._n_batches = n_batches
@@ -310,7 +331,8 @@ class AgentTrainer:
                         df_simulationtesting_sharperatio_av2std,
                         df_simulationtesting_wealthnetrisk_av2std],
                        axis=1)
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/training/training_report.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/reports/training/training_report.csv'
         df.to_csv(filename)
 
     def _get_best_n_based_on_tTest(self):
@@ -432,7 +454,7 @@ class AgentTrainer:
         self._simulationtesting_wealthnetrisk_av2std[n] =\
             simulationTester.means['RL']['wealth_net_risk'] / simulationTester.stds['RL']['wealth_net_risk']
         self._simulationtesting_ttest[n] = {'statistic': simulationTester.tTester.t_test_result['statistic'],
-                                           'pvalue': simulationTester.tTester.t_test_result['pvalue']}
+                                            'pvalue': simulationTester.tTester.t_test_result['pvalue']}
         del backtester, simulationTester
 
     def _create_batch_sequential(self, eps, n):
@@ -561,7 +583,7 @@ class AgentTrainer:
 
         q_new = self._agent.q_value(state=next_state, action=next_action)
 
-        q = q_prev + self._alpha_sarsa * (reward + self._environment.gamma * q_new - q_prev)
+        q = q_prev + self._alpha_sarsa * (reward + self._gamma * q_new - q_prev)
 
         return q
 
@@ -742,7 +764,8 @@ class AgentTrainer:
 
         self._agent.set_polynomial_regression_degree(self._polynomial_regression_degree)
         dump(self._polynomial_regression_degree,
-             os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/polynomial_regression_degree.joblib')
+             os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+             + '/resources/data/data_tmp/polynomial_regression_degree.joblib')
 
     def _make_regressor_plots(self, model, n, x_array, y_array):
 

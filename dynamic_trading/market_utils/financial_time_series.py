@@ -2,7 +2,8 @@ import pandas as pd
 import os
 import numpy as np
 
-from dynamic_trading.enums.enums import FactorComputationType, RiskDriverType, FactorSourceType, ModeType, FactorTransformationType
+from dynamic_trading.enums.enums import (FactorComputationType, RiskDriverType, FactorSourceType, ModeType,
+                                         FactorTransformationType)
 from dynamic_trading.gen_utils.utils import get_available_futures_tickers
 
 

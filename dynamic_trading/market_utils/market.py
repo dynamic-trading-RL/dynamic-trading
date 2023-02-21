@@ -201,7 +201,7 @@ class Market:
                     return parameters['sig2_1']
 
         else:
-            raise NameError('Invalid riskDriverDynamicsType: ' + riskDriverDynamicsType.value)
+            raise NameError(f'Invalid riskDriverDynamicsType: {riskDriverDynamicsType.value}')
 
     def _simulate_factor(self, j_: int, t_: int, delta_stationary: int):
 
@@ -525,8 +525,8 @@ def read_trading_parameters_market():
 
     """
 
-    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
-               '/resources/data/data_source/settings.csv'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    filename += '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
     ticker = df_trad_params.loc['ticker'][0]
     riskDriverDynamicsType = RiskDriverDynamicsType(df_trad_params.loc['riskDriverDynamicsType'][0])

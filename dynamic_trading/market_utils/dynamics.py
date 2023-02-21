@@ -267,7 +267,7 @@ class FactorDynamics(Dynamics):
 
     Attributes
     ----------
-    factorDriverDynamicsType : FactorDriverDynamicsType
+    factorDynamicsType : FactorDynamicsType
         Dynamics assigned to the factor.
 
     """

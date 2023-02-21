@@ -5,7 +5,8 @@ from scipy.optimize import basinhopping, differential_evolution, dual_annealing,
 from joblib import dump, load
 from scipy.stats import truncnorm
 
-from dynamic_trading.enums.enums import RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType, SupervisedRegressorType
+from dynamic_trading.enums.enums import (RandomActionType, StrategyType, OptimizerType, InitialQvalueEstimateType,
+                                         SupervisedRegressorType)
 from dynamic_trading.gen_utils.utils import instantiate_polynomialFeatures, find_polynomial_minimum
 from dynamic_trading.reinforcement_learning_utils.environment import Environment
 from dynamic_trading.reinforcement_learning_utils.state_action_utils import ActionSpace, Action, State
@@ -485,7 +486,7 @@ class Agent:
 
     def _extract_state_lst_trading(self, state):
 
-        state_shape = state._environment.state_shape
+        state_shape = state.environment.state_shape
         state_lst = [None] * len(state_shape)
 
         # get info
@@ -521,7 +522,8 @@ class Agent:
 
     def _set_agent_attributes(self):
 
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += '/resources/data/data_source/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
         filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -541,10 +543,10 @@ class Agent:
         self._randomActionType = randomActionType
         self._strategyType = strategyType
 
-        self._environment.get_trading_parameters_from_agent(self._gamma, self._kappa)
+        self._push_trading_parameters_to_environment()
 
         if self._randomActionType == RandomActionType.GP:
-            self._environment.observe_GP = True
+            self._environment._observe_GP = True
             self._environment.instantiate_market_benchmark_and_agent_GP()
 
         self._best_n = None
@@ -554,6 +556,9 @@ class Agent:
         except:
             print(f'Notice: agent is not yet trained, therefore it is impossible to set best_n')
 
+    def _push_trading_parameters_to_environment(self):
+        self._environment.set_trading_parameters(self._gamma, self._kappa)
+
     @property
     def supervisedRegressorType(self):
         """
@@ -561,3 +566,19 @@ class Agent:
 
         """
         return self._supervisedRegressorType
+
+    @property
+    def kappa(self):
+        """
+        Risk-aversion parameter.
+
+        """
+        return self._kappa
+
+    @property
+    def gamma(self):
+        """
+        Cumulative future rewards discount factor.
+
+        """
+        return self._gamma

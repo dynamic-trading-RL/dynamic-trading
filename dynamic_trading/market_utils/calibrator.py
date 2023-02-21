@@ -460,16 +460,14 @@ class DynamicsCalibrator:
         if dynamicsType in (RiskDriverDynamicsType.Linear, FactorDynamicsType.AR, FactorDynamicsType.GARCH,
                             FactorDynamicsType.TARCH, FactorDynamicsType.AR_TARCH):
             filename = os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/calibrations/' + self.financialTimeSeries.ticker +\
-                       '-riskDriverType-' + riskDriverType.value +\
-                       '-' + var_type +\
-                       '-' + dynamicsType.value + '.txt'
+                os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/calibrations/' +\
+                       self.financialTimeSeries.ticker + '-riskDriverType-' + riskDriverType.value +\
+                       '-' + var_type + '-' + dynamicsType.value + '.txt'
         elif dynamicsType in (RiskDriverDynamicsType.NonLinear, FactorDynamicsType.SETAR):
             filename = os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/calibrations/' + self.financialTimeSeries.ticker +\
-                       '-riskDriverType-' + riskDriverType.value +\
-                       '-' + var_type +\
-                       '-' + dynamicsType.value + str(i) + '.txt'
+                os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/calibrations/' +\
+                       self.financialTimeSeries.ticker + '-riskDriverType-' + riskDriverType.value +\
+                       '-' + var_type + '-' + dynamicsType.value + str(i) + '.txt'
         else:
             raise NameError('Invalid dynamicsType: ' + dynamicsType.value)
 
@@ -592,7 +590,8 @@ class AllSeriesDynamicsCalibrator:
                                         columns=ll_model_summary[0])
         info = f'{self._riskDriverType.value}' +\
                f'-{self._factor_ticker}-{self._factorTransformationType.value}'
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/calibrations/models_summary_{info}.xlsx'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/reports/calibrations/models_summary_{info}.xlsx'
         df_model_summary.to_excel(filename, sheet_name='models_summary', index=False)
 
     def _plot_financial_time_series(self):
@@ -663,7 +662,8 @@ class AllSeriesDynamicsCalibrator:
                                  columns=['ticker', 'factorDynamicsType'] +
                                          ['autocorr_lag_%d' % a for a in range(len(abs_epsi_autocorr))])
 
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/model_choice/residuals_analysis.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += '/resources/reports/model_choice/residuals_analysis.csv'
         df_report.to_csv(filename, index=False)
 
     def _print_prices_and_stds(self):
@@ -676,7 +676,8 @@ class AllSeriesDynamicsCalibrator:
                                                       columns=['Standard Deviation of Price Changes'])
         out_dict = pd.concat([average_prices_per_contract_df, std_price_changes_df], axis=1)
 
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/reports/model_choice/prices_and_stds.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += '/resources/reports/model_choice/prices_and_stds.csv'
         out_dict.to_csv(filename, index=True)
 
     def _plot_residuals(self):

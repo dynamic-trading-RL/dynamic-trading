@@ -89,9 +89,13 @@ class AgentBenchmark:
         Parameters
         ----------
         factor: float
+            Observation of the factor, used to predict the price change variance sig2.
         price : float
+            Price of the security.
         rescaled_shares : float
+            Shares, rescaled by :obj:`shares_scale`.
         shares_scale : float
+            Factor for rescaling the shares.
 
         Returns
         -------
@@ -128,7 +132,8 @@ class AgentBenchmark:
     @staticmethod
     def _get_df_trad_params():
 
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += '/resources/data/data_source/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
         return df_trad_params
 
@@ -331,7 +336,6 @@ class AgentGP(AgentBenchmark):
         return a
 
     def _get_gp_rescaling(self, a: float) -> float:
-
 
         if self.market.riskDriverType != RiskDriverType.PnL:
             print('Trying to use GP with a model not on PnL. ',

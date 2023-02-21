@@ -9,27 +9,51 @@ from dynamic_trading.market_utils.market import Market, instantiate_market
 
 
 class Environment:
+    """
+    Class defining a reinforcement learning environment.
+
+    """
 
     def __init__(self, market: Market, random_initial_state: bool = True):
+        """
+        Class constructor.
 
-        self.kappa = None
-        self.gamma = None
-        self.agent_GP = None
-        self.market_benchmark = None
-        self.market = market
+        Parameters
+        ----------
+        market : Market
+            The market on which the agent is operating.
+        random_initial_state : bool
+            Boolean determining whether the initial state s_0 is selected randomly.
+
+        """
+
+        self._kappa = None
+        self._gamma = None
+        self._agent_GP = None
+        self._market_benchmark = None
+        self._market = market
         self._random_initial_state = random_initial_state
         self._set_attributes()
 
-    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int,
-                                      predict_pnl_for_reward: bool):
-
-        next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
-        reward = self._compute_reward(state=state, action=action, next_state=next_state,
-                                      predict_pnl_for_reward=predict_pnl_for_reward)
-
-        return next_state, reward
-
     def instantiate_initial_state_trading(self, n: int, j: int, shares_scale: float = 1):
+        """
+        Instantiates the state at time :math:`t=0` for the j-th episode on the n-th batch.
+
+        Parameters
+        ----------
+        n : int
+            Batch iteration.
+        j : int
+            Episode identifier.
+        shares_scale : float
+            Factor for rescaling the shares.
+
+        Returns
+        -------
+        state : State
+            Initial state.
+
+        """
 
         state = State(environment=self)
 
@@ -42,13 +66,13 @@ class Environment:
             other_observable = 0.
             pnl, factor, price, average_past_pnl = self._get_market_simulations_training(n=n, j=j, t=0)
 
-        ttm = self.t_
+        ttm = self._t_
 
-        if self.observe_GP:
-            rescaled_trade_GP = self.agent_GP.policy(factor=factor,
-                                                     rescaled_shares=rescaled_shares,
-                                                     shares_scale=shares_scale,
-                                                     price=price)
+        if self._observe_GP:
+            rescaled_trade_GP = self._agent_GP.policy(factor=factor,
+                                                      rescaled_shares=rescaled_shares,
+                                                      shares_scale=shares_scale,
+                                                      price=price)
             action_GP = Action()
             action_GP.set_trading_attributes(rescaled_trade=rescaled_trade_GP,
                                              shares_scale=shares_scale)
@@ -66,6 +90,114 @@ class Environment:
                                      ttm=ttm)
 
         return state
+
+    def instantiate_market_benchmark_and_agent_GP(self):
+        """
+        A GP agent operating in the environment. See :obj:`AgentGP` for more details.
+
+        """
+
+        self._market_benchmark = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
+                                                    factorDynamicsType=FactorDynamicsType.AR,
+                                                    ticker=self._ticker,
+                                                    riskDriverType=RiskDriverType.PnL)
+        self._agent_GP = AgentGP(market=self._market_benchmark)
+
+    def compute_reward_and_next_state(self, state: State, action: Action, n: int, j: int, t: int,
+                                      predict_pnl_for_reward: bool):
+        """
+        Computes reward and next state for a given state and action.
+
+        Parameters
+        ----------
+        state : State
+            State variable currently observed.
+        action : Action
+            Action variable currently selected.
+        n : int
+            Batch iteration.
+        j : int
+            Episode iteration
+        t : int
+            Time iteration.
+        predict_pnl_for_reward : bool
+            Boolean determining whether the next-step pnl should be predicted.
+
+        Returns
+        -------
+        next_state : State
+            Next state.
+        reward : float
+            Reward for taking :obj:`action` when observing :obj:`state` .
+
+        """
+
+        next_state = self._compute_next_state(state=state, action=action, n=n, j=j, t=t)
+        reward = self._compute_reward(state=state, action=action, next_state=next_state,
+                                      predict_pnl_for_reward=predict_pnl_for_reward)
+
+        return next_state, reward
+
+    def compute_trading_cost(self, action, sig2):
+        """
+        Computes the trading cost for a given action.
+
+        Parameters
+        ----------
+        action : Action
+            Action implemented.
+        sig2
+            P\&L variance.
+
+        Returns
+        -------
+        cost : float
+            Trading cost.
+
+        """
+
+        trade = action.trade
+        cost = 0.5 * trade * self._lam * sig2 * trade
+
+        return cost
+
+    def compute_trading_risk(self, state, sig2):
+        """
+        Computes the trading risk for a given state.
+
+        Parameters
+        ----------
+        state : State
+            State observed.
+        sig2 :
+            P\&L variance.
+
+        Returns
+        -------
+        risk : float
+            Trading risk.
+
+        """
+
+        shares = state.shares
+        risk = 0.5 * shares * self._kappa * sig2 * shares
+
+        return risk
+
+    def set_trading_parameters(self, gamma, kappa):
+        """
+        Service function that overwrites the environment's gamma and kappa parameter as being pushed from outside.
+
+        Parameters
+        ----------
+        gamma : float
+            Cumulative reward discount factor.
+        kappa : float
+            Risk-aversion
+
+        """
+        self._gamma = gamma
+        self._kappa = kappa
 
     def _compute_reward(self, state: State, action: Action, next_state: State, predict_pnl_for_reward: bool):
 
@@ -85,17 +217,17 @@ class Environment:
         f_t = state.factor
 
         if predict_pnl_for_reward:
-            pnl_tp1 = self.market.next_step_pnl(factor=f_t, price=p_t)
+            pnl_tp1 = self._market.next_step_pnl(factor=f_t, price=p_t)
         else:
             p_tp1 = next_state.price
             pnl_tp1 = p_tp1 - p_t
 
         a_t = action
         n_t = next_state.shares
-        sig2 = self.market.next_step_sig2(factor=f_t, price=p_t)
+        sig2 = self._market.next_step_sig2(factor=f_t, price=p_t)
         cost = self.compute_trading_cost(a_t, sig2)
 
-        reward = self.gamma * (n_t * pnl_tp1 - 0.5 * self.kappa * n_t * sig2 * n_t) - cost
+        reward = self._gamma * (n_t * pnl_tp1 - 0.5 * self._kappa * n_t * sig2 * n_t) - cost
 
         return reward
 
@@ -112,13 +244,13 @@ class Environment:
         next_price = price
         next_pnl = pnl
         next_average_past_pnl = average_past_pnl
-        next_ttm = self.t_ - t
+        next_ttm = self._t_ - t
 
-        if self.observe_GP:
-            next_rescaled_shares_GP = self.agent_GP.policy(factor=factor,
-                                                           rescaled_shares=rescaled_shares,
-                                                           shares_scale=shares_scale,
-                                                           price=price)
+        if self._observe_GP:
+            next_rescaled_shares_GP = self._agent_GP.policy(factor=factor,
+                                                            rescaled_shares=rescaled_shares,
+                                                            shares_scale=shares_scale,
+                                                            price=price)
             next_action_GP = Action()
             next_action_GP.set_trading_attributes(rescaled_trade=next_rescaled_shares_GP,
                                                   shares_scale=shares_scale)
@@ -138,24 +270,12 @@ class Environment:
 
         return next_state
 
-    def compute_trading_cost(self, action, sig2):
-
-        trade = action.trade
-
-        return 0.5 * trade * self.lam * sig2 * trade
-
-    def compute_trading_risk(self, state, sig2):
-
-        shares = state.shares
-
-        return 0.5 * shares * self.kappa * sig2 * shares
-
     def _get_market_simulations_training(self, n: int, j: int, t: int):
 
-        return (self.market.simulations_training[n]['pnl'][j, t],
-                self.market.simulations_training[n]['factor'][j, t],
-                self.market.simulations_training[n]['price'][j, t],
-                self.market.simulations_training[n]['average_past_pnl'][j, t])
+        return (self._market.simulations_training[n]['pnl'][j, t],
+                self._market.simulations_training[n]['factor'][j, t],
+                self._market.simulations_training[n]['price'][j, t],
+                self._market.simulations_training[n]['average_past_pnl'][j, t])
 
     def _set_attributes(self):
 
@@ -164,22 +284,23 @@ class Environment:
     def _set_trading_attributes(self):
 
         # input file
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += '/resources/data/data_source/settings.csv'
         df_trad_params = pd.read_csv(filename, index_col=0)
 
         # ticker
-        self.ticker = self.market.ticker
+        self._ticker = self._market.ticker
 
         # t_
-        self.t_ = int(df_trad_params.loc['t_'][0])
+        self._t_ = int(df_trad_params.loc['t_'][0])
 
         # lam
         filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         filename += '/resources/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
-        df_lam_kappa = df_lam_kappa.loc[self.ticker]
+        df_lam_kappa = df_lam_kappa.loc[self._ticker]
         lam = float(df_lam_kappa.loc['lam'])
-        self.lam = lam
+        self._lam = lam
 
         # state_factor
         if str(df_trad_params.loc['state_factor'][0]) == 'Yes':
@@ -188,7 +309,7 @@ class Environment:
             state_factor = False
         else:
             raise NameError('state_factor in settings file must be either Yes or No')
-        self.state_factor = state_factor
+        self._state_factor = state_factor
 
         # state_GP_action and observe_GP
         if str(df_trad_params.loc['state_GP_action'][0]) == 'Yes':
@@ -199,9 +320,9 @@ class Environment:
             observe_GP = False
         else:
             raise NameError('state_GP_action in settings file must be either Yes or No')
-        self.state_GP_action = state_GP_action
-        self.observe_GP = observe_GP
-        if self.observe_GP:
+        self._state_GP_action = state_GP_action
+        self._observe_GP = observe_GP
+        if self._observe_GP:
             self.instantiate_market_benchmark_and_agent_GP()
 
         # state_ttm
@@ -213,7 +334,7 @@ class Environment:
             self._add_absorbing_state = False
         else:
             raise NameError('state_ttm in settings file must be either Yes or No')
-        self.state_ttm = state_ttm
+        self._state_ttm = state_ttm
 
         # state_price
         if str(df_trad_params.loc['state_price'][0]) == 'Yes':
@@ -222,7 +343,7 @@ class Environment:
             state_price = False
         else:
             raise NameError('state_price in settings file must be either Yes or No')
-        self.state_price = state_price
+        self._state_price = state_price
 
         # state_pnl
         if str(df_trad_params.loc['state_pnl'][0]) == 'Yes':
@@ -231,7 +352,7 @@ class Environment:
             state_pnl = False
         else:
             raise NameError('state_pnl in settings file must be either Yes or No')
-        self.state_pnl = state_pnl
+        self._state_pnl = state_pnl
 
         # state_average_past_pnl
         if str(df_trad_params.loc['state_average_past_pnl'][0]) == 'Yes':
@@ -240,7 +361,7 @@ class Environment:
             state_average_past_pnl = False
         else:
             raise NameError('state_average_past_pnl in settings file must be either Yes or No')
-        self.state_average_past_pnl = state_average_past_pnl
+        self._state_average_past_pnl = state_average_past_pnl
 
         # state_shape
         # Define the structure of the state variable depending on the values assigned to
@@ -248,12 +369,12 @@ class Environment:
         # The most complete state is given by
         # (rescaled_shares, factor, ttm, price, pnl, average_past_pnl, action_GP)
 
-        bool_values = [self.state_factor,
-                       self.state_ttm,
-                       self.state_price,
-                       self.state_pnl,
-                       self.state_average_past_pnl,
-                       self.state_GP_action]
+        bool_values = [self._state_factor,
+                       self._state_ttm,
+                       self._state_price,
+                       self._state_pnl,
+                       self._state_average_past_pnl,
+                       self._state_GP_action]
         str_values = ['factor',
                       'ttm',
                       'price',
@@ -262,27 +383,118 @@ class Environment:
                       'action_GP']
         binary_values = [int(bool_value) for bool_value in bool_values]
 
-        self.state_shape = {'rescaled_shares': 0}
+        self._state_shape = {'rescaled_shares': 0}
 
         count_prev = 0
         for i in range(len(bool_values)):
             count_curr = count_prev + binary_values[i]
             if count_curr != count_prev:
-                self.state_shape[str_values[i]] = count_curr
+                self._state_shape[str_values[i]] = count_curr
                 count_prev = count_curr
-
-    def instantiate_market_benchmark_and_agent_GP(self):
-        self.market_benchmark = instantiate_market(riskDriverDynamicsType=RiskDriverDynamicsType.Linear,
-                                                   factorDynamicsType=FactorDynamicsType.AR,
-                                                   ticker=self.ticker,
-                                                   riskDriverType=RiskDriverType.PnL)
-        self.agent_GP = AgentGP(market=self.market_benchmark)
-
-    def get_trading_parameters_from_agent(self, gamma: float, kappa: float):
-
-        self.gamma = gamma
-        self.kappa = kappa
 
     @property
     def add_absorbing_state(self):
+        """
+        Boolean determining whether an absorbing state should be added at the end of each episode. Particularly used
+        when the time-to-maturity is in the state variable.
+
+        """
         return self._add_absorbing_state
+
+    @property
+    def agent_GP(self):
+        """
+        A GP agent operating in the environment. Particularly used in case the RL agent is benchmarking a GP agent.
+
+        """
+        return self._agent_GP
+
+    @property
+    def state_factor(self):
+        """
+        Determines whether the factor is included in the state variable.
+
+        """
+        return self._state_factor
+
+    @property
+    def state_ttm(self):
+        """
+        Determines whether the time-to-maturity is included in the state variable.
+
+        """
+        return self._state_ttm
+
+    @property
+    def state_price(self):
+        """
+        Determines whether the security's price is included in the state variable.
+
+        """
+        return self._state_price
+
+    @property
+    def state_pnl(self):
+        """
+        Determines whether the security's P\&L is included in the state variable.
+
+        """
+        return self._state_pnl
+
+    @property
+    def state_average_past_pnl(self):
+        """
+        Determines whether an average of the security's past P\&Ls is included in the state variable.
+
+        """
+        return self._state_average_past_pnl
+
+    @property
+    def state_GP_action(self):
+        """
+        Determines whether GP agent action is included in the state variable.
+
+        """
+        return self._state_GP_action
+
+    @property
+    def market(self):
+        """
+        The market in which the agent is operating.
+
+        """
+        return self._market
+
+    @property
+    def gamma(self):
+        """
+        Cumulative future rewards discount factor.
+
+        """
+        return self._gamma
+
+    @property
+    def observe_GP(self):
+        """
+        Boolean determining whether a GP agent is observed in the environment.
+
+        """
+        return self._observe_GP
+
+    @property
+    def state_shape(self):
+        """
+        Useful dict that helps to determine the state variable content when unravelling it as input to state-action
+        value function model. This dict allows to easily generalize the state variable to include user specified
+        variables. See more in the README.
+
+        """
+        return self._state_shape
+
+    @property
+    def t_(self):
+        """
+        Length of the episodes.
+
+        """
+        return self._t_

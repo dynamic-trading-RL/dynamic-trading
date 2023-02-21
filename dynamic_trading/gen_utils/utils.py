@@ -56,8 +56,8 @@ def get_available_futures_tickers() -> list:
 
 def instantiate_polynomialFeatures(degree) -> PolynomialFeatures:
     """
-    Instantiates a scikit-learn :obj:`PolynomialFeatures` object for a given polynomial degree. By default, interactions are
-    considered and bias is included.
+    Instantiates a scikit-learn :obj:`PolynomialFeatures` object for a given polynomial degree. By default, interactions
+    are considered and bias is included.
 
     Parameters
     ----------
@@ -166,7 +166,8 @@ def _make_plot_once_in_a_while(p, dp, dp2, bounds, x_optim, eps_plots):
     plt.legend()
     plt.xlim(bounds)
 
-    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/polynomial/polynomial{int(eps_plots*10**5)}.png'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    filename += f'/resources/figures/polynomial/polynomial{int(eps_plots*10**5)}.png'
 
     plt.savefig(filename)
 
@@ -248,11 +249,12 @@ def read_trading_parameters_training() -> tuple[float, int, int, int, bool, int 
 
     """
 
-    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + \
-               '/resources/data/data_source/settings.csv'
+    filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    filename += '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
 
-    shares_scale = float(load(os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/shares_scale.joblib'))
+    shares_scale = float(load(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                              + '/resources/data/data_tmp/shares_scale.joblib'))
 
     j_episodes = int(df_trad_params.loc['j_episodes'][0])
     n_batches = int(df_trad_params.loc['n_batches'][0])

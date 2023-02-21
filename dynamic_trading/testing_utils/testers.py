@@ -17,7 +17,8 @@ from dynamic_trading.reinforcement_learning_utils.agent import Agent
 from dynamic_trading.gen_utils.utils import read_trading_parameters_training
 from dynamic_trading.reinforcement_learning_utils.environment import Environment
 from dynamic_trading.reinforcement_learning_utils.state_action_utils import State, Action
-from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType, SupervisedRegressorType
+from dynamic_trading.enums.enums import (RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType,
+                                         SupervisedRegressorType)
 from dynamic_trading.testing_utils.hypothesis_testing import TTester
 
 
@@ -86,21 +87,27 @@ class Tester:
         environment = Environment(market)
 
         optimizerType = load(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/optimizerType.joblib')
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            + '/resources/data/data_tmp/optimizerType.joblib')
         average_across_models = load(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/average_across_models.joblib')
-        use_best_n_batch = load(os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/use_best_n_batch.joblib')
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            + '/resources/data/data_tmp/average_across_models.joblib')
+        use_best_n_batch = load(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                                + '/resources/data/data_tmp/use_best_n_batch.joblib')
         supervisedRegressorType = load(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/supervisedRegressorType.joblib')
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            + '/resources/data/data_tmp/supervisedRegressorType.joblib')
 
         try:
             polynomial_regression_degree = load(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/polynomial_regression_degree.joblib')
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                + '/resources/data/data_tmp/polynomial_regression_degree.joblib')
         except:
             polynomial_regression_degree = None
             print('polynomial_regression_degree not set')
 
-        alpha_ewma = load(os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/alpha_ewma.joblib')
+        alpha_ewma = load(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                          + '/resources/data/data_tmp/alpha_ewma.joblib')
         agentRL = Agent(environment,
                         optimizerType=optimizerType,
                         average_across_models=average_across_models,
@@ -259,7 +266,8 @@ class BackTester(Tester):
             df.loc[agent_type, 'final_wealth'] = self._cum_wealth_all[agent_type][-1]
             df.loc[agent_type, 'final_wealth_net_risk'] = self._cum_wealth_net_risk_all[agent_type][-1]
 
-        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/backtesting/{self._n_str}complete_series.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/reports/backtesting/{self._n_str}complete_series.csv'
         df.to_csv(filename)
 
         # in chunks
@@ -277,8 +285,8 @@ class BackTester(Tester):
                                final_wealth_net_risk])
             df = pd.DataFrame(data=li, columns=['agent_type', 'chunk_id', 'sharpe_ratio', 'final_cost', 'final_risk',
                                                 'final_value', 'final_wealth', 'final_wealth_net_risk'])
-            filename = os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/backtesting/{self._n_str}across_chunks.csv'
+            filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            filename += f'/resources/reports/backtesting/{self._n_str}across_chunks.csv'
             df.to_csv(filename, index=False)
 
     def make_plots(self):
@@ -475,7 +483,8 @@ class BackTester(Tester):
         plt.xlabel('Date')
         plt.ylabel('Price [$]')
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-time_series.png')
 
     def _plot_shares(self):
@@ -494,7 +503,8 @@ class BackTester(Tester):
         plt.ylabel('Shares [#]')
         plt.legend()
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-shares.png')
 
         if self._split_strategy:
@@ -514,7 +524,8 @@ class BackTester(Tester):
             plt.ylabel('Shares [#]')
             plt.legend()
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-shares-chunks.png')
 
     def _plot_value(self):
@@ -532,7 +543,8 @@ class BackTester(Tester):
         plt.ylabel('Portfolio value [$]')
         plt.legend()
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-value.png')
 
         if self._split_strategy:
@@ -552,7 +564,8 @@ class BackTester(Tester):
             plt.ylabel('Portfolio value [$]')
             plt.legend()
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-value-chunks.png')
 
     def _plot_cost(self):
@@ -570,7 +583,8 @@ class BackTester(Tester):
         plt.ylabel('Cost [$]')
         plt.legend()
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-cost.png')
 
         if self._split_strategy:
@@ -590,7 +604,8 @@ class BackTester(Tester):
             plt.ylabel('Cost [$]')
             plt.legend()
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-cost-chunks.png')
 
     def _plot_risk(self):
@@ -608,7 +623,8 @@ class BackTester(Tester):
         plt.ylabel('Risk')
         plt.legend()
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-risk.png')
 
         if self._split_strategy:
@@ -628,7 +644,8 @@ class BackTester(Tester):
             plt.ylabel('Risk')
             plt.legend()
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-risk-chunks.png')
 
     def _plot_wealth(self):
@@ -647,7 +664,8 @@ class BackTester(Tester):
         plt.ylabel('Wealth = Value - Cost [$]')
         plt.legend()
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth.png')
 
         if self._split_strategy:
@@ -667,7 +685,8 @@ class BackTester(Tester):
             plt.ylabel('Wealth = Value - Cost [$]')
             plt.legend()
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-wealth-chunks.png')
 
     def _plot_wealth_net_risk(self):
@@ -686,7 +705,8 @@ class BackTester(Tester):
         plt.ylabel('Wealth net Risk = Value - Cost - Risk')
         plt.legend()
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-wealth-net-risk.png')
 
         if self._split_strategy:
@@ -706,7 +726,8 @@ class BackTester(Tester):
             plt.ylabel('Wealth net Risk = Value - Cost - Risk')
             plt.legend()
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-wealth-net-risk-chunks.png')
 
     def _plot_trades_scatter(self):
@@ -726,7 +747,8 @@ class BackTester(Tester):
         plt.ylim(xlim)
         plt.legend()
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-trades-scatter.png')
 
         if self._split_strategy:
@@ -743,7 +765,8 @@ class BackTester(Tester):
             plt.ylim(xlim)
             plt.legend()
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-trades-scatter-chunks.png')
 
     def _plot_sharpe_ratio(self):
@@ -759,7 +782,8 @@ class BackTester(Tester):
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
         plt.savefig(os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+            os.path.dirname(os.path.dirname(__file__)))
+                    + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                     + '-backtesting-sharpe-ratio.png')
 
         if self._split_strategy:
@@ -774,7 +798,8 @@ class BackTester(Tester):
             ax = plt.gca()
             ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.))
             plt.savefig(os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))) + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
+                os.path.dirname(os.path.dirname(__file__)))
+                        + f'/resources/figures/{self._on_the_fly_str}backtesting/{self._n_str}' + self._ticker
                         + '-backtesting-sharpe-ratio-chunks.png')
 
 
@@ -835,8 +860,8 @@ class SimulationTester(Tester):
 
         df = pd.DataFrame(data=ll, columns=['agent_type', 'statistic', 'mean', 'std'])
 
-        filename = os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))) + f'/resources/reports/simulationtesting/{self._n_str}statistics.csv'
+        filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        filename += f'/resources/reports/simulationtesting/{self._n_str}statistics.csv'
         df.to_csv(filename)
 
     def _plot_shares(self, j_trajectories_plot):
