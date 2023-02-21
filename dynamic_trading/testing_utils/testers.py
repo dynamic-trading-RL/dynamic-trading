@@ -181,7 +181,6 @@ class Tester:
 
             state.set_trading_attributes(factor=factor,
                                          rescaled_shares=rescaled_shares,
-                                         other_observable=None,
                                          shares_scale=self._shares_scale,
                                          price=price,
                                          pnl=pnl_0,

@@ -81,7 +81,6 @@ class Environment:
 
         state.set_trading_attributes(factor=factor,
                                      rescaled_shares=rescaled_shares,
-                                     other_observable=other_observable,
                                      shares_scale=shares_scale,
                                      price=price,
                                      pnl=pnl,
@@ -240,7 +239,6 @@ class Environment:
 
         pnl, factor, price, average_past_pnl = self._get_market_simulations_training(n=n, j=j, t=t)
         next_factor = factor
-        next_other_observable = 0.
         next_price = price
         next_pnl = pnl
         next_average_past_pnl = average_past_pnl
@@ -260,7 +258,6 @@ class Environment:
         next_state = State(environment=self)
         next_state.set_trading_attributes(factor=next_factor,
                                           rescaled_shares=next_rescaled_shares,
-                                          other_observable=next_other_observable,
                                           shares_scale=shares_scale,
                                           price=next_price,
                                           pnl=next_pnl,
