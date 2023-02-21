@@ -12,6 +12,10 @@ from dynamic_trading.reinforcement_learning_utils.state_action_utils import Acti
 
 
 class Agent:
+    """
+    Class defining a reinforcement learning agent.
+
+    """
 
     def __init__(self, environment: Environment,
                  optimizerType: OptimizerType = OptimizerType.shgo,
@@ -21,8 +25,32 @@ class Agent:
                  supervisedRegressorType: SupervisedRegressorType = SupervisedRegressorType.ann,
                  polynomial_regression_degree: int = None,
                  alpha_ewma: float = 0.5):
+        """
+        Class constructor.
 
-        self.environment = environment
+        Parameters
+        ----------
+        environment : Environment
+            Environment in which the agent is operating. See :obj:`FinancialTimeSeries` for more details.
+        optimizerType : OptimizerType
+            Optimizer used to perform greedy policy. See :obj:`OptimizerType` for more details.
+        average_across_models : bool
+            Boolean determining whether model averaging should be done across supervised regressors.
+        use_best_n_batch : bool
+             Boolean determining whether the last or the best available (average of) model should be used.
+        initialQvalueEstimateType : InitialQvalueEstimateType
+             Initialization type for state-action value function. See :obj:`InitialQvalueEstimateType` for more details.
+        supervisedRegressorType : SupervisedRegressorType
+             Type of supervised regressor expressing state-action value function. See :obj:`SupervisedRegressorType`
+             for more details.
+        polynomial_regression_degree : int
+            Integer determining the (maximum) polynomial degree considered in case of polynomial regression.
+        alpha_ewma : float
+            Parameter for exponentially weighted moving average used for defining model averages.
+
+        """
+
+        self._environment = environment
 
         # available optimizers: ('basinhopping', 'brute', 'differential_evolution', 'dual_annealing', 'shgo', 'local')
         self._optimizerType = optimizerType
@@ -35,7 +63,7 @@ class Agent:
         self._use_best_n_batch = use_best_n_batch
         self._initialQvalueEstimateType = initialQvalueEstimateType
         self._supervisedRegressorType = supervisedRegressorType
-        self.polynomial_regression_degree = polynomial_regression_degree
+        self._polynomial_regression_degree = polynomial_regression_degree
 
         if alpha_ewma > 1 or alpha_ewma < 0:
             raise NameError(f'Invalid alpha_ewma = {alpha_ewma}: must be 0 <= alpha_ewma <= 1')
@@ -46,12 +74,28 @@ class Agent:
         self._tol = 10 ** -10  # numerical tolerance for bound conditions requirements
 
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
-            self.total_polynomial_optimizations = 0
-            self.missing_polynomial_optima = 0
+            self._total_polynomial_optimizations = 0
+            self._missing_polynomial_optima = 0
 
         self._alpha_truncnorm = 0.01
 
     def policy(self, state: State, eps: float = None):
+        """
+        Implementation of the agent's policy.
+
+        Parameters
+        ----------
+        state : State
+            State variable.
+        eps : float
+            If not `None`, parameter for epsilon-greedy policy
+
+        Returns
+        -------
+        action: Action
+            Action performed by the agent given the :obj:`state`.
+
+        """
 
         if eps is None:
             action = self._greedy_policy(state)
@@ -66,36 +110,149 @@ class Agent:
         return action
 
     def q_value(self, state: State, action: Action):
+        """
+        Implementation of the state-action value function.
+
+        Parameters
+        ----------
+        state : State
+            State variable.
+        action : Action
+            Action variable.
+
+        Returns
+        -------
+        qvl : float
+            Value of q(s, a).
+
+        """
 
         qvl = self._q_value_trading(state, action)
 
         return qvl
 
     def update_q_value_models(self, q_value_model):
+        """
+        Appends a new model for the state-action value function to those considered on this agent.
+
+        Parameters
+        ----------
+        q_value_model : scikit-learn :obj:`RegressorMixin`
+            The new model to append.
+
+        """
 
         self._q_value_models.append(q_value_model)
 
     def dump_q_value_models(self):
+        """
+        Service function that dumps all models for the state-action value function.
+
+        """
 
         for n in range(len(self._q_value_models)):
             q_value_model = self._q_value_models[n]
             dump(q_value_model,
-                 os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/supervised_regressors/q%d.joblib' % n)
+                 os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                 + '/resources/data/supervised_regressors/q%d.joblib' % n)
 
     def load_q_value_models(self, n_batches: int):
+        """
+        Service function that loads all models for the state-action value function.
 
-        if self._use_best_n_batch and self.best_n is not None:
-            n_batches = self.best_n
+        """
+
+        if self._use_best_n_batch and self._best_n is not None:
+            n_batches = self._best_n
         else:
             print(f'Want to use best batch but best_n not yet computed. Possible cause: on-the-fly testing.')
 
         for n in range(n_batches):
             try:
                 q_value_model = load(
-                    os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/supervised_regressors/q%d.joblib' % n)
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                    + '/resources/data/supervised_regressors/q%d.joblib' % n)
                 self.update_q_value_models(q_value_model)
             except:
                 print(f'Trying to load q{n} but it is not fitted. Possible cause: on-the-fly testing.')
+
+    def qvl_from_ravel_input(self, q_value_model_input):
+        """
+        Service function that evaluates a model for the state-action value function given an input expressed in proper
+        array_like format.
+
+        Parameters
+        ----------
+        q_value_model_input : array_like
+            The input to the state-action value function model.
+
+        Returns
+        -------
+        qvl : float
+            Value of q(s, a).
+
+        """
+        if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
+            poly = instantiate_polynomialFeatures(degree=self._polynomial_regression_degree)
+
+            q_value_model_input = poly.fit_transform(q_value_model_input)
+        if self._average_across_models:
+
+            q_value_model = self._q_value_models[0]
+            qvl = q_value_model.predict(q_value_model_input)
+            alpha_ewma = self._alpha_ewma
+            for q_value_model in self._q_value_models[1:]:
+                qvl_new = q_value_model.predict(q_value_model_input)
+                qvl = alpha_ewma * qvl_new + (1 - alpha_ewma) * qvl
+
+        else:
+            q_value_model = self._q_value_models[-1]
+            qvl = q_value_model.predict(q_value_model_input)
+        return qvl
+
+    def print_proportion_missing_polynomial_optima(self):
+        """
+        Service function printing the proportion of undefined polynomial optima in case of polynomial regression for the
+        state-action value function model.
+
+        """
+
+        if self._total_polynomial_optimizations > 0:
+            proportion_missing = self._missing_polynomial_optima / self._total_polynomial_optimizations
+        else:
+            proportion_missing = -1
+        print(f'Total number of polynomial optimizations: {self._total_polynomial_optimizations}')
+        print(f'Number of missing polynomial optima: {self._missing_polynomial_optima}')
+        print(f'Proportion of missing polynomial optima: {proportion_missing * 100: .2f} %')
+
+    def extract_q_value_model_input_trading(self, state, action):
+        """
+        Service function that, for a given state and action (as expressed in terms of objects :obj:`State` and
+        :obj:`Action`), extracts the array_like input for a state-action value function model.
+
+        Parameters
+        ----------
+        state : State
+            State variable.
+        action : Action
+            Action variable.
+
+        Returns
+        -------
+        q_value_model_input : array_like
+            array_like input for a state-action value function model
+
+        """
+
+        state_lst = self._extract_state_lst_trading(state)
+        rescaled_trade = action.rescaled_trade
+        q_value_model_input = state_lst + [rescaled_trade]
+        q_value_model_input = np.array(q_value_model_input, dtype=object).reshape(1, -1)
+
+        return q_value_model_input
+
+    def set_polynomial_regression_degree(self, degree):
+        self._polynomial_regression_degree = degree
 
     def _greedy_policy(self, state: State):
 
@@ -124,22 +281,22 @@ class Agent:
 
         if len(self._q_value_models) == 0:  # We are at batch 0: use initialization
 
-            if self.randomActionType in (RandomActionType.RandomUniform,
-                                         RandomActionType.RandomTruncNorm):
+            if self._randomActionType in (RandomActionType.RandomUniform,
+                                          RandomActionType.RandomTruncNorm):
 
                 action = self._random_action(state)
 
-            elif self.randomActionType == RandomActionType.GP:
+            elif self._randomActionType == RandomActionType.GP:
 
-                rescaled_trade = self.environment.agent_GP.policy(factor=state.factor,
-                                                                  rescaled_shares=state.rescaled_shares,
-                                                                  shares_scale=state.shares_scale,
-                                                                  price=state.price)
+                rescaled_trade = self._environment.agent_GP.policy(factor=state.factor,
+                                                                   rescaled_shares=state.rescaled_shares,
+                                                                   shares_scale=state.shares_scale,
+                                                                   price=state.price)
                 action = Action()
                 action.set_trading_attributes(rescaled_trade=rescaled_trade, shares_scale=state.shares_scale)
 
             else:
-                raise NameError(f'Invalid randomActionType: {self.randomActionType.value}')
+                raise NameError(f'Invalid randomActionType: {self._randomActionType.value}')
 
         else:
             rescaled_trade = self._optimize_q_value_trading(state)
@@ -152,7 +309,7 @@ class Agent:
 
         lower_bound, upper_bound = self._get_action_bounds_trading(state)
 
-        if self.randomActionType == RandomActionType.RandomUniform:
+        if self._randomActionType == RandomActionType.RandomUniform:
 
             rescaled_trade = lower_bound + (upper_bound - lower_bound) * np.random.rand()
 
@@ -190,7 +347,7 @@ class Agent:
 
     def _get_action_bounds_trading(self, state: State):
 
-        actionSpace = ActionSpace(state, self.strategyType)
+        actionSpace = ActionSpace(state, self._strategyType)
         actionSpace.set_trading_actions_interval()
         lower_bound, upper_bound = actionSpace.actions_interval
 
@@ -212,25 +369,6 @@ class Agent:
             if np.ndim(qvl) > 0:
                 qvl = qvl.item()
 
-        return qvl
-
-    def qvl_from_ravel_input(self, q_value_model_input):
-        if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
-            poly = instantiate_polynomialFeatures(degree=self.polynomial_regression_degree)
-
-            q_value_model_input = poly.fit_transform(q_value_model_input)
-        if self._average_across_models:
-
-            q_value_model = self._q_value_models[0]
-            qvl = q_value_model.predict(q_value_model_input)
-            alpha_ewma = self._alpha_ewma
-            for q_value_model in self._q_value_models[1:]:
-                qvl_new = q_value_model.predict(q_value_model_input)
-                qvl = alpha_ewma * qvl_new + (1 - alpha_ewma) * qvl
-
-        else:
-            q_value_model = self._q_value_models[-1]
-            qvl = q_value_model.predict(q_value_model_input)
         return qvl
 
     def _optimize_q_value_trading(self, state: State):
@@ -258,7 +396,7 @@ class Agent:
             coef = 0.5 * (coef + q_value_model.coef_)
 
         # compute complete list of polynomial variables names
-        poly = instantiate_polynomialFeatures(self.polynomial_regression_degree)
+        poly = instantiate_polynomialFeatures(self._polynomial_regression_degree)
         fake_action = Action()
         fake_action.set_trading_attributes(rescaled_trade=1)
         q_value_model_input = self.extract_q_value_model_input_trading(state, fake_action)
@@ -274,7 +412,7 @@ class Agent:
 
         # aggregate all terms multiplying action^d
         aggregate_coef = []
-        for d in range(self.polynomial_regression_degree + 1):
+        for d in range(self._polynomial_regression_degree + 1):
             # get positions of variables names that are multiplying action^d
             positions_d = [i for i in range(len(variables_names)) if f'{action_name}^{d}' in variables_names[i]]
 
@@ -287,21 +425,11 @@ class Agent:
 
         x_optimal, flag_error = find_polynomial_minimum(coef=aggregate_coef, bounds=(lower_bound, upper_bound))
 
-        self.total_polynomial_optimizations += 1
+        self._total_polynomial_optimizations += 1
         if flag_error:
-            self.missing_polynomial_optima += 1
+            self._missing_polynomial_optima += 1
 
         return x_optimal
-
-    def print_proportion_missing_polynomial_optima(self):
-
-        if self.total_polynomial_optimizations > 0:
-            proportion_missing = self.missing_polynomial_optima / self.total_polynomial_optimizations
-        else:
-            proportion_missing = -1
-        print(f'Total number of polynomial optimizations: {self.total_polynomial_optimizations}')
-        print(f'Number of missing polynomial optima: {self.missing_polynomial_optima}')
-        print(f'Proportion of missing polynomial optima: {proportion_missing * 100: .2f} %')
 
     def _optimize_general_q_value_trading(self, state, lower_bound, upper_bound):
 
@@ -355,18 +483,9 @@ class Agent:
 
         return x_optimal
 
-    def extract_q_value_model_input_trading(self, state, action):
-
-        state_lst = self._extract_state_lst_trading(state)
-        rescaled_trade = action.rescaled_trade
-        q_value_model_input = state_lst + [rescaled_trade]
-        q_value_model_input = np.array(q_value_model_input, dtype=object).reshape(1, -1)
-
-        return q_value_model_input
-
     def _extract_state_lst_trading(self, state):
 
-        state_shape = state.environment.state_shape
+        state_shape = state._environment.state_shape
         state_lst = [None] * len(state_shape)
 
         # get info
@@ -385,17 +504,17 @@ class Agent:
         # fill list
         state_lst[0] = rescaled_shares
 
-        if self.environment.state_factor:
+        if self._environment.state_factor:
             state_lst[state_shape['factor']] = factor
-        if self.environment.state_ttm:
+        if self._environment.state_ttm:
             state_lst[state_shape['ttm']] = ttm
-        if self.environment.state_price:
+        if self._environment.state_price:
             state_lst[state_shape['price']] = price
-        if self.environment.state_pnl:
+        if self._environment.state_pnl:
             state_lst[state_shape['pnl']] = pnl
-        if self.environment.state_average_past_pnl:
+        if self._environment.state_average_past_pnl:
             state_lst[state_shape['average_past_pnl']] = average_past_pnl
-        if self.environment.state_GP_action:
+        if self._environment.state_GP_action:
             state_lst[state_shape['action_GP']] = action_GP
 
         return state_lst
@@ -408,7 +527,7 @@ class Agent:
         filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         filename += '/resources/data/data_source/market_data/commodities-summary-statistics.xlsx'
         df_lam_kappa = pd.read_excel(filename, index_col=0, sheet_name='Simplified contract multiplier')
-        df_lam_kappa = df_lam_kappa.loc[self.environment.market.ticker]  # TODO: should it be self.environment.ticker?
+        df_lam_kappa = df_lam_kappa.loc[self._environment.market.ticker]  # TODO: should it be self.environment.ticker?
 
         gamma = float(df_trad_params.loc['gamma'][0])
         kappa = float(df_lam_kappa.loc['kappa'])
@@ -417,23 +536,28 @@ class Agent:
             RandomActionType(str(df_trad_params.loc['randomActionType'][0]))
         strategyType = StrategyType(df_trad_params.loc['strategyType'][0])
 
-        self.gamma = gamma
-        self.kappa = kappa
-        self.randomActionType = randomActionType
-        self.strategyType = strategyType
+        self._gamma = gamma
+        self._kappa = kappa
+        self._randomActionType = randomActionType
+        self._strategyType = strategyType
 
-        self.environment.get_trading_parameters_from_agent(self.gamma, self.kappa)
+        self._environment.get_trading_parameters_from_agent(self._gamma, self._kappa)
 
-        if self.randomActionType == RandomActionType.GP:
-            self.environment.observe_GP = True
-            self.environment.instantiate_market_benchmark_and_agent_GP()
+        if self._randomActionType == RandomActionType.GP:
+            self._environment.observe_GP = True
+            self._environment.instantiate_market_benchmark_and_agent_GP()
 
-        self.best_n = None
+        self._best_n = None
         try:
-            self.best_n = int(load(os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/best_n.joblib'))
+            self._best_n = int(load(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                                    + '/resources/data/data_tmp/best_n.joblib'))
         except:
             print(f'Notice: agent is not yet trained, therefore it is impossible to set best_n')
 
     @property
     def supervisedRegressorType(self):
+        """
+        :obj:`SupervisedRegressorType` considered by the agent.
+
+        """
         return self._supervisedRegressorType
