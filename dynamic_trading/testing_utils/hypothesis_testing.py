@@ -11,29 +11,31 @@ class TTester:
     ----------
     alternative : {'two-sided', 'less', 'greater'}
         Defines the alternative hypothesis. The following options are available (default is 'two-sided'):
-        - 'two-sided': the means of the distributions underlying the samples are unequal.
-        - 'less': the mean of the distribution underlying the first sample is less than the mean of the distribution
-        underlying the second sample.
-        - 'greater': the mean of the distribution underlying the first sample is greater than the mean of the
-        distribution underlying the second sample.
+
+            - ``'two-sided'``: the means of the distributions underlying the samples are unequal.
+            - ``'less'``: the mean of the distribution underlying the first sample is less than the mean of the distribution underlying the second sample.
+            - ``'greater'``: the mean of the distribution underlying the first sample is greater than the mean of the distribution underlying the second sample.
+
     equal_var : bool
-        If True (default), perform a standard independent 2 sample test that assumes equal population variances. If
-        False, perform Welch's t-test, which does not assume equal population variance.
+        If ``True`` (default), perform a standard independent 2 sample test that assumes equal population variances. If
+        ``False``, perform Welch's t-test, which does not assume equal population variance.
     nan_policy : {'propagate', 'raise', 'omit'}
         Defines how to handle when input contains nan.
-        The following options are available (default is 'propagate'):
-        - 'propagate': returns nan
-        - 'raise': throws an error
-        - 'omit': performs the calculations ignoring nan values
+        The following options are available (default is ``'propagate'``):
+
+        - ``'propagate'``: returns nan
+        - ``'raise'``: throws an error
+        - ``'omit'``: performs the calculations ignoring nan values
+
     permutations : non-negative int, np.inf, or None (default)
-        If 0 or None (default), use the t-distribution to calculate p-values. Otherwise, `permutations` is  the number
-        of random permutations that will be used to estimate p-values using a permutation test. If `permutations` equals
-        or exceeds the number of distinct partitions of the pooled data, an exact test is performed instead (i.e. each
-        distinct partition is used exactly once). See Notes for details.
+        If ``0`` or ``None`` (default), use the t-distribution to calculate p-values. Otherwise, ``permutations`` is
+        the number of random permutations that will be used to estimate p-values using a permutation test. If
+        ``permutations`` equals or exceeds the number of distinct partitions of the pooled data, an exact test is
+        performed instead (i.e. each distinct partition is used exactly once).
     random_state : {None, int, `numpy.random.Generator`}
-        If `seed` is None the `numpy.random.Generator` singleton is used. If `seed` is an int, a new ``Generator``
-        instance is used, seeded with `seed`. If `seed` is already a ``Generator`` instance then that instance is used.
-        Pseudorandom number generator state used for generating random permutations.
+        If ``seed`` is `None` the ``numpy.random.Generator`` singleton is used. If ``seed`` is an int, a new
+        ``Generator`` instance is used, seeded with ``seed``. If ``seed`` is already a ``Generator`` instance then that
+        instance is used. Pseudorandom number generator state used for generating random permutations.
     sample_a, sample_b : array_like
         The samples being tested.
     t_test_id : str

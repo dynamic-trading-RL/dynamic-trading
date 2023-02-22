@@ -24,7 +24,7 @@ class AgentBenchmark:
     lam : float
         The cost friction parameter defining the quadratic cost function
         :math:`0.5 \lambda \Delta n^{'}_{t}\Sigma \Delta n_{t}` relative to the trade :math:`\Delta n_{t}`.
-    market : Market
+    market : :class:`~dynamic_trading.market_utils.market.Market`
         The market on which the agent is operating. Refer to the documentation of
         :class:`~dynamic_trading.market_utils.market.Market` for more details.
     strategyType: StrategyType
@@ -39,7 +39,7 @@ class AgentBenchmark:
 
         Parameters
         ----------
-        market : Market
+        market : :class:`~dynamic_trading.market_utils.market.Market`
             The market on which the agent is operating. Refer to the documentation of
             :class:`~dynamic_trading.market_utils.market.Market` for more details.
 
@@ -220,7 +220,7 @@ class AgentMarkowitz(AgentBenchmark):
 
         Parameters
         ----------
-        market : Market
+        market : :class:`~dynamic_trading.market_utils.market.Market`
             The market on which the agent is operating. Refer to the documentation of
             :class:`~dynamic_trading.market_utils.market.Market` for more details.
 
@@ -299,7 +299,7 @@ class AgentGP(AgentBenchmark):
 
         Parameters
         ----------
-        market : Market
+        market : :class:`~dynamic_trading.market_utils.market.Market`
             The market on which the agent is operating. Refer to the documentation of
             :class:`~dynamic_trading.market_utils.market.Market` for more details.
 

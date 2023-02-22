@@ -64,16 +64,17 @@ class AgentTrainer:
         Parameters
         ----------
         riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
-            Dynamics assigned to the risk-driver.
+            Type of dynamics assigned to the risk-driver.
+            See :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
         factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
-            Dynamics assigned to the factor.
+            Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
         ticker : str
             An ID to identify the traded security. If this ID is present in the list of available securities, the code
             will read its time series from the source data. Otherwise, it will try to download the time series from
             Yahoo finance via the :obj:`yfinance` module.
         riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-            Risk-driver type assigned to the
-            :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+            Risk-driver type assigned to
+            the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
             See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
         shares_scale : float
             Factor for rescaling the shares :math:`M`.
@@ -108,9 +109,10 @@ class AgentTrainer:
             pre-defined architectures given by ``[(64,), (64, 32), (64, 32, 8), (64, 32, 16, 8), (64, 32, 16, 8, 4)]``.
         early_stopping : bool
             Whether to use early stopping in the Neural Network fit. Refer to scikit-learn for more details.
-            max_iter
+        max_iter : int
+            Maximum number of iterations in supervised model fit. Refer to scikit-learn for more details.
         n_iter_no_change : int
-            Refer to scikit-learn for more details.
+            Maximum number of epochs to not meet improvement. Refer to scikit-learn for more details.
         activation : str
             Activation function used in Neural Network. Refer to scikit-learn for more details.
         alpha_sarsa : float
@@ -126,7 +128,8 @@ class AgentTrainer:
             or if cross-validation should be performed (``False``). Refer to scikit-learn for more details on
             :obj:`GridSearchCV`.
         alpha_ewma : float
-            Speed of the exponential weighting in the SARSA model averaging across batches.
+            Speed of the exponential weighting in the SARSA model averaging across batches
+            :math:`q_{k+1}(s_{t-1}, a_{t-1}) = q_{k}(s_{t-1}, a_{t-1}) + \\alpha (R_t + \gamma q_k(s_t,a_t) - q_k(s_{t-1},a_{t-1}))`.
         use_best_n_batch_mode : str
             Determines the mode with which the "best batch" is selected. Can be any of the following: ``t_test_pvalue``,
             the best choice is based on equality/outperforming criteria with respect to the benchmark based on the

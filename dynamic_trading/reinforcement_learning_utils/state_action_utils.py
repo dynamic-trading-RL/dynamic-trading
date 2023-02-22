@@ -12,7 +12,7 @@ class Action:
     shares_scale : float
         Factor for rescaling the shares :math:`M`.
     trade: float
-        A trade.
+        A trade :math:`\Delta n_{t}`.
 
     """
 
@@ -49,12 +49,13 @@ class State:
 
     Attributes
     ----------
-    action_GP : Action
+    action_GP : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
         Action performed by a GP agent.
     average_past_pnl : float
         Average past security's P\&Ls.
-    environment : Environment
+    environment : :class:`~dynamic_trading.reinforcement_learning_utils.environment.Environment`
         The environment generating the state.
+        See :class:`~dynamic_trading.reinforcement_learning_utils.environment.Environment` for more details.
     factor : float
         Observation of the factor :math:`f_{t}`.
     pnl : float
@@ -78,8 +79,9 @@ class State:
 
         Parameters
         ----------
-        environment : Environment
+        environment : :class:`~dynamic_trading.reinforcement_learning_utils.environment.Environment`
             The environment generating the state.
+            See :class:`~dynamic_trading.reinforcement_learning_utils.environment.Environment` for more details.
 
         """
 
@@ -111,13 +113,13 @@ class State:
         price : float
             Price :math:`p_{t}` of the security.
         pnl : float
-            Current security's P\&L observation.
+            Current security's P\&L :math:`p_{t}-p_{t-1}` observation.
         average_past_pnl : float
             Average past security's P\&Ls.
-        action_GP : Action
+        action_GP : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
             Action performed by a GP agent.
         ttm : float
-            Current time-to-maturity.
+            Current time-to-maturity :math:`T-t`.
 
         """
 

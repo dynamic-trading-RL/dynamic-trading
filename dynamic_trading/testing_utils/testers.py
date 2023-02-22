@@ -45,7 +45,7 @@ class Tester:
             test is being executed during the training phase, along the batch iteration. This feature enables the user
             to evaluate how the training is going before the training is complete: at the end of each batch, the
             currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
-            the folders /resources/reports/backtesting and /resources/reports/simulationtesting
+            the folders ``/resources/reports/backtesting and /resources/reports/simulationtesting``.
         n : int
             If :obj:`on_the_fly` is ``True``, :obj:`n` corresponds to the training batch index.
 
@@ -273,7 +273,7 @@ class BackTester(Tester):
             test is being executed during the training phase, along the batch iteration. This feature enables the user
             to evaluate how the training is going before the training is complete: at the end of each batch, the
             currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
-            the folders /resources/reports/backtesting and /resources/reports/simulationtesting
+            the folders ``/resources/reports/backtesting`` and ``/resources/reports/simulationtesting``.
         n : int
             If :obj:`on_the_fly` is ``True``, :obj:`n` corresponds to the training batch index.
 
@@ -865,8 +865,8 @@ class BackTester(Tester):
 
 class SimulationTester(Tester):
     """
-    Class for executing simulation-testing, or out-of-sample testing of a RL agent. The RL agent performance is tested on
-    the simulations of the market dynamics.
+    Class for executing simulation-testing, or out-of-sample testing of a RL agent. The RL agent performance is tested
+    on the simulations of the market dynamics.
 
     """
 
@@ -883,7 +883,7 @@ class SimulationTester(Tester):
             test is being executed during the training phase, along the batch iteration. This feature enables the user
             to evaluate how the training is going before the training is complete: at the end of each batch, the
             currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
-            the folders /resources/reports/backtesting and /resources/reports/simulationtesting
+            the folders ``/resources/reports/backtesting`` and ``/resources/reports/simulationtesting``.
         n : int
             If :obj:`on_the_fly` is ``True``, :obj:`n` corresponds to the training batch index.
 
@@ -900,7 +900,7 @@ class SimulationTester(Tester):
         Parameters
         ----------
         j_ : int
-            Number of market trajectories to be simulated.
+            Number :math:`J` of market trajectories to be simulated.
         t_ : int
             Length :math:`T` of each trajectory.
 
@@ -925,6 +925,10 @@ class SimulationTester(Tester):
         """
         Make plots on the results of the simulation testing.
 
+        Parameters
+        ----------
+        j_trajectories_plot : int
+            Number of trajectories to include in plots.
         """
 
         # todo: should also plot average cumulative returns with dispersion
@@ -1494,7 +1498,7 @@ def read_out_of_sample_parameters():
     Returns
     -------
     j_oos : int
-        Number of paths.
+        Number :math:`J` of paths.
     t_ : int
         Length :math:`T` of each path.
 

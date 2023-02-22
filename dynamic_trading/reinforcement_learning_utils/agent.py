@@ -31,8 +31,9 @@ class Agent:
 
         Parameters
         ----------
-        environment : Environment
-            Environment in which the agent is operating. See :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
+        environment : :class:`~dynamic_trading.reinforcement_learning_utils.environment.Environment`
+            Environment in which the agent is operating.
+            See :class:`~dynamic_trading.reinforcement_learning_utils.environment.Environment` for more details.
         optimizerType ::class:`~dynamic_trading.enums.enums.OptimizerType`
             Determines which global optimizer to use in the greedy policy optimization. Refer to
             :class:`~dynamic_trading.enums.enums.OptimizerType` for more details.
@@ -49,7 +50,9 @@ class Agent:
         polynomial_regression_degree : int
             Integer determining the (maximum) polynomial degree considered in case of polynomial regression.
         alpha_ewma : float
-            Parameter for exponentially weighted moving average used for defining model averages.
+            Parameter for exponentially weighted moving average used for defining model averages. The rule is
+            :math:`q_k = \\alpha \hat{q} + ( 1 - \\alpha ) q_{k-1}` where  :math:`\hat{q}` is the
+            supervised regressor fitted on the :math:`k`-th iteration.
 
         """
 
@@ -88,15 +91,17 @@ class Agent:
 
         Parameters
         ----------
-        state : State
-            State variable.
+        state : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+            State variable. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` for
+            more details.
         eps : float
-            If not `None`, parameter for epsilon-greedy policy
+            If not ``None``, parameter for :math:`\epsilon`-greedy policy.
 
         Returns
         -------
         action: Action
-            Action performed by the agent given the :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`.
+            Action performed by the agent given
+            the :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`.
 
         """
 
@@ -118,15 +123,17 @@ class Agent:
 
         Parameters
         ----------
-        state : State
-            State variable.
-        action : Action
-            Action variable.
+        state : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+            State variable. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` for
+            more details.
+        action : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
+            Action variable. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
+            for more details.
 
         Returns
         -------
         qvl : float
-            Value of q(s, a).
+            Value of :math:`q(s, a)`.
 
         """
 
@@ -192,7 +199,7 @@ class Agent:
         Returns
         -------
         qvl : float
-            Value of q(s, a).
+            Value of :math:`q(s, a)`.
 
         """
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
@@ -230,15 +237,19 @@ class Agent:
 
     def extract_q_value_model_input_trading(self, state, action):
         """
-        Service function that, for a given state and action (as expressed in terms of objects :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` and
-        :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`), extracts the array_like input for a state-action value function model.
+        Service function that, for a given state and action (as expressed in terms of
+        objects :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+        and :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`), extracts the array_like
+        input for a state-action value function model.
 
         Parameters
         ----------
-        state : State
-            State variable.
-        action : Action
-            Action variable.
+        state : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+            State variable. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` for
+            more details.
+        action : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
+            Action variable. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
+            for more details.
 
         Returns
         -------
@@ -564,7 +575,8 @@ class Agent:
     @property
     def supervisedRegressorType(self):
         """
-        :class:`~dynamic_trading.enums.enums.SupervisedRegressorType` considered by the agent.
+        :class:`~dynamic_trading.enums.enums.SupervisedRegressorType` considered by the agent. Refer
+        to :class:`~dynamic_trading.enums.enums.SupervisedRegressorType` for more details.
 
         """
         return self._supervisedRegressorType
@@ -572,7 +584,8 @@ class Agent:
     @property
     def kappa(self):
         """
-        Risk-aversion parameter.
+        The risk aversion parameter :math:`\kappa` appearing in the risk
+        definition :math:`0.5 \kappa n^{'}_t\Sigma n_t`.
 
         """
         return self._kappa
@@ -580,7 +593,8 @@ class Agent:
     @property
     def gamma(self):
         """
-        Cumulative future rewards discount factor.
+        The factor used to discount the cumulative future rewards target :math:`\sum_{k\ge 0} \gamma^k R_{t+k+1}` in
+        the dynamic programming problem defining the optimal allocation strategy.
 
         """
         return self._gamma

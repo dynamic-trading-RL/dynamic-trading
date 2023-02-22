@@ -29,10 +29,11 @@ class DynamicsCalibrator:
         The financial time series to be calibrated. Refer to
         :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
     riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-        Can be RiskDriverType.PnL (the security's model is on PnLs) or RiskDriverType.Return (the security's model is on
-        returns).
+        Risk-driver type assigned to
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
     all_dynamics_param_dict : dict
-        containing all the fitted parameters.
+        Dictionary containing all the fitted parameters.
     all_dynamics_model_dict : dict
         Dictionary containing all the fitted models.
     all_dynamics_resid_dict : dict
@@ -60,14 +61,17 @@ class DynamicsCalibrator:
 
         Parameters
         ----------
-        financialTimeSeries : FinancialTimeSeries
-            Financial time series to fit.
+        financialTimeSeries : :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`
+            The financial time series to be calibrated. Refer to
+            :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
         scale : float
-            Factor for rescaling the security time series.
+            Factor for rescaling the security time series for fitting stability.
         scale_f : float
-            Factor for rescaling the factor time series.
+            Factor for rescaling the factor time series for fitting stability.
         c : float
-            Threshold for threshold models.
+            Threshold for threshold models. Refer to
+            :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` and
+            :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
 
         """
 
@@ -79,20 +83,21 @@ class DynamicsCalibrator:
 
     def get_params_dict(self, var_type: str, dynamicsType: Union[RiskDriverDynamicsType, FactorDynamicsType]) -> dict:
         """
-        For a given var_type = ('risk-driver', 'factor') and dynamicsType, returns the dict containing the fitted
-        parameters for that model.
+        For a given :obj:`var_type` = ``('risk-driver', 'factor')`` and ``dynamicsType``, returns the dict containing
+        the fitted parameters for that model.
 
         Parameters
         ----------
         var_type : str
-            Can be 'risk-driver', 'factor'.
-        dynamicsType : Union[RiskDriverDynamicsType, FactorDynamicsType]
-            An instance of RiskDriverDynamicsType or FactorDynamicsType, depending on var_type.
+            Service variable to extract information on. Can be ``'risk-driver'``, ``'factor'``.
+        dynamicsType : Union[:class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`, :class:`~dynamic_trading.enums.enums.FactorDynamicsType`]
+            An instance of :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
+            or :class:`~dynamic_trading.enums.enums.FactorDynamicsType`, depending on var_type.
 
         Returns
         -------
         param_dict : dict
-            Dictionary with parameters.
+            Dictionary with parameters for :obj:`var_type`.
 
         """
 
@@ -103,7 +108,7 @@ class DynamicsCalibrator:
     def print_results(self):
         """
         Prints the results of the models fitting for the risk-driver and the factor. Results are stored in
-        resources/data/financial_time_series_data and in resources/reports/calibrations.
+        ``resources/data/financial_time_series_data`` and in ``resources/reports/calibrations``.
 
         """
 
@@ -517,7 +522,7 @@ class AllSeriesDynamicsCalibrator:
     def print_all_series_dynamics_results(self):
         """
         Prints the results of the models fitting for all the risk-drivers and the factors. Results are stored in
-        resources/data/financial_time_series_data and in resources/reports/calibrations.
+        ``resources/data/financial_time_series_data`` and in ``resources/reports/calibrations``.
 
         """
 

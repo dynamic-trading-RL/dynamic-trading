@@ -18,17 +18,19 @@ class FinancialTimeSeries:
     factorTransformationType : :class:`~dynamic_trading.enums.enums.FactorTransformationType`
         Transformation rule for factor, see FactorTransformationType
     factor_ticker : str
-        ID for factor.
+        An ID to identify the factor.
     info : dict
-       Dictionary containing information about the financialTimeSeries
+       Dictionary containing information about the financial time series.
     riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-        Determines the risk-driver type, see RiskDriverType
+        Risk-driver type assigned to
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
     ticker : str
         An ID to identify the traded security.
     time_series : pandas.DataFrame
-        Pandas DataFrame containing the financialTimeSeries historical data.
+        Pandas DataFrame containing the financial time series historical data.
     window : int
-        Window used for factorComputationType.
+        Window used for computing rolling statistics for :obj:`factorComputationType`.
 
     """
 
@@ -41,11 +43,13 @@ class FinancialTimeSeries:
         ticker : str
             An ID to identify the traded security.
         window : int
-            Window used for factorComputationType.
+            Window used for computing rolling statistics for :obj:`factorComputationType`.
         modeType : :class:`~dynamic_trading.enums.enums.ModeType`
             Determines whether the time series is used in-sample or out-of-sample, see ModeType.
         forcePnL : bool
-            Boolean determining whether to force the risk-driver to be a P\&L.
+            Boolean determining whether to force the risk-driver to be a P\&L. Used in particular when instantiating
+            a :class:`~dynamic_trading.benchmark_agents.agents.AgentBenchmark`, because for such agents the factor model
+            is done directly on the security P\&L.
 
         """
 

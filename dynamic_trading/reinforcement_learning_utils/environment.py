@@ -20,11 +20,11 @@ class Environment:
 
         Parameters
         ----------
-        market : Market
+        market : :class:`~dynamic_trading.market_utils.market.Market`
             The market on which the agent is operating. Refer to the documentation of
             :class:`~dynamic_trading.market_utils.market.Market` for more details.
         random_initial_state : bool
-            Boolean determining whether the initial state s_0 is selected randomly.
+            Boolean determining whether the initial state :math:`s_0` is selected randomly.
 
         """
 
@@ -51,8 +51,9 @@ class Environment:
 
         Returns
         -------
-        state : State
-            Initial state.
+        state : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+            Initial state. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` for
+            more details.
 
         """
 
@@ -60,11 +61,9 @@ class Environment:
 
         if self._random_initial_state:
             rescaled_shares = -1 + 2*np.random.rand()
-            other_observable = 0.
             pnl, factor, price, average_past_pnl = self._get_market_simulations_training(n=n, j=j, t=-1)
         else:
             rescaled_shares = 0.
-            other_observable = 0.
             pnl, factor, price, average_past_pnl = self._get_market_simulations_training(n=n, j=j, t=0)
 
         ttm = self._t_
@@ -93,7 +92,8 @@ class Environment:
 
     def instantiate_market_benchmark_and_agent_GP(self):
         """
-        A GP agent operating in the environment. See :class:`~dynamic_trading.benchmark_agents.agents.AgentGP` for more details.
+        A GP agent operating in the environment. See :class:`~dynamic_trading.benchmark_agents.agents.AgentGP` for more
+        details.
 
         """
 
@@ -110,10 +110,12 @@ class Environment:
 
         Parameters
         ----------
-        state : State
-            State variable currently observed.
-        action : Action
-            Action variable currently selected.
+        state : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+            State variable currently observed. Refer
+            to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` for more details.
+        action : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
+            Action variable currently selected. Refer
+            to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action` for more details.
         n : int
             Batch iteration.
         j : int
@@ -130,10 +132,12 @@ class Environment:
 
         Returns
         -------
-        next_state : State
-            Next state.
+        next_state : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+            Next state. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` for
+            more details.
         reward : float
-            Reward for taking :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action` when observing :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` .
+            Reward for taking :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action` when
+            observing :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`.
 
         """
 
@@ -149,22 +153,23 @@ class Environment:
 
         Parameters
         ----------
-        action : Action
-            Action implemented.
-        sig2
+        action : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`
+            Action implemented. Refer
+            to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action` for more details.
+        sig2 : float
             P\&L variance.
 
         Returns
         -------
-        cost : float
-            Trading cost.
+        trading_cost : float
+            The trading cost :math:`0.5 \lambda \Delta n^{'}_{t}\Sigma \Delta n_{t}`.
 
         """
 
         trade = action.trade
-        cost = 0.5 * trade * self._lam * sig2 * trade
+        trading_cost = 0.5 * trade * self._lam * sig2 * trade
 
-        return cost
+        return trading_cost
 
     def compute_trading_risk(self, state, sig2):
         """
@@ -172,22 +177,23 @@ class Environment:
 
         Parameters
         ----------
-        state : State
-            State observed.
+        state : :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`
+            State observed. Refer to :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` for
+            more details.
         sig2 :
             P\&L variance.
 
         Returns
         -------
-        risk : float
-            Trading risk.
+        trading_risk : float
+            The trading risk :math:`0.5 \kappa n^{'}_t\Sigma n_t`.
 
         """
 
         shares = state.shares
-        risk = 0.5 * shares * self._kappa * sig2 * shares
+        trading_risk = 0.5 * shares * self._kappa * sig2 * shares
 
-        return risk
+        return trading_risk
 
     def set_trading_parameters(self, gamma, kappa):
         """
@@ -401,7 +407,8 @@ class Environment:
     def add_absorbing_state(self):
         """
         Boolean determining whether an absorbing state should be added at the end of each episode. Particularly used
-        when the time-to-maturity is in the state variable.
+        when the time-to-maturity is in the state variable. In this case, at the end of each episode an instance of the
+        ultimate state where time-to-maturity is zero and a zero reward is assigned.
 
         """
         return self._add_absorbing_state
@@ -417,7 +424,7 @@ class Environment:
     @property
     def state_factor(self):
         """
-        Determines whether the factor is included in the state variable.
+        Determines whether the factor :math:`f_t` is included in the state variable.
 
         """
         return self._state_factor
@@ -425,7 +432,7 @@ class Environment:
     @property
     def state_ttm(self):
         """
-        Determines whether the time-to-maturity is included in the state variable.
+        Determines whether the time-to-maturity :math:`T-t` is included in the state variable.
 
         """
         return self._state_ttm
@@ -433,7 +440,7 @@ class Environment:
     @property
     def state_price(self):
         """
-        Determines whether the security's price is included in the state variable.
+        Determines whether the security's price :math:`p_t` is included in the state variable.
 
         """
         return self._state_price
@@ -441,7 +448,7 @@ class Environment:
     @property
     def state_pnl(self):
         """
-        Determines whether the security's P\&L is included in the state variable.
+        Determines whether the security's P\&L :math:`p_t-p_{t-1}` is included in the state variable.
 
         """
         return self._state_pnl
@@ -465,7 +472,8 @@ class Environment:
     @property
     def market(self):
         """
-        The market in which the agent is operating.
+        The market in which the agent is operating. Refer to :class:`~dynamic_trading.market_utils.market.Market` for
+        more details.
 
         """
         return self._market
@@ -473,7 +481,8 @@ class Environment:
     @property
     def gamma(self):
         """
-        Cumulative future rewards discount factor.
+        The factor used to discount the cumulative future rewards target :math:`\sum_{k\ge 0} \gamma^k R_{t+k+1}` in the
+        dynamic programming problem defining the optimal allocation strategy.
 
         """
         return self._gamma
@@ -499,7 +508,7 @@ class Environment:
     @property
     def t_(self):
         """
-        Length of the episodes.
+        Length :math:`T` of the episodes.
 
         """
         return self._t_

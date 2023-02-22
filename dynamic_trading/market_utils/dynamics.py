@@ -13,13 +13,16 @@ class Dynamics:
     Attributes
     ----------
     factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
-        Dynamics assigned to the factor.
+        Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
     parameters : dict
         Dictionary containing the dynamics parameter.
     riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
-        Dynamics assigned to the risk-driver.
+        Type of dynamics assigned to the risk-driver.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
     riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-        Type of risk-driver.
+        Risk-driver type assigned to
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
 
     """
 
@@ -218,7 +221,8 @@ class RiskDriverDynamics(Dynamics):
     Attributes
     ----------
     riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
-        Dynamics assigned to the risk-driver.
+        Type of dynamics assigned to the risk-driver.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
 
     """
 
@@ -229,7 +233,8 @@ class RiskDriverDynamics(Dynamics):
         Parameters
         ----------
         riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
-            Dynamics assigned to the risk-driver.
+            Type of dynamics assigned to the risk-driver.
+            See :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
 
         """
 
@@ -246,8 +251,9 @@ class RiskDriverDynamics(Dynamics):
 
         Parameters
         ----------
-        dynamicsCalibrator : DynamicsCalibrator
-            DynamicsCalibrator used to calibrate the model
+        dynamicsCalibrator : :class:`~dynamic_trading.market_utils.calibrator.DynamicsCalibrator`
+            Calibrator used to calibrate the model. See more details in
+            :class:`~dynamic_trading.market_utils.calibrator.DynamicsCalibrator`.
 
         """
 
@@ -264,7 +270,9 @@ class RiskDriverDynamics(Dynamics):
             will read its time series from the source data. Otherwise, it will try to download the time series from
             Yahoo finance via the :obj:`yfinance` module.
         riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-            Type of risk-driver
+            Risk-driver type assigned to
+            the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+            See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
 
         """
 
@@ -278,7 +286,7 @@ class FactorDynamics(Dynamics):
     Attributes
     ----------
     factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
-        Dynamics assigned to the factor.
+        Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
 
     """
 
@@ -289,7 +297,7 @@ class FactorDynamics(Dynamics):
         Parameters
         ----------
         factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
-            Dynamics assigned to the factor.
+            Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
 
         """
 
@@ -302,12 +310,13 @@ class FactorDynamics(Dynamics):
 
     def set_parameters_from_calibrator(self, dynamicsCalibrator: DynamicsCalibrator):
         """
-        Set class attributes starting from a DynamicsCalibrator
+        Set class attributes starting from a :class:`~dynamic_trading.market_utils.calibrator.DynamicsCalibrator`.
 
         Parameters
         ----------
-        dynamicsCalibrator : DynamicsCalibrator
-            DynamicsCalibrator used to calibrate the model.
+        dynamicsCalibrator : :class:`~dynamic_trading.market_utils.calibrator.DynamicsCalibrator`
+            Calibrator used to calibrate the model. See more details in
+            :class:`~dynamic_trading.market_utils.calibrator.DynamicsCalibrator`.
 
         """
 
@@ -324,7 +333,9 @@ class FactorDynamics(Dynamics):
             will read its time series from the source data. Otherwise, it will try to download the time series from
             Yahoo finance via the :obj:`yfinance` module.
         riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-            Type of risk-driver
+            Risk-driver type assigned to
+            the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+            See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
 
         """
 
@@ -337,12 +348,16 @@ class MarketDynamics:
 
     Attributes
     ----------
-    factorDynamics : FactorDynamics
-        Instance of FactorDynamics
-    riskDriverDynamics : RiskDriverDynamics
-        Instance of RiskDriverDynamics
+    factorDynamics : :class:`~dynamic_trading.market_utils.dynamics.FactorDynamics`
+        Dynamics assigned to the factor. See :class:`~dynamic_trading.market_utils.dynamics.FactorDynamics` for more
+        details.
+    riskDriverDynamics : :class:`~dynamic_trading.market_utils.dynamics.RiskDriverDynamics`
+        Dynamics assigned to the risk-driver. See :class:`~dynamic_trading.market_utils.dynamics.RiskDriverDynamics` for
+        more details.
     riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-        Type of risk-driver
+        Risk-driver type assigned to
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
     start_price : float
         Price of the security at time :math:`t=0`.
 
@@ -354,10 +369,12 @@ class MarketDynamics:
 
         Parameters
         ----------
-        riskDriverDynamics : RiskDriverDynamics
-            Dynamics assigned to the risk-driver.
-        factorDynamics : FactorDynamics
-            Dynamics assigned to the factor
+        riskDriverDynamics : :class:`~dynamic_trading.market_utils.dynamics.RiskDriverDynamics`
+            Dynamics assigned to the risk-driver. See :class:`~dynamic_trading.market_utils.dynamics.RiskDriverDynamics` for
+            more details.
+        factorDynamics : :class:`~dynamic_trading.market_utils.dynamics.FactorDynamics`
+            Dynamics assigned to the factor. See :class:`~dynamic_trading.market_utils.dynamics.FactorDynamics` for more
+            details.
 
         """
 
@@ -373,7 +390,8 @@ class MarketDynamics:
         Returns
         -------
         riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
-            riskDriverDynamicsType associated to the class.
+            Type of dynamics assigned to the risk-driver.
+            See :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
         parameters : dict
             parameters of the risk-driver dynamics.
 

@@ -15,21 +15,25 @@ class Market:
 
     Attributes
     ----------
-    financialTimeSeries : FinancialTimeSeries
-        Financial time series acting on the market. See :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
-    marketDynamics : MarketDynamics
-        Market dynamics of risk-driver and factor in the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+    financialTimeSeries : :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`
+        Financial time series acting on the market. See
+        :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
+    marketDynamics : :class:`~dynamic_trading.market_utils.dynamics.MarketDynamics`
+        Market dynamics of risk-driver and factor in
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
     market_id : str
         Identifier of this :class:`~dynamic_trading.market_utils.market.Market` object.
     riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-        Risk-driver type assigned to the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`. See :class:`~dynamic_trading.enums.enums.RiskDriverType`. for more details.
+        Risk-driver type assigned to
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
     simulations: dict
-        Dictionary indexes by market variable names 'risk-driver', 'factor', 'pnl', possibly 'sig' in case of ARCH
-        dynamics. Each value in the dictionary is a pandas.Dataframe containing the simulations of the specific market
-        variable.
-    simulations_training : pandas.DataFrame
+        Dictionary indexes by market variable names ``'risk-driver'``, ``'factor'``, ``'pnl'``, possibly ``'sig'``
+        in case of ARCH dynamics. Each value in the dictionary is a :obj:`pandas.Dataframe` containing the simulations
+        of the specific market variable.
+    simulations_training : dict
         Dictionary containing simulations used for training. As opposed to :obj:`simulations`, the primary key of this
-        dictionary is an integer `n` indicating the batch on which the training is operating.
+        dictionary is an integer ``n`` indicating the batch on which the training is operating.
     start_price : float
         Price of the security at time :math:`t=0`.
     ticker : str
@@ -43,10 +47,12 @@ class Market:
 
         Parameters
         ----------
-        financialTimeSeries : FinancialTimeSeries
-            Financial time series operating on the market.
-        marketDynamics : MarketDynamics
-            Market dynamics assigned to the financial time series.
+        financialTimeSeries : :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`
+            The financial time series to be calibrated. Refer to
+            :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
+        marketDynamics : :class:`~dynamic_trading.market_utils.dynamics.MarketDynamics`
+            Market dynamics of risk-driver and factor in
+            the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
 
         """
 
@@ -54,24 +60,6 @@ class Market:
         self.marketDynamics = marketDynamics
         self._set_market_attributes()
         self.simulations_training = None
-
-    def _next_step_risk_driver(self, factor: float):
-
-        riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
-
-        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
-
-            return parameters['mu'] + parameters['B']*factor
-
-        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
-
-            if factor < parameters['c']:
-
-                return parameters['mu_0'] + parameters['B_0']*factor
-
-            else:
-
-                return parameters['mu_1'] + parameters['B_1']*factor
 
     def next_step_pnl(self, factor: float, price: float = None):
         """
@@ -148,7 +136,7 @@ class Market:
         Parameters
         ----------
         j_: int
-            Number of paths.
+            Number :math:`J` of paths.
         t_ : int
             Length :math:`T` of each path.
         delta_stationary : int
@@ -169,7 +157,7 @@ class Market:
         n : int
             Batch on which the training is being done.
         j_episodes: int
-            Number of paths.
+            Number :math:`J` of paths.
         t_ : int
             Length :math:`T` of each path.
 
@@ -180,6 +168,24 @@ class Market:
 
         self.simulate(j_=j_episodes, t_=t_)
         self.simulations_training[n] = copy.deepcopy(self.simulations)
+
+    def _next_step_risk_driver(self, factor: float):
+
+        riskDriverDynamicsType, parameters = self.marketDynamics.get_riskDriverDynamicsType_and_parameters()
+
+        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear:
+
+            return parameters['mu'] + parameters['B']*factor
+
+        elif riskDriverDynamicsType == RiskDriverDynamicsType.NonLinear:
+
+            if factor < parameters['c']:
+
+                return parameters['mu_0'] + parameters['B_0']*factor
+
+            else:
+
+                return parameters['mu_1'] + parameters['B_1']*factor
 
     def _get_sig2(self, factor: float = None):
 
@@ -476,7 +482,8 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
     Parameters
     ----------
     riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
-        Dynamics type for the risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
+        Type of dynamics assigned to the risk-driver.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
     factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
         Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
     ticker : str
@@ -484,15 +491,18 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
         will read its time series from the source data. Otherwise, it will try to download the time series from
         Yahoo finance via the :obj:`yfinance` module.
     riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-        Type of risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
+        Risk-driver type assigned to
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
     modeType : :class:`~dynamic_trading.enums.enums.ModeType`
-        Whether to use the time series for in-sample or out-of-sample purposes. See :class:`~dynamic_trading.enums.enums.ModeType` for more details.
+        Whether to use the time series for in-sample or out-of-sample purposes.
+        See :class:`~dynamic_trading.enums.enums.ModeType` for more details.
 
     Returns
     -------
-    market : Market
-        Instance of :class:`~dynamic_trading.market_utils.market.Market` object with given attributes. Refer to the documentation of
-            :class:`~dynamic_trading.market_utils.market.Market` for more details.
+    market : :class:`~dynamic_trading.market_utils.market.Market`
+        Instance of :class:`~dynamic_trading.market_utils.market.Market` object with given attributes. Refer to the
+        documentation of :class:`~dynamic_trading.market_utils.market.Market` for more details.
     """
 
     # Instantiate financialTimeSeries
@@ -526,11 +536,14 @@ def read_trading_parameters_market():
         will read its time series from the source data. Otherwise, it will try to download the time series from
         Yahoo finance via the :obj:`yfinance` module.
     riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
-        Dynamics type for the risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
+        Type of dynamics assigned to the risk-driver.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
     factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
         Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
     riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
-        Type of risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
+        Risk-driver type assigned to
+        the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+        See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
 
     """
 
