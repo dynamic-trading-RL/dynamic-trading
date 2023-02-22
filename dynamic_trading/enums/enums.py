@@ -42,7 +42,7 @@ class FactorTransformationType(Enum):
 
     NoTransformation = 'NoTransformation'  #: No transformation is applied to the factor time series.
     Diff = 'Diff'  #: Consider the differences.
-    LogDiff = 'LogDiff'  # Consider the log-differences.
+    LogDiff = 'LogDiff'  #: Consider the log-differences.
 
 
 class RiskDriverType(Enum):
