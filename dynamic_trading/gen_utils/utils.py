@@ -21,12 +21,14 @@ available_ann_architectures = [(64,),
 
 def read_ticker() -> str:
     """
-    Reads security's ticker from settings file.
+    Reads security ticker from settings file.
 
     Returns
     -------
     ticker : str
-        The security's ticker.
+        An ID to identify the traded security. If this ID is present in the list of available securities, the code will
+        read its time series from the source data. Otherwise, it will try to download the time series from Yahoo
+        finance via the :obj:`yfinance` module.
 
     """
 
@@ -39,12 +41,13 @@ def read_ticker() -> str:
 
 def get_available_futures_tickers() -> list:
     """
-    Returns the pre-defined list of available tickers for the securities in resources/data/data_source/market_data/
+    Returns the pre-defined list of available tickers for the securities in
+    :obj:`resources/data/data_source/market_data/`.
 
     Returns
     -------
     lst: list
-        List of available securities tickers
+        List of available securities tickers.
 
     """
 
@@ -56,19 +59,18 @@ def get_available_futures_tickers() -> list:
 
 def instantiate_polynomialFeatures(degree) -> PolynomialFeatures:
     """
-    Instantiates a scikit-learn :obj:`PolynomialFeatures` object for a given polynomial degree. By default, interactions
-    are considered and bias is included.
+    Instantiates a scikit-learn :class:`~sklearn.preprocessing.PolynomialFeatures` object for a given polynomial degree.
+    By default, interactions are considered and bias is included.
 
     Parameters
     ----------
     degree : int
-        The degree of the polynomial
+        The degree of the polynomial.
 
     Returns
     -------
-    poly : :obj:`PolynomialFeatures`
-        :obj:`PolynomialFeatures` object defining the features of a polynomial regression. See :obj:`PolynomialFeatures`
-        for more details.
+    poly : :class:`~sklearn.preprocessing.PolynomialFeatures`
+        :class:`~sklearn.preprocessing.PolynomialFeatures` object defining the features of a polynomial regression.
 
     """
 
@@ -82,10 +84,10 @@ def instantiate_polynomialFeatures(degree) -> PolynomialFeatures:
 def find_polynomial_minimum(coef: Union[list, np.ndarray, tuple],
                             bounds: Union[list, np.ndarray, tuple]) -> Tuple[float, bool]:
     """
-    Given a set of polynomial coefficients coef = :math:`(a_0, a_1, ..., a_n)`, it computes the minimum of the
-    polynomial :math:`p(x) = a_0 + a_1  x + ... + a_n x^n` in a given interval [bounds[0], bounds[1]]. If the minimum is
-    not found, a random output is given as determined by the scipy.stats.truncnorm distribution function on the given
-    interval and a flag is returned.
+    Given a set of polynomial coefficients coef = :math:`(a_0, a_1, ..., a_n)`, it computes the point of minimum of the
+    polynomial :math:`p(x) = a_0 + a_1  x + ... + a_n x^n` in a given interval ``[bounds[0], bounds[1]]``. If the
+    minimum is not found, a random output is given as determined by the :obj:`scipy.stats.truncnorm` distribution
+    function on the given interval and a flag is returned.
 
     Parameters
     ----------
@@ -97,7 +99,7 @@ def find_polynomial_minimum(coef: Union[list, np.ndarray, tuple],
     Returns
     -------
     x_optim : float
-        Polynomial minimum point.
+        Polynomial point of minimum.
     flag_error : bool
         Flag determining whether the minimum existed in the interval.
 
@@ -182,36 +184,43 @@ def read_trading_parameters_training() -> tuple[float, int, int, int, bool, int 
     Returns
     -------
     shares_scale : float
-        Factor for rescaling the shares.
+        Factor for rescaling the shares :math:`M`.
     j_episodes : int
-        Number of episodes to generate within each batch.
+        Number of episodes :math:`J`: to generate within each batch.
     n_batches : int
-        Number of batches.
+        Number of batches :math:`N_B`.
     t_ : int
-        Length of each episode.
+        Length :math:`T` of each episode.
     parallel_computing_train : bool
         Boolean determining whether training is performed via parallel computing.
     n_cores : int
         Number of cores to use in parallel computing.
-    initialQvalueEstimateType : InitialQvalueEstimateType
-        Setting for the initialization of the state-action value function.
+    initialQvalueEstimateType : :class:`~dynamic_trading.enums.enums.InitialQvalueEstimateType`
+        Setting for the initialization of the state-action value function. Refer to
+        :class:`~dynamic_trading.enums.enums.InitialQvalueEstimateType` for more details.
     predict_pnl_for_reward : bool
-        Boolean determining whether the PnL is predicted in terms of the factor in the reward definition.
+        Boolean determining whether the PnL is predicted in terms of the factor in the reward definition. If ``False``,
+        then the reward is computed as
+        :math:`R_{t+1} = \gamma(n^{'}_t x_{t+1} - 0.5\kappa n^{'}_t\Sigma n_t)-c(\Delta n_t)`; if ``True``, it is
+        computed as
+        :math:`R_{t+1} = \gamma(n^{'}_t g(f_t) - 0.5\kappa n^{'}_t\Sigma n_t)-c(\Delta n_t)` where
+        :math:`g(f_t)=E[x_{t+1}|f_t]`.
     average_across_models : bool
         Boolean determining whether the SARSA algorithm performs model averaging across batches.
     use_best_n_batch : bool
-        Boolean determining whether the SARSA algorithm should output the index of the batch where agent has performed
-        best.
+        Boolean determining whether the last or the best available (average of) model should be used.
     train_benchmarking_GP_reward : bool
         Boolean determining whether the RL agent is being trained by benchmarking a GP agent. If this is true, then a
         AgentGP is instantiated; for each trade, both the RL and the GP rewards are computed. If the GP agent has
         outperformed the RL agent on the given trade, then the RL trade is substituted.
-    optimizerType : OptimizerType
-        Determines which global optimizer to use in the greedy policy optimization.
-    supervisedRegressorType : SupervisedRegressorType
-        Determines what kind of supervised regressor should be used to fit the state-action value function.
+    optimizerType : :class:`~dynamic_trading.enums.enums.OptimizerType`
+        Determines which global optimizer to use in the greedy policy optimization. Refer to
+        :class:`~dynamic_trading.enums.enums.OptimizerType` for more details.
+    supervisedRegressorType : :class:`~dynamic_trading.enums.enums.SupervisedRegressorType`
+        Determines what kind of supervised regressor should be used to fit the state-action value function. Refer to
+        :class:`~dynamic_trading.enums.enums.SupervisedRegressorType` for more details.
     eps_start : float
-        Starting parameter for the epsilon-greedy policy
+        Starting parameter :math:`\epsilon_0` for the :math:`\epsilon`-greedy policy.
     max_ann_depth : int
         Integer determining the depth of the Neural Network used to fit the state-action value function. It acts on
         pre-defined architectures given by [(64,), (64, 32), (64, 32, 8), (64, 32, 16, 8), (64, 32, 16, 8, 4)]
@@ -226,26 +235,28 @@ def read_trading_parameters_training() -> tuple[float, int, int, int, bool, int 
     alpha_sarsa : float
         Learning rate in SARSA updating formula.
     decrease_eps : bool
-        Boolean determining whether epsilon should be decreased across batches.
+        Boolean determining whether :math:`\epsilon` should be decreased across batches.
     random_initial_state : bool
-        Boolean determining whether the initial state s_0 is selected randomly.
+        Boolean determining whether the initial state :math:`s_0` is selected randomly.
     max_polynomial_regression_degree : int
         Maximum polynomial degree to be considered.
     max_complexity_no_gridsearch : bool
-        Boolean determining whether the maximum Neural Network or Polynomial complexity should be used (True), or if a
-        GridSearchCV should be performed (False). Refer to scikit-learn for more details on GridSearchCV.
+        Boolean determining whether the maximum Neural Network or Polynomial complexity should be used (``True``), or if
+        a cross-validation should be performed (``False``). Refer to scikit-learn for more details on
+        :class:`~sklearn.model_selection.GridSearchCV`.
     alpha_ewma : float
         Speed of the exponential weighting in the SARSA model averaging across batches.
     parallel_computing_sim : bool
         Boolean determining whether simulation testing is performed via parallel computing.
     use_best_n_batch_mode : str
-        Determines the mode with which the "best batch" is selected. Can be any of the following: 't_test_pvalue',
+        Determines the mode with which the "best batch" is selected. Can be any of the following: ``t_test_pvalue``,
         best choice is based on equality/outperforming criteria with respect to the benchmark based on the p-value of
-        specific hypothesis tests; 't_test_statistic', best choice is based on equality/outperforming criteria with
-        respect to the benchmark based on the statistic of specific hypothesis tests; 'reward', best choice is based on
-        the reward obtained in the training phase; 'average_q', best choice is based on the average state-action value
-        obtained in the training phase; 'model_convergence', best choice is based on a convergence criterion on the norm
-        of two subsequent state-action value function estimates.
+        specific hypothesis tests; ``t_test_statistic``, best choice is based on equality/outperforming criteria with
+        respect to the benchmark based on the statistic of specific hypothesis tests; ``reward``, best choice is based
+        on the reward obtained in the training phase; ``average_q``, best choice is based on the average state-action
+        value obtained in the training phase; ``model_convergence``, best choice is based on a convergence criterion on
+        the norm of two subsequent state-action value function estimates; ``wealth_net_risk``, best choice is based on
+        the wealth net risk obtained on simulated RL strategies at the end of each batch.
 
     """
 

@@ -24,7 +24,7 @@ from dynamic_trading.testing_utils.hypothesis_testing import TTester
 
 class Tester:
     """
-    Base class to perform testing of the RL agent trained via :obj:`AgentTrainer`.
+    Base class to perform testing of the RL agent trained via :class:`~dynamic_trading.reinforcement_learning_utils.agent_trainer.AgentTrainer`.
 
     """
 
@@ -36,18 +36,18 @@ class Tester:
         Parameters
         ----------
         use_assessment_period : bool
-            If `True`, the agent is not evaluated on the entire length of the time series, but only after an assessment
-            period.
+            If ``True``, the agent is not evaluated on the entire length of the time series, but only after an
+            assessment period.
         assessment_proportion : float
             Determines the assessment period length as a fraction of the episodes' length.
         on_the_fly : bool
-            Boolean determining whether the tester is performing on-the-fly testing. If `True`, it means that the
+            Boolean determining whether the tester is performing on-the-fly testing. If ``True``, it means that the
             test is being executed during the training phase, along the batch iteration. This feature enables the user
             to evaluate how the training is going before the training is complete: at the end of each batch, the
             currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
             the folders /resources/reports/backtesting and /resources/reports/simulationtesting
         n : int
-            If :obj:`on_the_fly` is `True`, :obj:`n` corresponds to the training batch index.
+            If :obj:`on_the_fly` is ``True``, :obj:`n` corresponds to the training batch index.
 
         """
 
@@ -264,18 +264,18 @@ class BackTester(Tester):
         Parameters
         ----------
         split_strategy : bool
-            If `True`, the backtesting is also executed by creating sub-periods on the complete backtesting periods and
+            If ``True``, the backtesting is also executed by creating sub-periods on the complete backtesting periods and
             executing separate backtesting on each of them, in order to obtain more statistical informations about
             the performance of the RL in the past. The chunks length is equal to the length of the episodes used to
             train the agent.
         on_the_fly : bool
-            Boolean determining whether the tester is performing on-the-fly testing. If `True`, it means that the
+            Boolean determining whether the tester is performing on-the-fly testing. If ``True``, it means that the
             test is being executed during the training phase, along the batch iteration. This feature enables the user
             to evaluate how the training is going before the training is complete: at the end of each batch, the
             currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
             the folders /resources/reports/backtesting and /resources/reports/simulationtesting
         n : int
-            If :obj:`on_the_fly` is `True`, :obj:`n` corresponds to the training batch index.
+            If :obj:`on_the_fly` is ``True``, :obj:`n` corresponds to the training batch index.
 
         """
 
@@ -879,13 +879,13 @@ class SimulationTester(Tester):
         Parameters
         ----------
         on_the_fly : bool
-            Boolean determining whether the tester is performing on-the-fly testing. If `True`, it means that the
+            Boolean determining whether the tester is performing on-the-fly testing. If ``True``, it means that the
             test is being executed during the training phase, along the batch iteration. This feature enables the user
             to evaluate how the training is going before the training is complete: at the end of each batch, the
             currently trained agent is assessed via backtesting and simulation-testing, and many outputs are saved in
             the folders /resources/reports/backtesting and /resources/reports/simulationtesting
         n : int
-            If :obj:`on_the_fly` is `True`, :obj:`n` corresponds to the training batch index.
+            If :obj:`on_the_fly` is ``True``, :obj:`n` corresponds to the training batch index.
 
         """
 
@@ -902,7 +902,7 @@ class SimulationTester(Tester):
         j_ : int
             Number of market trajectories to be simulated.
         t_ : int
-            Length of each trajectory.
+            Length :math:`T` of each trajectory.
 
         """
 
@@ -1496,7 +1496,7 @@ def read_out_of_sample_parameters():
     j_oos : int
         Number of paths.
     t_ : int
-        Length of each path.
+        Length :math:`T` of each path.
 
     """
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\

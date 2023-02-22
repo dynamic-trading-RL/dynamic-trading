@@ -11,20 +11,25 @@ from dynamic_trading.market_utils.market import Market, instantiate_market
 
 class AgentBenchmark:
     """
-    Base class for benchmark agent.
+    Class representing a generic agent considered as benchmark for the RL case.
 
     Attributes
     ----------
     gamma : float
-        The cumulative reward discount factor.
+        The factor used to discount the cumulative future rewards target :math:`\sum_{k\ge 0} \gamma^k R_{t+k+1}` in the
+        dynamic programming problem defining the optimal allocation strategy.
     kappa : float
-        The agent's risk aversion.
+        The risk aversion parameter :math:`\kappa` appearing in the risk definition
+        :math:`0.5 \kappa n^{'}_t\Sigma n_t`.
     lam : float
-        The cost friction parameter.
+        The cost friction parameter defining the quadratic cost function
+        :math:`0.5 \lambda \Delta n^{'}_{t}\Sigma \Delta n_{t}` relative to the trade :math:`\Delta n_{t}`.
     market : Market
-        The market on which the agent is operating.
+        The market on which the agent is operating. Refer to the documentation of
+        :class:`~dynamic_trading.market_utils.market.Market` for more details.
     strategyType: StrategyType
-        The strategy being performed by the agent. Refer to :obj:`StrategyType` for more details.
+        The strategy being performed by the agent. Refer to :class:`~dynamic_trading.enums.enums.StrategyType` for more
+        details.
 
     """
 
@@ -35,7 +40,8 @@ class AgentBenchmark:
         Parameters
         ----------
         market : Market
-            The market on which the agent is operating.
+            The market on which the agent is operating. Refer to the documentation of
+            :class:`~dynamic_trading.market_utils.market.Market` for more details.
 
         """
 
@@ -59,21 +65,26 @@ class AgentBenchmark:
 
     def compute_trading_cost(self, trade: float, factor: float, price: float) -> float:
         """
-        Computes the trading cost associated to a specific trade.
+        Computes the trading cost :math:`0.5 \lambda \Delta n^{'}_{t}\Sigma \Delta n_{t}` associated to the trade
+        :math:`\Delta n_{t}`.
 
         Parameters
         ----------
         trade : float
-            Trade implemented by the agent.
-        factor: float
-            Observation of the factor, used to predict the price change variance sig2.
+            Trade :math:`\Delta n_{t}` implemented by the agent.
+        factor : float
+            Observation of the factor :math:`f_{t}`, used to predict the price change variance :math:`\Sigma=\Sigma_t`
+            in case of non-constant variance, e.g. if the factor model is done on the security's return rather than
+            P\&L.
         price : float
-            Price of the security.
+            Price :math:`p_{t}` of the security, used to predict the price change variance :math:`\Sigma=\Sigma_t`
+            in case of non-constant variance, e.g. if the factor model is done on the security's return rather than
+            P\&L.
 
         Returns
         -------
         trading_cost : float
-            The trading cost.
+            The trading cost :math:`0.5 \lambda \Delta n^{'}_{t}\Sigma \Delta n_{t}`.
 
         """
 
@@ -88,19 +99,23 @@ class AgentBenchmark:
 
         Parameters
         ----------
-        factor: float
-            Observation of the factor, used to predict the price change variance sig2.
+        factor : float
+            Observation of the factor :math:`f_{t}`, used to predict the price change variance :math:`\Sigma=\Sigma_t`
+            in case of non-constant variance, e.g. if the factor model is done on the security's return rather than
+            P\&L.
         price : float
-            Price of the security.
+            Price :math:`p_{t}` of the security, used to predict the price change variance :math:`\Sigma=\Sigma_t`
+            in case of non-constant variance, e.g. if the factor model is done on the security's return rather than
+            P\&L.
         rescaled_shares : float
-            Shares, rescaled by :obj:`shares_scale`.
+            Current rescaled shares :math:`n_{t} / M`.
         shares_scale : float
-            Factor for rescaling the shares.
+            Factor for rescaling the shares :math:`M`.
 
         Returns
         -------
         trading_risk : float
-            The trading risk.
+            The trading risk :math:`0.5 \kappa n^{'}_t\Sigma n_t`.
 
         """
 
@@ -188,12 +203,14 @@ class AgentBenchmark:
 
 class AgentMarkowitz(AgentBenchmark):
     """
-    Base class for Markowitz agent agent.
+    Class representing a Markowitz agent considered as benchmark for the RL case.
 
     Attributes
     ----------
     use_quadratic_cost_in_markowitz : bool
-        If ``True``, it uses the static Markowitz solution taking into account transaction costs.
+        If ``True``, the Markowitz agent takes into consideration the quadratic transaction costs
+        :math:`0.5 \lambda \Delta n^{'}_{t}\Sigma \Delta n_{t}` in its policy optimization. Otherwise, the optimization
+        is done without taking into account any transaction cost.
 
     """
 
@@ -204,7 +221,8 @@ class AgentMarkowitz(AgentBenchmark):
         Parameters
         ----------
         market : Market
-            The market on which the agent is operating.
+            The market on which the agent is operating. Refer to the documentation of
+            :class:`~dynamic_trading.market_utils.market.Market` for more details.
 
         """
 
@@ -214,23 +232,24 @@ class AgentMarkowitz(AgentBenchmark):
     def policy(self, factor: float, rescaled_shares: float, shares_scale: float = 1,
                price: float = None) -> float:
         """
-        Implements the Markowitz policy.
+        Implements the Markowitz policy starting from the current position :math:`n_{t}` and factor observation
+        :math:`f_{t}`.
 
         Parameters
         ----------
         factor : float
-            Current factor observation.
+            Observation of the factor :math:`f_{t}`.
         rescaled_shares : float
-            Current rescaled shares.
+            Current rescaled shares :math:`n_{t} / M`.
         shares_scale : float
-            Factor for rescaling the shares.
+            Factor for rescaling the shares :math:`M`.
         price : float
-            Current price observation.
+            Price :math:`p_{t}` of the security.
 
         Returns
         -------
         rescaled_trade: float
-            The trade, rescaled by the factor `shares_scale`.
+            The trade :math:`\Delta n_{t}`, rescaled by the factor :obj:`shares_scale`.
 
         """
 
@@ -270,7 +289,7 @@ class AgentMarkowitz(AgentBenchmark):
 
 class AgentGP(AgentBenchmark):
     """
-    Base class for GP agent.
+    Class representing a GP agent considered as benchmark for the RL case.
 
     """
 
@@ -281,7 +300,8 @@ class AgentGP(AgentBenchmark):
         Parameters
         ----------
         market : Market
-            The market on which the agent is operating.
+            The market on which the agent is operating. Refer to the documentation of
+            :class:`~dynamic_trading.market_utils.market.Market` for more details.
 
         """
 
@@ -295,18 +315,18 @@ class AgentGP(AgentBenchmark):
         Parameters
         ----------
         factor : float
-            Current factor observation.
+            Observation of the factor :math:`f_{t}`.
         rescaled_shares : float
-            Current rescaled shares.
+            Current rescaled shares :math:`n_{t} / M`.
         shares_scale : float
-            Factor for rescaling the shares.
+            Factor for rescaling the shares :math:`M`.
         price : float
-            Current price observation.
+            Price :math:`p_{t}` of the security.
 
         Returns
         -------
         rescaled_trade: float
-            The trade, rescaled by the factor `shares_scale`.
+            The trade :math:`\Delta n_{t}`, rescaled by the factor :obj:`shares_scale`.
         """
 
         shares, pnl, sig2 = self._get_current_shares_pnl_and_sig2(factor, rescaled_shares, price, shares_scale)

@@ -21,7 +21,8 @@ class Environment:
         Parameters
         ----------
         market : Market
-            The market on which the agent is operating.
+            The market on which the agent is operating. Refer to the documentation of
+            :class:`~dynamic_trading.market_utils.market.Market` for more details.
         random_initial_state : bool
             Boolean determining whether the initial state s_0 is selected randomly.
 
@@ -46,7 +47,7 @@ class Environment:
         j : int
             Episode identifier.
         shares_scale : float
-            Factor for rescaling the shares.
+            Factor for rescaling the shares :math:`M`.
 
         Returns
         -------
@@ -92,7 +93,7 @@ class Environment:
 
     def instantiate_market_benchmark_and_agent_GP(self):
         """
-        A GP agent operating in the environment. See :obj:`AgentGP` for more details.
+        A GP agent operating in the environment. See :class:`~dynamic_trading.benchmark_agents.agents.AgentGP` for more details.
 
         """
 
@@ -120,14 +121,19 @@ class Environment:
         t : int
             Time iteration.
         predict_pnl_for_reward : bool
-            Boolean determining whether the next-step pnl should be predicted.
+            Boolean determining whether the PnL is predicted in terms of the factor in the reward definition. If
+            ``False``, then the reward is computed as
+            :math:`R_{t+1} = \gamma(n^{'}_t x_{t+1} - 0.5\kappa n^{'}_t\Sigma n_t)-c(\Delta n_t)`; if ``True``, it is
+            computed as
+            :math:`R_{t+1} = \gamma(n^{'}_t g(f_t) - 0.5\kappa n^{'}_t\Sigma n_t)-c(\Delta n_t)` where
+            :math:`g(f_t)=E[x_{t+1}|f_t]`.
 
         Returns
         -------
         next_state : State
             Next state.
         reward : float
-            Reward for taking :obj:`action` when observing :obj:`state` .
+            Reward for taking :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action` when observing :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` .
 
         """
 
@@ -190,9 +196,11 @@ class Environment:
         Parameters
         ----------
         gamma : float
-            Cumulative reward discount factor.
+            The factor used to discount the cumulative future rewards target :math:`\sum_{k\ge 0} \gamma^k R_{t+k+1}` in
+            the dynamic programming problem defining the optimal allocation strategy.
         kappa : float
-            Risk-aversion
+            The risk aversion parameter :math:`\kappa` appearing in the risk definition
+            :math:`0.5 \kappa n^{'}_t\Sigma n_t`.
 
         """
         self._gamma = gamma

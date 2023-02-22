@@ -32,18 +32,20 @@ class Agent:
         Parameters
         ----------
         environment : Environment
-            Environment in which the agent is operating. See :obj:`FinancialTimeSeries` for more details.
-        optimizerType : OptimizerType
-            Optimizer used to perform greedy policy. See :obj:`OptimizerType` for more details.
+            Environment in which the agent is operating. See :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
+        optimizerType ::class:`~dynamic_trading.enums.enums.OptimizerType`
+            Determines which global optimizer to use in the greedy policy optimization. Refer to
+            :class:`~dynamic_trading.enums.enums.OptimizerType` for more details.
         average_across_models : bool
-            Boolean determining whether model averaging should be done across supervised regressors.
+            Boolean determining whether the SARSA algorithm performs model averaging across batches.
         use_best_n_batch : bool
-             Boolean determining whether the last or the best available (average of) model should be used.
-        initialQvalueEstimateType : InitialQvalueEstimateType
-             Initialization type for state-action value function. See :obj:`InitialQvalueEstimateType` for more details.
-        supervisedRegressorType : SupervisedRegressorType
-             Type of supervised regressor expressing state-action value function. See :obj:`SupervisedRegressorType`
-             for more details.
+            Boolean determining whether the last or the best available (average of) model should be used.
+        initialQvalueEstimateType : :class:`~dynamic_trading.enums.enums.InitialQvalueEstimateType`
+            Setting for the initialization of the state-action value function. Refer to
+            :class:`~dynamic_trading.enums.enums.InitialQvalueEstimateType` for more details.
+        supervisedRegressorType : :class:`~dynamic_trading.enums.enums.SupervisedRegressorType`
+            Determines what kind of supervised regressor should be used to fit the state-action value function. Refer to
+            :class:`~dynamic_trading.enums.enums.SupervisedRegressorType` for more details.
         polynomial_regression_degree : int
             Integer determining the (maximum) polynomial degree considered in case of polynomial regression.
         alpha_ewma : float
@@ -94,7 +96,7 @@ class Agent:
         Returns
         -------
         action: Action
-            Action performed by the agent given the :obj:`state`.
+            Action performed by the agent given the :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State`.
 
         """
 
@@ -228,8 +230,8 @@ class Agent:
 
     def extract_q_value_model_input_trading(self, state, action):
         """
-        Service function that, for a given state and action (as expressed in terms of objects :obj:`State` and
-        :obj:`Action`), extracts the array_like input for a state-action value function model.
+        Service function that, for a given state and action (as expressed in terms of objects :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.State` and
+        :class:`~dynamic_trading.reinforcement_learning_utils.state_action_utils.Action`), extracts the array_like input for a state-action value function model.
 
         Parameters
         ----------
@@ -562,7 +564,7 @@ class Agent:
     @property
     def supervisedRegressorType(self):
         """
-        :obj:`SupervisedRegressorType` considered by the agent.
+        :class:`~dynamic_trading.enums.enums.SupervisedRegressorType` considered by the agent.
 
         """
         return self._supervisedRegressorType

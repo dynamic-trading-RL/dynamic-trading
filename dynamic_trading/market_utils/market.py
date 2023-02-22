@@ -16,13 +16,13 @@ class Market:
     Attributes
     ----------
     financialTimeSeries : FinancialTimeSeries
-        Financial time series acting on the market. See :obj:`FinancialTimeSeries` for more details.
+        Financial time series acting on the market. See :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
     marketDynamics : MarketDynamics
-        Market dynamics of risk-driver and factor in the :obj:`FinancialTimeSeries`.
+        Market dynamics of risk-driver and factor in the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
     market_id : str
-        Identifier of this :obj:`Market` object.
-    riskDriverType : RiskDriverType
-        Risk-driver type assigned to the :obj:`FinancialTimeSeries`. See :obj:`RiskDriverType`. for more details.
+        Identifier of this :class:`~dynamic_trading.market_utils.market.Market` object.
+    riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
+        Risk-driver type assigned to the :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`. See :class:`~dynamic_trading.enums.enums.RiskDriverType`. for more details.
     simulations: dict
         Dictionary indexes by market variable names 'risk-driver', 'factor', 'pnl', possibly 'sig' in case of ARCH
         dynamics. Each value in the dictionary is a pandas.Dataframe containing the simulations of the specific market
@@ -33,7 +33,7 @@ class Market:
     start_price : float
         Price of the security at time :math:`t=0`.
     ticker : str
-        ID for security.
+        An ID to identify the traded security.
 
     """
 
@@ -80,9 +80,9 @@ class Market:
         Parameters
         ----------
         factor : float
-            Current observation of the factor.
+            Observation of the factor :math:`f_{t}`.
         price : float
-            Current observation of the price.
+            Price :math:`p_{t}` of the security.
 
         Returns
         -------
@@ -112,9 +112,13 @@ class Market:
         Parameters
         ----------
         factor : float
-            Current observation of the factor.
+            Observation of the factor :math:`f_{t}`, used to predict the price change variance :math:`\Sigma=\Sigma_t`
+            in case of non-constant variance, e.g. if the factor model is done on the security's return rather than
+            P\&L.
         price : float
-            Current observation of the price.
+            Price :math:`p_{t}` of the security, used to predict the price change variance :math:`\Sigma=\Sigma_t`
+            in case of non-constant variance, e.g. if the factor model is done on the security's return rather than
+            P\&L.
 
         Returns
         -------
@@ -146,7 +150,7 @@ class Market:
         j_: int
             Number of paths.
         t_ : int
-            Length of each path.
+            Length :math:`T` of each path.
         delta_stationary : int
             In order to get stationary simulations of the factor, it simulates paths of length
             :obj:`t_ + delta_stationary`, then it drops the first :obj:`delta_stationary`.
@@ -167,7 +171,7 @@ class Market:
         j_episodes: int
             Number of paths.
         t_ : int
-            Length of each path.
+            Length :math:`T` of each path.
 
         """
 
@@ -467,25 +471,28 @@ def instantiate_market(riskDriverDynamicsType: RiskDriverDynamicsType,
                        riskDriverType: RiskDriverType,
                        modeType: ModeType = ModeType.InSample):
     """
-    Instantiates a :obj:`Market` object.
+    Instantiates a :class:`~dynamic_trading.market_utils.market.Market` object.
 
     Parameters
     ----------
-    riskDriverDynamicsType : RiskDriverDynamicsType
-        Dynamics type for the risk-driver, see :obj:`RiskDriverDynamicsType` for more details.
-    factorDynamicsType : FactorDynamicsType
-        Dynamics type for the factor, see :obj:`FactorDynamicsType` for more details.
+    riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
+        Dynamics type for the risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
+    factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
+        Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
     ticker : str
-        ID for the security.
-    riskDriverType : RiskDriverType
-        Type of risk-driver, see :obj:`RiskDriverType` for more details.
-    modeType : ModeType
-        Whether to use the time series for in-sample or out-of-sample purposes. See :obj:`ModeType` for more details.
+        An ID to identify the traded security. If this ID is present in the list of available securities, the code
+        will read its time series from the source data. Otherwise, it will try to download the time series from
+        Yahoo finance via the :obj:`yfinance` module.
+    riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
+        Type of risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
+    modeType : :class:`~dynamic_trading.enums.enums.ModeType`
+        Whether to use the time series for in-sample or out-of-sample purposes. See :class:`~dynamic_trading.enums.enums.ModeType` for more details.
 
     Returns
     -------
     market : Market
-        Instance of :obj:`Market` object with given attributes.
+        Instance of :class:`~dynamic_trading.market_utils.market.Market` object with given attributes. Refer to the documentation of
+            :class:`~dynamic_trading.market_utils.market.Market` for more details.
     """
 
     # Instantiate financialTimeSeries
@@ -515,13 +522,15 @@ def read_trading_parameters_market():
     Returns
     -------
     ticker : str
-        ID for the security.
-    riskDriverDynamicsType : RiskDriverDynamicsType
-        Dynamics type for the risk-driver, see :obj:`RiskDriverDynamicsType` for more details.
-    factorDynamicsType : FactorDynamicsType
-        Dynamics type for the factor, see :obj:`FactorDynamicsType` for more details.
-    riskDriverType : RiskDriverType
-        Type of risk-driver, see :obj:`RiskDriverType` for more details.
+        An ID to identify the traded security. If this ID is present in the list of available securities, the code
+        will read its time series from the source data. Otherwise, it will try to download the time series from
+        Yahoo finance via the :obj:`yfinance` module.
+    riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
+        Dynamics type for the risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType` for more details.
+    factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
+        Dynamics type for the factor, see :class:`~dynamic_trading.enums.enums.FactorDynamicsType` for more details.
+    riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
+        Type of risk-driver, see :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
 
     """
 

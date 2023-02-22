@@ -13,18 +13,18 @@ class FinancialTimeSeries:
 
     Attributes
     ----------
-    factorComputationType : FactorComputationType
+    factorComputationType : :class:`~dynamic_trading.enums.enums.FactorComputationType`
         Computation rule for factor, see FactorComputationType.
-    factorTransformationType : FactorTransformationType
+    factorTransformationType : :class:`~dynamic_trading.enums.enums.FactorTransformationType`
         Transformation rule for factor, see FactorTransformationType
     factor_ticker : str
         ID for factor.
     info : dict
        Dictionary containing information about the financialTimeSeries
-    riskDriverType : RiskDriverType
+    riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
         Determines the risk-driver type, see RiskDriverType
     ticker : str
-        ID for security.
+        An ID to identify the traded security.
     time_series : pandas.DataFrame
         Pandas DataFrame containing the financialTimeSeries historical data.
     window : int
@@ -39,10 +39,10 @@ class FinancialTimeSeries:
         Parameters
         ----------
         ticker : str
-            ID for security.
+            An ID to identify the traded security.
         window : int
             Window used for factorComputationType.
-        modeType : ModeType
+        modeType : :class:`~dynamic_trading.enums.enums.ModeType`
             Determines whether the time series is used in-sample or out-of-sample, see ModeType.
         forcePnL : bool
             Boolean determining whether to force the risk-driver to be a P\&L.

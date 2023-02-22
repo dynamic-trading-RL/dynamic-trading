@@ -25,14 +25,15 @@ class DynamicsCalibrator:
 
     Attributes
     ----------
-    financialTimeSeries : FinancialTimeSeries
-        The financial time series to be calibrated.
-    riskDriverType : RiskDriverType
+    financialTimeSeries : :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`
+        The financial time series to be calibrated. Refer to
+        :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries` for more details.
+    riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
         Can be RiskDriverType.PnL (the security's model is on PnLs) or RiskDriverType.Return (the security's model is on
         returns).
     all_dynamics_param_dict : dict
-         containing all the fitted parameters.
-     all_dynamics_model_dict : dict
+        containing all the fitted parameters.
+    all_dynamics_model_dict : dict
         Dictionary containing all the fitted models.
     all_dynamics_resid_dict : dict
         Dictionary containing all the fitted residuals.

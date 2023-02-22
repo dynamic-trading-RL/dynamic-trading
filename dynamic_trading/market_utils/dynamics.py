@@ -12,13 +12,13 @@ class Dynamics:
 
     Attributes
     ----------
-    factorDynamicsType : FactorDynamicsType
+    factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
         Dynamics assigned to the factor.
     parameters : dict
         Dictionary containing the dynamics parameter.
-    riskDriverDynamicsType : RiskDriverDynamicsType
+    riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
         Dynamics assigned to the risk-driver.
-    riskDriverType : RiskDriverType
+    riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
         Type of risk-driver.
 
     """
@@ -217,7 +217,7 @@ class RiskDriverDynamics(Dynamics):
 
     Attributes
     ----------
-    riskDriverDynamicsType : RiskDriverDynamicsType
+    riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
         Dynamics assigned to the risk-driver.
 
     """
@@ -228,7 +228,7 @@ class RiskDriverDynamics(Dynamics):
 
         Parameters
         ----------
-        riskDriverDynamicsType : RiskDriverDynamicsType
+        riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
             Dynamics assigned to the risk-driver.
 
         """
@@ -260,8 +260,10 @@ class RiskDriverDynamics(Dynamics):
         Parameters
         ----------
         ticker : str
-            Ticker of the security.
-        riskDriverType : RiskDriverType
+            An ID to identify the traded security. If this ID is present in the list of available securities, the code
+            will read its time series from the source data. Otherwise, it will try to download the time series from
+            Yahoo finance via the :obj:`yfinance` module.
+        riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
             Type of risk-driver
 
         """
@@ -275,7 +277,7 @@ class FactorDynamics(Dynamics):
 
     Attributes
     ----------
-    factorDynamicsType : FactorDynamicsType
+    factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
         Dynamics assigned to the factor.
 
     """
@@ -286,7 +288,7 @@ class FactorDynamics(Dynamics):
 
         Parameters
         ----------
-        factorDynamicsType : FactorDynamicsType
+        factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
             Dynamics assigned to the factor.
 
         """
@@ -318,8 +320,10 @@ class FactorDynamics(Dynamics):
         Parameters
         ----------
         ticker : str
-            Ticker of the security
-        riskDriverType : RiskDriverType
+            An ID to identify the traded security. If this ID is present in the list of available securities, the code
+            will read its time series from the source data. Otherwise, it will try to download the time series from
+            Yahoo finance via the :obj:`yfinance` module.
+        riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
             Type of risk-driver
 
         """
@@ -337,7 +341,7 @@ class MarketDynamics:
         Instance of FactorDynamics
     riskDriverDynamics : RiskDriverDynamics
         Instance of RiskDriverDynamics
-    riskDriverType : RiskDriverType
+    riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
         Type of risk-driver
     start_price : float
         Price of the security at time :math:`t=0`.
@@ -368,7 +372,7 @@ class MarketDynamics:
 
         Returns
         -------
-        riskDriverDynamicsType : RiskDriverDynamicsType
+        riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
             riskDriverDynamicsType associated to the class.
         parameters : dict
             parameters of the risk-driver dynamics.

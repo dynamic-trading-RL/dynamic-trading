@@ -63,38 +63,49 @@ class AgentTrainer:
 
         Parameters
         ----------
-        riskDriverDynamicsType : RiskDriverDynamicsType
+        riskDriverDynamicsType : :class:`~dynamic_trading.enums.enums.RiskDriverDynamicsType`
             Dynamics assigned to the risk-driver.
-        factorDynamicsType : FactorDynamicsType
+        factorDynamicsType : :class:`~dynamic_trading.enums.enums.FactorDynamicsType`
             Dynamics assigned to the factor.
         ticker : str
-            ID for security.
-        riskDriverType : RiskDriverType
-            Risk-driver type assigned to the :obj:`FinancialTimeSeries`. See :obj:`RiskDriverType`. for more details.
+            An ID to identify the traded security. If this ID is present in the list of available securities, the code
+            will read its time series from the source data. Otherwise, it will try to download the time series from
+            Yahoo finance via the :obj:`yfinance` module.
+        riskDriverType : :class:`~dynamic_trading.enums.enums.RiskDriverType`
+            Risk-driver type assigned to the
+            :class:`~dynamic_trading.market_utils.financial_time_series.FinancialTimeSeries`.
+            See :class:`~dynamic_trading.enums.enums.RiskDriverType` for more details.
         shares_scale : float
-            Factor for rescaling the shares.
+            Factor for rescaling the shares :math:`M`.
         predict_pnl_for_reward : bool
             Boolean determining whether the PnL is predicted in terms of the factor in the reward definition.
-        optimizerType : OptimizerType
-            Determines which global optimizer to use in the greedy policy optimization.
+            If ``False``, then the reward is computed as
+            :math:`R_{t+1} = \gamma(n^{'}_t x_{t+1} - 0.5\kappa n^{'}_t\Sigma n_t)-c(\Delta n_t)`; if ``True``, it is
+            computed as
+            :math:`R_{t+1} = \gamma(n^{'}_t g(f_t) - 0.5\kappa n^{'}_t\Sigma n_t)-c(\Delta n_t)` where
+            :math:`g(f_t)=E[x_{t+1}|f_t]`.
+        optimizerType : :class:`~dynamic_trading.enums.enums.OptimizerType`
+            Determines which global optimizer to use in the greedy policy optimization. Refer to
+            :class:`~dynamic_trading.enums.enums.OptimizerType` for more details.
         average_across_models : bool
-            Boolean determining whether the SARSA algorithm performs model averaging across batches
+            Boolean determining whether the SARSA algorithm performs model averaging across batches.
         use_best_n_batch : bool
-            Boolean determining whether the SARSA algorithm should output the index of the batch where agent has performed
-            best.
+             Boolean determining whether the last or the best available (average of) model should be used.
         train_benchmarking_GP_reward : bool
-            Boolean determining whether the RL agent is being trained by benchmarking a GP agent. If this is true, then a
-            AgentGP is instantiated; for each trade, both the RL and the GP rewards are computed. If the GP agent has
+            Boolean determining whether the RL agent is being trained by benchmarking a GP agent. If this is true, then
+            a AgentGP is instantiated; for each trade, both the RL and the GP rewards are computed. If the GP agent has
             outperformed the RL agent on the given trade, then the RL trade is substituted.
         plot_regressor : bool
             Boolean determining whether plots of the supervised regressor are generated.
-        supervisedRegressorType : SupervisedRegressorType
-            Determines what kind of supervised regressor should be used to fit the state-action value function.
-        initialQvalueEstimateType : InitialQvalueEstimateType
-             Initialization type for state-action value function. See :obj:`InitialQvalueEstimateType` for more details.
+        supervisedRegressorType : :class:`~dynamic_trading.enums.enums.SupervisedRegressorType`
+            Determines what kind of supervised regressor should be used to fit the state-action value function. Refer to
+            :class:`~dynamic_trading.enums.enums.SupervisedRegressorType` for more details.
+        initialQvalueEstimateType : :class:`~dynamic_trading.enums.enums.InitialQvalueEstimateType`
+            Setting for the initialization of the state-action value function. Refer to
+            :class:`~dynamic_trading.enums.enums.InitialQvalueEstimateType` for more details.
         max_ann_depth : int
             Integer determining the depth of the Neural Network used to fit the state-action value function. It acts on
-            pre-defined architectures given by [(64,), (64, 32), (64, 32, 8), (64, 32, 16, 8), (64, 32, 16, 8, 4)]
+            pre-defined architectures given by ``[(64,), (64, 32), (64, 32, 8), (64, 32, 16, 8), (64, 32, 16, 8, 4)]``.
         early_stopping : bool
             Whether to use early stopping in the Neural Network fit. Refer to scikit-learn for more details.
             max_iter
@@ -111,22 +122,24 @@ class AgentTrainer:
         max_polynomial_regression_degree : int
             Maximum polynomial degree to be considered.
         max_complexity_no_gridsearch : bool
-            Boolean determining whether the maximum Neural Network or Polynomial complexity should be used (True), or if a
-            GridSearchCV should be performed (False). Refer to scikit-learn for more details on GridSearchCV.
+            Boolean determining whether the maximum Neural Network or Polynomial complexity should be used (``True``),
+            or if cross-validation should be performed (``False``). Refer to scikit-learn for more details on
+            :obj:`GridSearchCV`.
         alpha_ewma : float
             Speed of the exponential weighting in the SARSA model averaging across batches.
         use_best_n_batch_mode : str
-            Determines the mode with which the "best batch" is selected. Can be any of the following: 't_test_pvalue',
-            best choice is based on equality/outperforming criteria with respect to the benchmark based on the p-value of
-            specific hypothesis tests; 't_test_statistic', best choice is based on equality/outperforming criteria with
-            respect to the benchmark based on the statistic of specific hypothesis tests; 'reward', best choice is based on
-            the reward obtained in the training phase; 'average_q', best choice is based on the average state-action value
-            obtained in the training phase; 'model_convergence', best choice is based on a convergence criterion on the norm
-            of two subsequent state-action value function estimates.
+            Determines the mode with which the "best batch" is selected. Can be any of the following: ``t_test_pvalue``,
+            the best choice is based on equality/outperforming criteria with respect to the benchmark based on the
+            p-value of specific hypothesis tests; ``t_test_statistic``, the best choice is based on
+            equality/outperforming  criteria with respect to the benchmark based on the statistic of specific hypothesis
+            tests; ``reward``, the best choice is based on the reward obtained in the training phase; ``average_q``, the
+            best choice is based on the average state-action value obtained in the training phase;
+            ``model_convergence``, the best choice is based on a convergence criterion on the norm of two subsequent
+            state-action value function estimates.
         restrict_evaluation_grid : bool
-            If True, the evaluation grid for computing the norm of two consecutive state-action value function models is
-            restricted in such a way that the model evaluation is done on points that are in the fitting domain of both
-            regressors.
+            If ``True``, the evaluation grid for computing the norm of two consecutive state-action value function
+            models is restricted in such a way that the model evaluation is done on points that are in the fitting
+            domain of both regressors.
 
         """
 
@@ -219,17 +232,17 @@ class AgentTrainer:
         Parameters
         ----------
         j_episodes : int
-            Number of episodes to generate.
+            Number of episodes :math:`J`: to generate within each batch.
         n_batches : int
-            Number of batches to generate.
+            Number of batches :math:`N_B`.
         t_ : int
-            Length of each episode.
+            Length :math:`T` of each episode.
         eps_start : float
-            Starting point for epsilon-greedy strategy.
+            Starting parameter :math:`\epsilon_0` for the :math:`\epsilon`-greedy policy.
         parallel_computing : bool
             Boolean determining whether parallel computing should be used.
         n_cores : int
-            If is :obj:`parallel_computing` is `True`, this parameter determines the cores used for parallel computing.
+            If is :obj:`parallel_computing` is ``True``, this parameter determines the cores used for parallel computing.
             If the provided value is larger than the CPUs available, it is set equal to :obj:`os.cpu_count()`.
 
         """

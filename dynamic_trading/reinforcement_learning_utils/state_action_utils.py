@@ -10,7 +10,7 @@ class Action:
     rescaled_trade : float
         A trade, rescaled by the factor :obj:`shares_scale`.
     shares_scale : float
-        Factor for rescaling the shares.
+        Factor for rescaling the shares :math:`M`.
     trade: float
         A trade.
 
@@ -34,7 +34,7 @@ class Action:
         rescaled_trade : float
             A trade, rescaled by the factor :obj:`shares_scale`.
         shares_scale : float
-            Factor for rescaling the shares.
+            Factor for rescaling the shares :math:`M`.
 
         """
 
@@ -56,17 +56,17 @@ class State:
     environment : Environment
         The environment generating the state.
     factor : float
-        Current factor observation.
+        Observation of the factor :math:`f_{t}`.
     pnl : float
         Current security's P\&L observation.
     price : float
-        Current security's price observation
+        Price :math:`p_{t}` of the security.
     rescaled_shares : float
-        Current rescaled shares.
+        Current rescaled shares :math:`n_{t} / M`.
     shares : float
         Current shares.
     shares_scale : float
-        Factor for rescaling the shares.
+        Factor for rescaling the shares :math:`M`.
     ttm : float
         Current time-to-maturity.
 
@@ -103,13 +103,13 @@ class State:
         Parameters
         ----------
         factor : float
-            Current factor observation.
+            Observation of the factor :math:`f_{t}`.
         rescaled_shares : float
-            Current rescaled shares.
+            Current rescaled shares :math:`n_{t} / M`.
         shares_scale : float
-            Factor for rescaling the shares.
+            Factor for rescaling the shares :math:`M`.
         price : float
-            Current security's price observation
+            Price :math:`p_{t}` of the security.
         pnl : float
             Current security's P\&L observation.
         average_past_pnl : float
@@ -143,8 +143,9 @@ class ActionSpace:
         Two-dimensional tuple defining the bounds on which the action is defined.
     state: State
         The action space depends on the current state.
-    strategyType : StrategyType
-        The type of strategy followed by the agent. Refer to :obj:`StrategyType` for more details.
+    strategyType : :class:`~dynamic_trading.enums.enums.StrategyType`
+        The strategy being performed by the agent. Refer to :class:`~dynamic_trading.enums.enums.StrategyType` for more
+        details.
 
     """
 
