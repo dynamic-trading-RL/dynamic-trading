@@ -598,3 +598,12 @@ class Agent:
 
         """
         return self._gamma
+
+    @property
+    def strategyType(self):
+        """
+        The strategy being performed by the agent. Refer to :class:`~dynamic_trading.enums.enums.StrategyType` for more
+        details.
+
+        """
+        return self._strategyType
