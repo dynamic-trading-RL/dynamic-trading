@@ -174,7 +174,6 @@ class AgentTrainer:
 
         self._environment = Environment(market=self._market, random_initial_state=random_initial_state)
         self._add_absorbing_state = self._environment.add_absorbing_state
-        self._gamma = self._environment.gamma
 
         if train_benchmarking_GP_reward and not self._environment.observe_GP:
             self._environment._observe_GP = True
@@ -231,6 +230,7 @@ class AgentTrainer:
                             initialQvalueEstimateType=initialQvalueEstimateType,
                             supervisedRegressorType=self._supervisedRegressorType,
                             alpha_ewma=self._alpha_ewma)
+        self._gamma = self._agent.gamma
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
