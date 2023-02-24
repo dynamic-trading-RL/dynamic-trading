@@ -264,8 +264,9 @@ class AgentMarkowitz(AgentBenchmark):
     def _get_markowitz_trade(self, shares: float, pnl: float, sig2: float):
 
         if self.use_quadratic_cost_in_markowitz:
-            trade = ((self.kappa * self.gamma + self.lam) * sig2) ** (-1) * (self.gamma * pnl + self.lam*sig2*shares)\
-                    - shares
+            # trade = ((self.kappa * self.gamma + self.lam) * sig2) ** (-1) * (self.gamma * pnl + self.lam*sig2*shares)\
+            #         - shares
+            trade = ((self.kappa + self.lam) * sig2) ** (-1) * (pnl + self.lam*sig2*shares) - shares
         else:
             trade = (self.kappa * sig2) ** (-1) * pnl - shares
 
