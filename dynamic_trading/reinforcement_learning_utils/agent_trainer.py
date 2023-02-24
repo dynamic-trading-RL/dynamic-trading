@@ -149,9 +149,14 @@ class AgentTrainer:
         self._t_ = None
         self._n_batches = None
         self._j_episodes = None
-        self._market = instantiate_market(riskDriverDynamicsType=riskDriverDynamicsType,
-                                          factorDynamicsType=factorDynamicsType,
-                                          ticker=ticker, riskDriverType=riskDriverType)
+        self._riskDriverDynamicsType = riskDriverDynamicsType
+        self._factorDynamicsType = factorDynamicsType
+        self._ticker = ticker
+        self._riskDriverType = riskDriverType
+        self._market = instantiate_market(riskDriverDynamicsType=self._riskDriverDynamicsType,
+                                          factorDynamicsType=self._factorDynamicsType,
+                                          ticker=self._ticker,
+                                          riskDriverType=self._riskDriverType)
         self._shares_scale = shares_scale
         self._predict_pnl_for_reward = predict_pnl_for_reward
         self._optimizerType = optimizerType
@@ -275,6 +280,7 @@ class AgentTrainer:
     def _generate_all_batches(self, eps_start: float, parallel_computing: bool):
 
         self._initialize_dicts_for_reporting()
+        self._create_market_simulations_for_simulationtesting(j_simtest=10000)
 
         eps = eps_start
 
@@ -319,6 +325,17 @@ class AgentTrainer:
 
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self._agent.print_proportion_missing_polynomial_optima()
+
+    def _create_market_simulations_for_simulationtesting(self, j_simtest: int):
+
+        self._j_simtest = j_simtest
+
+        market_for_simulationtesting = instantiate_market(riskDriverDynamicsType=self._riskDriverDynamicsType,
+                                                          factorDynamicsType=self._factorDynamicsType,
+                                                          ticker=self._ticker,
+                                                          riskDriverType=self._riskDriverType)
+        market_for_simulationtesting.simulate(j_=self._j_simtest, t_=self._t_)
+        self._simulations_for_simulationtesting = market_for_simulationtesting.simulations
 
     def _compute_best_batch(self):
 
@@ -394,7 +411,7 @@ class AgentTrainer:
         marketDynamics = self._market.marketDynamics
         riskDriverDynamicsType = marketDynamics.riskDriverDynamics.riskDriverDynamicsType
         factorDynamicsType = marketDynamics.factorDynamics.factorDynamicsType
-        strategyType = StrategyType.Unconstrained
+        strategyType = self._agent.strategyType
 
         if self._use_best_n_batch_mode == 't_test_statistic':
 
@@ -499,8 +516,10 @@ class AgentTrainer:
         backtester = BackTester(split_strategy=False, on_the_fly=True, n=n)
         backtester.execute_backtesting()
         backtester.make_plots()
-        simulationTester = SimulationTester(on_the_fly=True, n=n)
-        simulationTester.execute_simulation_testing(j_=10000, t_=self._t_)
+        simulationTester = SimulationTester(on_the_fly=True,
+                                            n=n,
+                                            externally_provided_simulations=self._simulations_for_simulationtesting)
+        simulationTester.execute_simulation_testing(j_=self._j_simtest, t_=self._t_)
         simulationTester.make_plots(j_trajectories_plot=5)
         self._backtesting_sharperatio[n] = backtester.sharpe_ratio_all['RL']
         self._simulationtesting_sharperatio_av2std[n] =\

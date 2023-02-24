@@ -18,7 +18,7 @@ from dynamic_trading.gen_utils.utils import read_trading_parameters_training
 from dynamic_trading.reinforcement_learning_utils.environment import Environment
 from dynamic_trading.reinforcement_learning_utils.state_action_utils import State, Action
 from dynamic_trading.enums.enums import (RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType, ModeType,
-                                         SupervisedRegressorType)
+                                         SupervisedRegressorType, StrategyType)
 from dynamic_trading.testing_utils.hypothesis_testing import TTester
 
 
@@ -870,9 +870,7 @@ class SimulationTester(Tester):
 
     """
 
-    # TODO: Finalize implementation of this class
-
-    def __init__(self, on_the_fly: bool = False, n: int = None):
+    def __init__(self, on_the_fly: bool = False, n: int = None, externally_provided_simulations: dict = None):
         """
         Class constructor.
 
@@ -886,10 +884,14 @@ class SimulationTester(Tester):
             the folders ``/resources/reports/backtesting`` and ``/resources/reports/simulationtesting``.
         n : int
             If :obj:`on_the_fly` is ``True``, :obj:`n` corresponds to the training batch index.
+        externally_provided_simulations : dict
+            If provided, the class will use these as market simulations rather than re-simulate. Must have the same
+            format as obj:`~dynamic_trading.market_utils.market.Market.simulations`.
 
         """
 
         super().__init__(on_the_fly=on_the_fly, n=n)
+        self._externally_provided_simulations = externally_provided_simulations
         self.t_ = None
         self.j_ = None
 
@@ -1264,13 +1266,21 @@ class SimulationTester(Tester):
 
         self._factor_pnl_and_price = {}
 
-        self._environment.market.simulate(j_=self.j_, t_=self.t_)
+        if self._externally_provided_simulations is None:
+            self._environment.market.simulate(j_=self.j_, t_=self.t_)
+            simulations = self._environment.market.simulations
+        else:
+            key = list(self._externally_provided_simulations.keys())[0]
+            num_sim = len(self._externally_provided_simulations[key])
+            assert num_sim == self.j_,\
+                f'Number of sims in externally_provided_simulations={num_sim} is not equal to j_={self.j_}.'
+            simulations = self._externally_provided_simulations
 
         start_date = self._market.financialTimeSeries.info.loc['end_date'].item()
         dates = pd.date_range(start=start_date, periods=self.t_)
 
         for data_type in ('factor', 'pnl', 'average_past_pnl', 'price'):
-            sims = pd.DataFrame(data=self._environment.market.simulations[data_type], columns=dates)
+            sims = pd.DataFrame(data=simulations[data_type], columns=dates)
             sims.index.name = 'simulation'
             sims = pd.melt(sims, var_name='date', ignore_index=False)
             sims.set_index('date', append=True, inplace=True)
@@ -1433,7 +1443,11 @@ class SimulationTester(Tester):
         marketDynamics = self._market.marketDynamics
         riskDriverDynamicsType = marketDynamics.riskDriverDynamics.riskDriverDynamicsType
         factorDynamicsType = marketDynamics.factorDynamics.factorDynamicsType
-        if riskDriverDynamicsType == RiskDriverDynamicsType.Linear and factorDynamicsType == FactorDynamicsType.AR:
+        strategyType = self._agents['RL'].strategyType
+
+        if (riskDriverDynamicsType == RiskDriverDynamicsType.Linear
+                and factorDynamicsType == FactorDynamicsType.AR
+                and strategyType == StrategyType.Unconstrained):
             # Benchmark
             # H0: RL = GP
             # H1: RL != GP
