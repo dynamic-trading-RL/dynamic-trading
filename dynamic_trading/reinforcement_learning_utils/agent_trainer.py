@@ -7,7 +7,7 @@ import pandas as pd
 from joblib import dump
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import Ridge
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, ShuffleSplit
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
@@ -232,6 +232,9 @@ class AgentTrainer:
                             alpha_ewma=self._alpha_ewma)
         self._gamma = self._agent.gamma
 
+        self._cv = ShuffleSplit(n_splits=5, test_size=0.25, random_state=0)
+        self._j_simtest=10
+
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
         """
@@ -280,7 +283,7 @@ class AgentTrainer:
     def _generate_all_batches(self, eps_start: float, parallel_computing: bool):
 
         self._initialize_dicts_for_reporting()
-        self._create_market_simulations_for_simulationtesting(j_simtest=10000)
+        self._create_market_simulations_for_simulationtesting(j_simtest=self._j_simtest)
 
         eps = eps_start
 
@@ -327,8 +330,6 @@ class AgentTrainer:
             self._agent.print_proportion_missing_polynomial_optima()
 
     def _create_market_simulations_for_simulationtesting(self, j_simtest: int):
-
-        self._j_simtest = j_simtest
 
         market_for_simulationtesting = instantiate_market(riskDriverDynamicsType=self._riskDriverDynamicsType,
                                                           factorDynamicsType=self._factorDynamicsType,
@@ -760,7 +761,7 @@ class AgentTrainer:
                                                             early_stopping=early_stopping,
                                                             validation_fraction=validation_fraction,
                                                             activation=activation))])
-            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+            grid_search = GridSearchCV(pipeline, param_grid, cv=self._cv,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)
@@ -792,7 +793,7 @@ class AgentTrainer:
             pipeline = Pipeline(steps=[('poly', PolynomialFeatures(interaction_only=False,
                                                                    include_bias=True)),
                                        ('ridge', Ridge(fit_intercept=False))])
-            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+            grid_search = GridSearchCV(pipeline, param_grid, cv=self._cv,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)
@@ -809,7 +810,7 @@ class AgentTrainer:
                                                                    interaction_only=False,
                                                                    include_bias=True)),
                                        ('ridge', Ridge(fit_intercept=False))])
-            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+            grid_search = GridSearchCV(pipeline, param_grid, cv=self._cv,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)
@@ -825,7 +826,7 @@ class AgentTrainer:
                                                                    interaction_only=False,
                                                                    include_bias=True)),
                                        ('ridge', Ridge(fit_intercept=False))])
-            grid_search = GridSearchCV(pipeline, param_grid, cv=5,
+            grid_search = GridSearchCV(pipeline, param_grid, cv=self._cv,
                                        scoring='neg_mean_squared_error',
                                        return_train_score=True,
                                        verbose=4).fit(x_array, y_array)
