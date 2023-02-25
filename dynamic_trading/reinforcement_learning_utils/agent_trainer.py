@@ -233,7 +233,7 @@ class AgentTrainer:
         self._gamma = self._agent.gamma
 
         self._cv = ShuffleSplit(n_splits=5, test_size=0.25, random_state=0)
-        self._j_simtest=10
+        self._j_simtest = 10000
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
