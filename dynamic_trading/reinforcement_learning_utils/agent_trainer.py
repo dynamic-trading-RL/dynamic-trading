@@ -7,7 +7,7 @@ import pandas as pd
 from joblib import dump
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import Ridge
-from sklearn.model_selection import GridSearchCV, ShuffleSplit
+from sklearn.model_selection import GridSearchCV, ShuffleSplit, KFold
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
@@ -57,7 +57,8 @@ class AgentTrainer:
                  max_complexity_no_gridsearch: bool = True,
                  alpha_ewma: float = 0.5,
                  use_best_n_batch_mode: str = 'wealth_net_risk',
-                 restrict_evaluation_grid: bool = True):
+                 restrict_evaluation_grid: bool = True,
+                 cv: str = None):
         """
         Class constructor.
 
@@ -143,6 +144,12 @@ class AgentTrainer:
             If ``True``, the evaluation grid for computing the norm of two consecutive state-action value function
             models is restricted in such a way that the model evaluation is done on points that are in the fitting
             domain of both regressors.
+        cv : str
+            Determines the cross-validation splitting strategy. Possible inputs for cv are:
+
+            - ``None`` or ``KFold``, to use :class:`~sklearn.model_selection.KFold`:class:`.
+
+            - ``ShuffleSplit``, to use :class:`~sklearn.model_selection.ShuffleSplit`:class:`.
 
         """
 
@@ -232,7 +239,13 @@ class AgentTrainer:
                             alpha_ewma=self._alpha_ewma)
         self._gamma = self._agent.gamma
 
-        self._cv = ShuffleSplit(n_splits=5, test_size=0.25, random_state=0)
+        if cv is None or cv == 'KFold':
+            self._cv = KFold(n_splits=5, shuffle=False)
+        elif cv == 'ShuffleSplit':
+            self._cv = ShuffleSplit(n_splits=5, test_size=0.25, random_state=0)
+        else:
+            raise NameError(f'cv={cv} must be either None or KFold or ShuffleSplit.')
+
         self._j_simtest = 10000
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
