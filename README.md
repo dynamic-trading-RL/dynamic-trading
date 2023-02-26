@@ -60,6 +60,7 @@ The file /resources/data/data_source/settings.csv contains the main settings tha
 - strategyType: 'Unconstrained' or 'LongOnly', determines the strategy of the agent.
 - supervisedRegressorType: determines which supervised regressor to use for state-action value function fitting.
 - t_: length of each episode
+- t_test_mode: determines on which samples the t-tests are executed
 - ticker: specifies the ticker of the asset to be taken into consideration (e.g. 'WTI')
 - train_benchmarking_GP_reward: 'Yes' or 'No', determines whether the RL agent should use GP as a benchmark in the training phase.
 - use_best_batch: 'Yes' or 'No', determines whether the code selects a particular batch as 'best' for output trained agent.

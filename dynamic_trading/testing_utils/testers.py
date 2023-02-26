@@ -895,7 +895,7 @@ class SimulationTester(Tester):
         self.t_ = None
         self.j_ = None
 
-    def execute_simulation_testing(self, j_, t_):
+    def execute_simulation_testing(self, j_, t_, t_test_mode):
         """
         Execute simulation testing.
 
@@ -905,11 +905,16 @@ class SimulationTester(Tester):
             Number :math:`J` of market trajectories to be simulated.
         t_ : int
             Length :math:`T` of each trajectory.
+        t_test_mode : str
+            If ``wealth_net_risk``, the t-test is performed on the wealth net risk; if ``wealth``, the t-test is
+            performed on the wealth; if ``sharpe_ratio`` the t-test is performed on the Sharpe ratio.
 
         """
 
         self.j_ = j_
         self.t_ = t_
+        assert t_test_mode in ('wealth_net_risk', 'wealth', 'sharpe_ratio')
+        self.t_test_mode = t_test_mode
 
         # Instantiate agents
         self._instantiate_agents_and_environment()
@@ -1460,9 +1465,19 @@ class SimulationTester(Tester):
             # low p-value -> reject H0 -> conclude that RL > GP (RL outperforms the benchmark)
             alternative = 'greater'
 
-        sample_a = self._cum_wealth_net_risk_all['RL'][:, -1]
-        sample_b = self._cum_wealth_net_risk_all['GP'][:, -1]
+        if self.t_test_mode == 'wealth_net_risk':
+            sample_a = self._cum_wealth_net_risk_all['RL'][:, -1]
+            sample_b = self._cum_wealth_net_risk_all['GP'][:, -1]
+        elif self.t_test_mode == 'wealth':
+            sample_a = self._cum_wealth_all['RL'][:, -1]
+            sample_b = self._cum_wealth_all['GP'][:, -1]
+        elif self.t_test_mode == 'sharpe_ratio':
+            sample_a = self._sharpe_ratio_all['RL']
+            sample_b = self._sharpe_ratio_all['GP']
+        else:
+            raise NameError(f'Invalid t_test_mode: {self.t_test_mode}')
 
+        print(f'Performing t-test with t_test_mode: {self.t_test_mode}')
         self.tTester = TTester(t_test_id=self._ticker,
                                sample_a=sample_a,
                                sample_b=sample_b,
@@ -1515,6 +1530,9 @@ def read_out_of_sample_parameters():
         Number :math:`J` of paths.
     t_ : int
         Length :math:`T` of each path.
+    t_test_mode : str
+        If ``wealth_net_risk``, the t-test is performed on the wealth net risk; if ``wealth``, the t-test is
+        performed on the wealth; if ``sharpe_ratio`` the t-test is performed on the Sharpe ratio.
 
     """
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) +\
@@ -1523,8 +1541,9 @@ def read_out_of_sample_parameters():
 
     j_oos = int(df_trad_params.loc['j_oos'][0])
     t_ = int(df_trad_params.loc['t_'][0])
+    t_test_mode = str(df_trad_params.loc['t_test_mode'][0])
 
-    return j_oos, t_
+    return j_oos, t_, t_test_mode
 
 
 if __name__ == '__main__':

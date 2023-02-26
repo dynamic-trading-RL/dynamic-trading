@@ -23,7 +23,7 @@ from dynamic_trading.market_utils.market import instantiate_market
 from dynamic_trading.reinforcement_learning_utils.agent import Agent
 from dynamic_trading.reinforcement_learning_utils.environment import Environment
 from dynamic_trading.reinforcement_learning_utils.state_action_utils import State, Action
-from dynamic_trading.testing_utils.testers import BackTester, SimulationTester
+from dynamic_trading.testing_utils.testers import BackTester, SimulationTester, read_out_of_sample_parameters
 
 
 # TODO: methods should be generalized, then specialized with a "trading" keyword in the name
@@ -137,11 +137,14 @@ class AgentTrainer:
             Determines the mode with which the "best batch" is selected. Can be any of the following: ``t_test_pvalue``,
             the best choice is based on equality/outperforming criteria with respect to the benchmark based on the
             p-value of specific hypothesis tests; ``t_test_statistic``, the best choice is based on
-            equality/outperforming  criteria with respect to the benchmark based on the statistic of specific hypothesis
+            equality/outperforming criteria with respect to the benchmark based on the statistic of specific hypothesis
             tests; ``reward``, the best choice is based on the reward obtained in the training phase; ``average_q``, the
             best choice is based on the average state-action value obtained in the training phase;
             ``model_convergence``, the best choice is based on a convergence criterion on the norm of two subsequent
-            state-action value function estimates.
+            state-action value function estimates; ``wealth_net_risk``, the best choice is based on
+            equality/outperforming criteria with respect to the benchmark based on the realized wealth net risk;
+            ``sharpe_ratio``, the best choice is based on equality/outperforming criteria with respect to the
+            benchmark based on the realized Sharpe ratio.
         restrict_evaluation_grid : bool
             If ``True``, the evaluation grid for computing the norm of two consecutive state-action value function
             models is restricted in such a way that the model evaluation is done on points that are in the fitting
@@ -229,7 +232,9 @@ class AgentTrainer:
                                                      'reward',
                                                      'average_q',
                                                      'model_convergence',
-                                                     'wealth_net_risk']
+                                                     'wealth_net_risk',
+                                                     'wealth',
+                                                     'sharpe_ratio']
         if use_best_n_batch_mode not in self._available_use_best_n_batch_mode_lst:
             raise NameError(
                 f'Invalid use_best_n_batch_mode: {use_best_n_batch_mode}. Should be in '
@@ -256,7 +261,7 @@ class AgentTrainer:
         else:
             raise NameError(f'cv={cv} must be either None or KFold or ShuffleSplit or an int.')
 
-        self._j_simtest = 10000
+        self._j_simtest, _, self._t_test_mode = read_out_of_sample_parameters()
         self._initialize_market_simulations_for_simulationtesting = initialize_market_simulations_for_simulationtesting
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
@@ -347,6 +352,11 @@ class AgentTrainer:
                 f'{self._simulationtesting_wealthnetrisk_av2std[n]}')
 
         for n in range(self._n_batches):
+            print(
+                f'Average/Std RL simulation wealth for batch {n}: '
+                f'{self._simulationtesting_wealth_av2std[n]}')
+
+        for n in range(self._n_batches):
             stat = self._simulationtesting_ttest[n]['statistic']
             pval = self._simulationtesting_ttest[n]['pvalue']
             print(f'T-statistics for Welch\'s test WNRRL vs WRNGP for batch {n}: statistic={stat}, pvalue={pval}')
@@ -396,6 +406,18 @@ class AgentTrainer:
                           for n, wealthnetrisk_av2std in self._simulationtesting_wealthnetrisk_av2std.items()])
             self._best_n = int(n_vs_wealthnetrisk_av2std[np.argmax(n_vs_wealthnetrisk_av2std[:, 1]), 0]) + 1
 
+        elif self._use_best_n_batch_mode == 'wealth':
+            n_vs_wealth_av2std =\
+                np.array([[n, wealth_av2std]
+                          for n, wealth_av2std in self._simulationtesting_wealth_av2std.items()])
+            self._best_n = int(n_vs_wealth_av2std[np.argmax(n_vs_wealth_av2std[:, 1]), 0]) + 1
+
+        elif self._use_best_n_batch_mode == 'sharpe_ratio':
+            n_vs_sharpe_ratio_av2std =\
+                np.array([[n, sharpe_ratio_av2std]
+                          for n, sharpe_ratio_av2std in self._simulationtesting_sharperatio_av2std.items()])
+            self._best_n = int(n_vs_sharpe_ratio_av2std[np.argmax(n_vs_sharpe_ratio_av2std[:, 1]), 0]) + 1
+
         dump(self._best_n,
              os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_tmp/best_n.joblib')
 
@@ -409,6 +431,7 @@ class AgentTrainer:
         self._backtesting_sharperatio = {}
         self._simulationtesting_sharperatio_av2std = {}
         self._simulationtesting_wealthnetrisk_av2std = {}
+        self._simulationtesting_wealth_av2std = {}
         self._simulationtesting_ttest = {}
 
     def _dump_training_report(self):
@@ -428,11 +451,16 @@ class AgentTrainer:
             data=self._simulationtesting_wealthnetrisk_av2std, orient='index',
             columns=['simulationtesting_wealthnetrisk_av2std'])
         df_simulationtesting_wealthnetrisk_av2std.index.name = 'batch'
+        df_simulationtesting_wealth_av2std = pd.DataFrame.from_dict(
+            data=self._simulationtesting_wealth_av2std, orient='index',
+            columns=['simulationtesting_wealth_av2std'])
+        df_simulationtesting_wealth_av2std.index.name = 'batch'
         df = pd.concat([df_reward_RL,
                         df_model_convergence,
                         df_backtesting_sharperatio,
                         df_simulationtesting_sharperatio_av2std,
-                        df_simulationtesting_wealthnetrisk_av2std],
+                        df_simulationtesting_wealthnetrisk_av2std,
+                        df_simulationtesting_wealth_av2std],
                        axis=1)
         filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         filename += f'/resources/reports/training/training_report.csv'
@@ -538,11 +566,9 @@ class AgentTrainer:
         print(f'Average GP reward for batch {n + 1}: {self._reward_GP[n]}')
         print(f'|model_{n + 1} - model_{n}| / |model_{n}| : {self._model_convergence[n]}')
         print(f'Average RL backtesting Sharpe ratio for batch {n + 1}: {self._backtesting_sharperatio[n]}')
-        print(
-            f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self._simulationtesting_sharperatio_av2std[n]}')
-        print(
-            f'Average/Std RL simulation wealth-net-risk for batch {n + 1}: '
-            f'{self._simulationtesting_wealthnetrisk_av2std[n]}')
+        print(f'Average/Std RL simulation Sharpe ratio for batch {n + 1}: {self._simulationtesting_sharperatio_av2std[n]}')
+        print(f'Average/Std RL simulation wealth-net-risk for batch {n + 1}: {self._simulationtesting_wealthnetrisk_av2std[n]}')
+        print(f'Average/Std RL simulation wealth for batch {n + 1}: {self._simulationtesting_wealth_av2std[n]}')
 
     def _execute_otf_bkt_and_smt(self, n):
         backtester = BackTester(split_strategy=False, on_the_fly=True, n=n)
@@ -551,13 +577,15 @@ class AgentTrainer:
         simulationTester = SimulationTester(on_the_fly=True,
                                             n=n,
                                             externally_provided_simulations=self._simulations_for_simulationtesting)
-        simulationTester.execute_simulation_testing(j_=self._j_simtest, t_=self._t_)
+        simulationTester.execute_simulation_testing(j_=self._j_simtest, t_=self._t_, t_test_mode=self._t_test_mode)
         simulationTester.make_plots(j_trajectories_plot=5)
         self._backtesting_sharperatio[n] = backtester.sharpe_ratio_all['RL']
         self._simulationtesting_sharperatio_av2std[n] =\
             simulationTester.sharpe_ratio_all['RL'].mean() / simulationTester.sharpe_ratio_all['RL'].std()
         self._simulationtesting_wealthnetrisk_av2std[n] =\
             simulationTester.means['RL']['wealth_net_risk'] / simulationTester.stds['RL']['wealth_net_risk']
+        self._simulationtesting_wealth_av2std[n] =\
+            simulationTester.means['RL']['wealth'] / simulationTester.stds['RL']['wealth']
         self._simulationtesting_ttest[n] = {'statistic': simulationTester.tTester.t_test_result['statistic'],
                                             'pvalue': simulationTester.tTester.t_test_result['pvalue']}
         del backtester, simulationTester

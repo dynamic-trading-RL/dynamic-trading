@@ -42,6 +42,7 @@ state_ttm,No
 strategyType,Unconstrained
 supervisedRegressorType,ann
 t_,50
+t_test_mode,sharpe_ratio
 ticker,WTI
 train_benchmarking_GP_reward,No
 use_best_n_batch,Yes

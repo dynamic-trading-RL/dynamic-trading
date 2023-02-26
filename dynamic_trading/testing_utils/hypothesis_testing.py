@@ -42,7 +42,6 @@ class TTester:
         An ID for this t-test.
     t_test_result : dict
         Dictionary containing the results of the t-test.
-
     """
 
     def __init__(self,
