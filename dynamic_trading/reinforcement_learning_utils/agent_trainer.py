@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 import matplotlib.pyplot as plt
 
@@ -58,7 +59,7 @@ class AgentTrainer:
                  alpha_ewma: float = 0.5,
                  use_best_n_batch_mode: str = 'wealth_net_risk',
                  restrict_evaluation_grid: bool = True,
-                 cv: str = None):
+                 cv: Union[None, str, int] = None):
         """
         Class constructor.
 
@@ -144,12 +145,14 @@ class AgentTrainer:
             If ``True``, the evaluation grid for computing the norm of two consecutive state-action value function
             models is restricted in such a way that the model evaluation is done on points that are in the fitting
             domain of both regressors.
-        cv : str
+        cv : Union[None, str, int]
             Determines the cross-validation splitting strategy. Possible inputs for cv are:
 
             - ``None`` or ``KFold``, to use :class:`~sklearn.model_selection.KFold`:class:`.
 
             - ``ShuffleSplit``, to use :class:`~sklearn.model_selection.ShuffleSplit`:class:`.
+
+            - An integer, in which case the cross-validation strategy will be set directly as ``GridSearchCV(cv=cv)``.
 
         """
 
@@ -243,8 +246,10 @@ class AgentTrainer:
             self._cv = KFold(n_splits=5, shuffle=False)
         elif cv == 'ShuffleSplit':
             self._cv = ShuffleSplit(n_splits=5, test_size=0.25, random_state=0)
+        elif type(cv) == int:
+            self._cv = cv
         else:
-            raise NameError(f'cv={cv} must be either None or KFold or ShuffleSplit.')
+            raise NameError(f'cv={cv} must be either None or KFold or ShuffleSplit or an int.')
 
         self._j_simtest = 10000
 
@@ -266,8 +271,9 @@ class AgentTrainer:
         parallel_computing : bool
             Boolean determining whether parallel computing should be used.
         n_cores : int
-            If is :obj:`parallel_computing` is ``True``, this parameter determines the cores used for parallel computing.
-            If the provided value is larger than the CPUs available, it is set equal to :obj:`os.cpu_count()`.
+            If is :obj:`parallel_computing` is ``True``, this parameter determines the cores used for parallel
+            computing. If the provided value is larger than the CPUs available, it is set equal
+            to :obj:`os.cpu_count()`.
 
         """
 
@@ -344,12 +350,16 @@ class AgentTrainer:
 
     def _create_market_simulations_for_simulationtesting(self, j_simtest: int):
 
+        random_state = np.random.get_state()
+        np.random.seed(0)
         market_for_simulationtesting = instantiate_market(riskDriverDynamicsType=self._riskDriverDynamicsType,
                                                           factorDynamicsType=self._factorDynamicsType,
                                                           ticker=self._ticker,
                                                           riskDriverType=self._riskDriverType)
         market_for_simulationtesting.simulate(j_=self._j_simtest, t_=self._t_)
         self._simulations_for_simulationtesting = market_for_simulationtesting.simulations
+
+        np.random.set_state(random_state)
 
     def _compute_best_batch(self):
 
