@@ -381,6 +381,8 @@ class AgentTrainer:
 
     def _compute_best_batch(self):
 
+        print(f'Best batch is being computed based on {self._use_best_n_batch_mode}')
+
         if self._use_best_n_batch_mode in ('t_test_pvalue', 't_test_statistic'):
             self._best_n = self._get_best_n_based_on_tTest()
 
