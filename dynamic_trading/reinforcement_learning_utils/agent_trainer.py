@@ -59,7 +59,8 @@ class AgentTrainer:
                  alpha_ewma: float = 0.5,
                  use_best_n_batch_mode: str = 'wealth_net_risk',
                  restrict_evaluation_grid: bool = True,
-                 cv: Union[None, str, int] = None):
+                 cv: Union[None, str, int] = None,
+                 initialize_market_simulations_for_simulationtesting: bool = True):
         """
         Class constructor.
 
@@ -153,6 +154,10 @@ class AgentTrainer:
             - ``ShuffleSplit``, to use :class:`~sklearn.model_selection.ShuffleSplit`:class:`.
 
             - An integer, in which case the cross-validation strategy will be set directly as ``GridSearchCV(cv=cv)``.
+        initialize_market_simulations_for_simulationtesting : bool
+            If ``True``, generate market simulations for the purpose of on-the-fly simulation testing once and for all
+            at the beginning of the training. If ``False``, market simulations are re-generated at each on-the-fly
+            simulation testing.
 
         """
 
@@ -252,6 +257,7 @@ class AgentTrainer:
             raise NameError(f'cv={cv} must be either None or KFold or ShuffleSplit or an int.')
 
         self._j_simtest = 10000
+        self._initialize_market_simulations_for_simulationtesting = initialize_market_simulations_for_simulationtesting
 
     def train(self, j_episodes: int, n_batches: int, t_: int, eps_start: float = 0.01, parallel_computing: bool = False,
               n_cores: int = None):
@@ -302,7 +308,7 @@ class AgentTrainer:
     def _generate_all_batches(self, eps_start: float, parallel_computing: bool):
 
         self._initialize_dicts_for_reporting()
-        self._create_market_simulations_for_simulationtesting(j_simtest=self._j_simtest)
+        self._create_market_simulations_for_simulationtesting()
 
         eps = eps_start
 
@@ -348,18 +354,20 @@ class AgentTrainer:
         if self._supervisedRegressorType == SupervisedRegressorType.polynomial_regression:
             self._agent.print_proportion_missing_polynomial_optima()
 
-    def _create_market_simulations_for_simulationtesting(self, j_simtest: int):
+    def _create_market_simulations_for_simulationtesting(self):
 
-        random_state = np.random.get_state()
-        np.random.seed(0)
-        market_for_simulationtesting = instantiate_market(riskDriverDynamicsType=self._riskDriverDynamicsType,
-                                                          factorDynamicsType=self._factorDynamicsType,
-                                                          ticker=self._ticker,
-                                                          riskDriverType=self._riskDriverType)
-        market_for_simulationtesting.simulate(j_=self._j_simtest, t_=self._t_)
-        self._simulations_for_simulationtesting = market_for_simulationtesting.simulations
-
-        np.random.set_state(random_state)
+        if self._initialize_market_simulations_for_simulationtesting:
+            random_state = np.random.get_state()
+            np.random.seed(0)
+            market_for_simulationtesting = instantiate_market(riskDriverDynamicsType=self._riskDriverDynamicsType,
+                                                              factorDynamicsType=self._factorDynamicsType,
+                                                              ticker=self._ticker,
+                                                              riskDriverType=self._riskDriverType)
+            market_for_simulationtesting.simulate(j_=self._j_simtest, t_=self._t_)
+            self._simulations_for_simulationtesting = market_for_simulationtesting.simulations
+            np.random.set_state(random_state)
+        else:
+            self._simulations_for_simulationtesting = None
 
     def _compute_best_batch(self):
 
