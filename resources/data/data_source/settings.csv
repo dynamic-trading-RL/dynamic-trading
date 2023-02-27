@@ -15,7 +15,7 @@ factor_ticker,VIX
 gamma,0.9999
 in_sample_proportion,0.95
 initialQvalueEstimateType,random
-j_episodes,1500
+j_episodes,7000
 j_oos,10000
 max_ann_depth,4
 max_complexity_no_gridsearch,No
@@ -39,7 +39,7 @@ state_GP_action,No
 state_pnl,No
 state_price,No
 state_ttm,No
-strategyType,Unconstrained
+strategyType,LongOnly
 supervisedRegressorType,ann
 t_,50
 t_test_mode,sharpe_ratio
