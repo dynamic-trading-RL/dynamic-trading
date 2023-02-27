@@ -152,9 +152,9 @@ class AgentTrainer:
         cv : Union[None, str, int]
             Determines the cross-validation splitting strategy. Possible inputs for cv are:
 
-            - ``None`` or ``KFold``, to use :class:`~sklearn.model_selection.KFold`:class:`.
+            - ``None`` or ``KFold``, to use :class:`~sklearn.model_selection.KFold`.
 
-            - ``ShuffleSplit``, to use :class:`~sklearn.model_selection.ShuffleSplit`:class:`.
+            - ``ShuffleSplit``, to use :class:`~sklearn.model_selection.ShuffleSplit`.
 
             - An integer, in which case the cross-validation strategy will be set directly as ``GridSearchCV(cv=cv)``.
         initialize_market_simulations_for_simulationtesting : bool
