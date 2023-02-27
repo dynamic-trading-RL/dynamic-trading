@@ -39,7 +39,7 @@ state_GP_action,No
 state_pnl,No
 state_price,No
 state_ttm,No
-strategyType,LongOnly
+strategyType,Unconstrained
 supervisedRegressorType,ann
 t_,50
 t_test_mode,sharpe_ratio
