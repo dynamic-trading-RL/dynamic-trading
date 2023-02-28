@@ -627,11 +627,14 @@ class AllSeriesDynamicsCalibrator:
             plt.close(fig)
 
             fig = plt.figure(figsize=(800 / dpi, 600 / dpi), dpi=dpi)
-            factor = financialTimeSeries.time_series['factor']
+            time_series = financialTimeSeries.time_series[['factor', 'risk-driver']]
+            time_series['risk-driver'] = time_series['risk-driver'].shift(-1)
+            time_series.dropna(inplace=True)
+            factor = time_series['factor']
             c = dynamicsCalibrator.all_dynamics_param_dict['risk-driver'][RiskDriverDynamicsType.NonLinear]['c']
             factor0 = factor[factor < c]
             factor1 = factor[factor >= c]
-            risk_driver = financialTimeSeries.time_series['risk-driver']
+            risk_driver = time_series['risk-driver']
             linear_model = dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.Linear][0]
             nonlinear_model0 =\
                 dynamicsCalibrator.all_dynamics_model_dict['risk-driver'][RiskDriverDynamicsType.NonLinear][0]
