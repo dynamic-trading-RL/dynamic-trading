@@ -16,7 +16,7 @@ gamma,0.9999
 in_sample_proportion,0.95
 initialQvalueEstimateType,random
 j_episodes,7000
-j_oos,100
+j_oos,10000
 max_ann_depth,3
 max_complexity_no_gridsearch,Yes
 max_iter,10
