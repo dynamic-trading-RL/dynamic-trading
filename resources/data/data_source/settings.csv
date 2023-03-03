@@ -9,7 +9,7 @@ early_stopping,No
 end_date,
 eps_start,0.01
 factorComputationType,MovingAverage
-factorDynamicsType,AR
+factorDynamicsType,AR_TARCH
 factorTransformationType,Diff
 factor_ticker,
 gamma,0.9999
@@ -30,7 +30,7 @@ parallel_computing_sim,Yes
 predict_pnl_for_reward,Yes
 randomActionType,RandomUniform
 random_initial_state,Yes
-riskDriverDynamicsType,Linear
+riskDriverDynamicsType,NonLinear
 riskDriverType,PnL
 start_date,1988-05-17
 state_average_past_pnl,No
