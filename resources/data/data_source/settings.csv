@@ -15,7 +15,7 @@ factor_ticker,
 gamma,0.9999
 in_sample_proportion,0.95
 initialQvalueEstimateType,random
-j_episodes,15000
+j_episodes,7000
 j_oos,100
 max_ann_depth,3
 max_complexity_no_gridsearch,Yes
