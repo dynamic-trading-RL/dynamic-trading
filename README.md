@@ -14,7 +14,7 @@ Particularly relevant are
 - RV5.xlsx contains the S&p 500 5-minutes realized variance, which could be used as predicting factor
 - commodities-summary-statistics.xlsx contains some information about the commodity futures, such as exchanged volumes
 
-If the user provides a ticker that is not listed among the names of the commodity futures, the code will try to download that ticker from Yahoo Finance.
+The user can integrate the file assets_data.xlsx and add additional factor files. If the user provides a ticker that is not listed among the names of the commodity futures, the code will try to download that ticker from Yahoo Finance.
 
 The file /resources/data/data_source/settings.csv contains the main settings that the code reads in order to fit the dynamics, train the agent and perform testing. Various options for the factor definition are available. In particular:
 - activation: the activation function to be used in case a Neural Network is fitted to the state-action value function. Refer to scikit-learn for more information.
