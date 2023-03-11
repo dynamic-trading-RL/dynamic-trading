@@ -40,6 +40,8 @@ autodoc_default_options = {
     'special-members': '__init__',
 }
 
+add_module_names = False
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
