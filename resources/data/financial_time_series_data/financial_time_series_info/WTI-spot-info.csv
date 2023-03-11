@@ -1,0 +1,9 @@
+,info
+ticker,WTI-spot
+end_date,2019-01-07 00:00:00
+start_price,48.27
+len,382
+out_of_sample_proportion_len,387
+window,5
+riskDriverType,PnL
+factorComputationType,MovingAverage
