@@ -64,7 +64,7 @@ class FactorSourceType(Enum):
     """
 
     Constructed = 'Constructed'  #: The factor is constructed starting from the traded security.
-    Exogenous = 'Exogenous'  #: The factor is provided exogenously.
+    Exogenous = 'Exogenous'  # The factor is provided exogenously.
 
 
 class ModeType(Enum):
