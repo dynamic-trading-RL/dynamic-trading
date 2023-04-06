@@ -19,6 +19,7 @@ from statsmodels.tsa.ar_model import AutoReg
 
 fit_stock = False
 return_is_pnl = True
+t_ = 50
 dump(fit_stock, 'data/fit_stock.joblib')
 dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
@@ -87,6 +88,8 @@ calibration_parameters = pd.DataFrame(index=['ticker', 'end_date',
 
 
 # ------------------------------------- Fit of dynamics -----------------------
+# hold-out
+df = df.iloc[:-t_].copy()
 
 # ------------------ RETURNS
 

@@ -88,6 +88,9 @@ calibration_parameters = pd.DataFrame(index=['ticker', 'end_date',
 
 
 # ------------------------------------- Fit of dynamics -----------------------
+# hold-out
+df = df.iloc[:-t_].copy()
+
 
 # ------------------ RETURNS
 
