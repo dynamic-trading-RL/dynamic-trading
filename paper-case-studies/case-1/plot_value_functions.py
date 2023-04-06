@@ -9,7 +9,7 @@ import numpy as np
 from joblib import load
 import matplotlib.pyplot as plt
 from dt_functions import (get_q_value, maxAction, instantiate_market,
-                          get_Sigma, get_dynamics_params)
+                          get_Sigma, get_dynamics_params, ReturnDynamicsType, FactorDynamicsType)
 
 ############ PARAMETERS
 
@@ -70,9 +70,13 @@ for i in range(len(nn)):
 market = instantiate_market(returnDynamicsType, factorDynamicsType,
                             100., return_is_pnl)
 
-Sigma = get_Sigma(market)
 
-B, mu_r, Phi, mu_f = get_dynamics_params(market)
+market_linear = instantiate_market(returnDynamicsType=ReturnDynamicsType.Linear,
+                                   factorDynamicsType=FactorDynamicsType.AR,
+                                   startPrice=100.,
+                                   return_is_pnl=return_is_pnl)
+Sigma = get_Sigma(market_linear)
+B, mu_r, Phi, mu_f = get_dynamics_params(market_linear)
 
 nn_GP = np.zeros((len(nn), len(ff)))
 
@@ -102,6 +106,7 @@ cbar = fig.colorbar(contourf_)
 plt.xlabel('$n_{t-1}$')
 plt.ylabel('$f_t$')
 plt.title('Shares RL')
+plt.show()
 
 fig,ax = plt.subplots()
 contourf_ = ax.contourf(nn, ff, nn_GP, levels=100, vmin=vmin, vmax=vmax)
@@ -109,3 +114,4 @@ cbar = fig.colorbar(contourf_)
 plt.xlabel('$n_{t-1}$')
 plt.ylabel('$f_t$')
 plt.title('Shares GP')
+plt.show()

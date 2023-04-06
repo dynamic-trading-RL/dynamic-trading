@@ -20,7 +20,7 @@ from dt_functions import (instantiate_market,
                           compute_wealth,
                           get_dynamics_params,
                           perform_ttest,
-                          perform_linear_regression)
+                          perform_linear_regression, ReturnDynamicsType, FactorDynamicsType)
 import sys
 import warnings
 if not sys.warnoptions:
@@ -64,10 +64,13 @@ if __name__ == '__main__':
     market = instantiate_market(returnDynamicsType, factorDynamicsType,
                                 startPrice, return_is_pnl)
 
-    Sigma = get_Sigma(market)
+    market_linear = instantiate_market(returnDynamicsType=ReturnDynamicsType.Linear,
+                                       factorDynamicsType=FactorDynamicsType.AR,
+                                       startPrice=startPrice,
+                                       return_is_pnl=return_is_pnl)
+    Sigma = get_Sigma(market_linear)
     Lambda = lam*Sigma
-
-    B, mu_r, Phi, mu_f = get_dynamics_params(market)
+    B, mu_r, Phi, mu_f = get_dynamics_params(market_linear)
 
     # Simulations
     price, pnl, f = simulate_market(market, j_episodes=j_oos, n_batches=1,

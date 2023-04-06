@@ -126,12 +126,16 @@ if __name__ == '__main__':
 
     # Simulations
     price, pnl, f = simulate_market(market, j_episodes, n_batches, t_)
-    Sigma = get_Sigma(market)
-    lam = lam_perc * 2 / Sigma
-    Lambda = lam*Sigma
 
     # Get dynamics
-    B, mu_r, Phi, mu_f = get_dynamics_params(market)
+    market_linear = instantiate_market(returnDynamicsType=ReturnDynamicsType.Linear,
+                                       factorDynamicsType=FactorDynamicsType.AR,
+                                       startPrice=startPrice,
+                                       return_is_pnl=return_is_pnl)
+    Sigma = get_Sigma(market_linear)
+    lam = lam_perc * 2 / Sigma
+    Lambda = lam*Sigma
+    B, mu_r, Phi, mu_f = get_dynamics_params(market_linear)
 
     # Get bound
     if bound is None:

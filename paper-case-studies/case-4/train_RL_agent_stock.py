@@ -138,7 +138,11 @@ if __name__ == '__main__':
     Lambda = lam*Sigma
 
     # Get dynamics
-    B, mu_r, Phi, mu_f = get_dynamics_params(market)
+    market_linear = instantiate_market(returnDynamicsType=ReturnDynamicsType.Linear,
+                                       factorDynamicsType=FactorDynamicsType.AR,
+                                       startPrice=startPrice,
+                                       return_is_pnl=return_is_pnl)
+    B, mu_r, Phi, mu_f = get_dynamics_params(market_linear)
 
     # Get bound
     if bound is None:
