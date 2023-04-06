@@ -149,7 +149,8 @@ if __name__ == '__main__':
 
     # ---------------------------------------------------------- Welch's t-test
 
-    perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
+    perform_ttest('benchmark',
+                  final_wealth_GP, final_wealth_M, final_wealth_RL,
                   final_value_GP, final_value_M, final_value_RL,
                   final_cost_GP, final_cost_M, final_cost_RL)
 
@@ -252,8 +253,8 @@ if __name__ == '__main__':
         'GP (mean, std) = (' +\
         '{:.2f}'.format(np.mean(wealth_GP[:, -1])).format('.2f') + ', ' +\
         '{:.2f}'.format(np.std(wealth_GP[:, -1])) + ')'
-    plt.annotate(results_str, xy=(0, 1), xytext=(12, -12), va='top',
-                 xycoords='axes fraction', textcoords='offset points')
+    # plt.annotate(results_str, xy=(0, 1), xytext=(12, -12), va='top',
+    #              xycoords='axes fraction', textcoords='offset points')
     plt.legend(loc='upper right')
     plt.savefig('figures/final-wealth.png')
 

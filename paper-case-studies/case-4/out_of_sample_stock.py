@@ -357,8 +357,8 @@ if __name__ == '__main__':
         'GP (mean, std) = (' +\
         '{:.2f}'.format(np.mean(wealth_GP[:, -1])).format('.2f') + ', ' +\
         '{:.2f}'.format(np.std(wealth_GP[:, -1])) + ')'
-    plt.annotate(results_str, xy=(0, 1), xytext=(12, -12), va='top',
-                 xycoords='axes fraction', textcoords='offset points')
+    # plt.annotate(results_str, xy=(0, 1), xytext=(12, -12), va='top',
+    #              xycoords='axes fraction', textcoords='offset points')
     plt.legend(loc='upper right')
     plt.savefig('figures/final-wealth.png')
 

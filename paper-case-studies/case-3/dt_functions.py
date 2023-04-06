@@ -1319,7 +1319,8 @@ def get_rescSigmaLambda(return_is_pnl, Sigma, Lambda, price):
 # perform_ttest
 # -----------------------------------------------------------------------------
 
-def perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
+def perform_ttest(case,
+                  final_wealth_GP, final_wealth_M, final_wealth_RL,
                   final_value_GP, final_value_M, final_value_RL,
                   final_cost_GP, final_cost_M, final_cost_RL):
 
@@ -1348,10 +1349,18 @@ def perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
                               usevar='unequal',
                               alternative='larger')
 
-    t_wealth_RL_GP = ttest_ind(final_wealth_RL,
-                               final_wealth_GP,
-                               usevar='unequal',
-                               alternative='larger')
+    if case == 'benchmark':
+        t_wealth_RL_GP = ttest_ind(final_wealth_RL,
+                                   final_wealth_GP,
+                                   usevar='unequal',
+                                   alternative='two-sided')
+    elif case == 'outperforming':
+        t_wealth_RL_GP = ttest_ind(final_wealth_RL,
+                                   final_wealth_GP,
+                                   usevar='unequal',
+                                   alternative='larger')
+    else:
+        raise NameError(f'Invalid case: {case}')
 
     t_value_GP_M = ttest_ind(final_value_GP,
                              final_value_M,
@@ -1363,10 +1372,18 @@ def perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
                              usevar='unequal',
                              alternative='larger')
 
-    t_value_RL_GP = ttest_ind(final_value_RL,
-                              final_value_GP,
-                              usevar='unequal',
-                              alternative='larger')
+    if case == 'benchmark':
+        t_value_RL_GP = ttest_ind(final_value_RL,
+                                  final_value_GP,
+                                  usevar='unequal',
+                                  alternative='two-sided')
+    elif case == 'outperforming':
+        t_value_RL_GP = ttest_ind(final_value_RL,
+                                  final_value_GP,
+                                  usevar='unequal',
+                                  alternative='larger')
+    else:
+        raise NameError(f'Invalid case: {case}')
 
     t_cost_GP_M = ttest_ind(final_cost_GP,
                             final_cost_M,
@@ -1377,58 +1394,56 @@ def perform_ttest(final_wealth_GP, final_wealth_M, final_wealth_RL,
                             final_cost_M,
                             usevar='unequal',
                             alternative='smaller')
-
-    t_cost_RL_GP = ttest_ind(final_cost_RL,
-                             final_cost_GP,
-                             usevar='unequal',
-                             alternative='smaller')
+    if case == 'benchmark':
+        t_cost_RL_GP = ttest_ind(final_cost_RL,
+                                 final_cost_GP,
+                                 usevar='unequal',
+                                 alternative='two-sided')
+    elif case == 'outperforming':
+        t_cost_RL_GP = ttest_ind(final_cost_RL,
+                                 final_cost_GP,
+                                 usevar='unequal',
+                                 alternative='smaller')
+    else:
+        raise NameError(f'Invalid case: {case}')
 
     # Prepare output dataframe
-    df = pd.DataFrame(columns=['H0', 'H1', 't-statistic', 'p-value'],
-                      data=[['GPw=Mw', 'GPw>Mw', t_wealth_GP_M[0],
-                             t_wealth_GP_M[1]],
-                             ['RLw=Mw', 'RLw>Mw', t_wealth_RL_M[0],
-                              t_wealth_RL_M[1]],
-                             ['RLw=GPw', 'RLw>GPw', t_wealth_RL_GP[0],
-                              t_wealth_RL_GP[1]],
-                             ['GPv=Mv', 'GPv>Mv', t_value_GP_M[0],
-                              t_value_GP_M[1]],
-                             ['RLv=Mv', 'RLv>Mv', t_value_RL_M[0],
-                              t_value_RL_M[1]],
-                             ['RLv=GPv', 'RLv>GPv', t_value_RL_GP[0],
-                              t_value_RL_GP[1]],
-                             ['GPc=Mc', 'GPc<Mc', t_cost_GP_M[0],
-                              t_cost_GP_M[1]],
-                             ['RLc=Mc', 'RLc<Mc', t_cost_RL_M[0],
-                              t_cost_RL_M[1]],
-                             ['RLc=GPc', 'RLc<GPc', t_cost_RL_GP[0],
-                              t_cost_RL_GP[1]]])
+    df = pd.DataFrame(columns=['variables', 't-statistic', 'p-value'],
+                      data=[['GPw vs Mw', t_wealth_GP_M[0], t_wealth_GP_M[1]],
+                             ['RLw vs Mw', t_wealth_RL_M[0], t_wealth_RL_M[1]],
+                             ['RLw vs GPw', t_wealth_RL_GP[0], t_wealth_RL_GP[1]],
+                             ['GPv vs Mv', t_value_GP_M[0], t_value_GP_M[1]],
+                             ['RLv vs Mv', t_value_RL_M[0], t_value_RL_M[1]],
+                             ['RLv vs GPv', t_value_RL_GP[0], t_value_RL_GP[1]],
+                             ['GPc vs Mc', t_cost_GP_M[0], t_cost_GP_M[1]],
+                             ['RLc vs Mc', t_cost_RL_M[0], t_cost_RL_M[1]],
+                             ['RLc vs GPc', t_cost_RL_GP[0], t_cost_RL_GP[1]]])
 
     # Output
     df.to_csv('reports/t_tests.csv', index=False)
 
-    # Print results
-    print('\n\n\nWelch\'s tests (absolute):\n')
-    print('    H0: GPw=Mw, H1: GPw>Mw. t: %.4f, p-value: %.4f' %
-          (t_wealth_GP_M[0], t_wealth_GP_M[1]))
-    print('    H0: RLw=Mw, H1: RLw>Mw. t: %.4f, p-value: %.4f' %
-          (t_wealth_RL_M[0], t_wealth_RL_M[1]))
-    print('    H0: RLw=GPw, H1: RLw>GPw. t: %.4f, p-value: %.4f' %
-          (t_wealth_RL_GP[0], t_wealth_RL_GP[1]))
-
-    print('\n    H0: GPv=Mv, H1: GPv>Mv. t: %.4f, p-value: %.4f' %
-          (t_value_GP_M[0], t_value_GP_M[1]))
-    print('    H0: RLv=Mv, H1: RLv>Mv. t: %.4f, p-value: %.4f' %
-          (t_value_RL_M[0], t_value_RL_M[1]))
-    print('    H0: RLv=GPv, H1: RLv>GPv. t: %.4f, p-value: %.4f' %
-          (t_value_RL_GP[0], t_value_RL_GP[1]))
-
-    print('\n    H0: GPc=Mc, H1: GPc<Mc. t: %.4f, p-value: %.4f' %
-          (t_cost_GP_M[0], t_cost_GP_M[1]))
-    print('    H0: RLc=Mc, H1: RLc<Mc. t: %.4f, p-value: %.4f' %
-          (t_cost_RL_M[0], t_cost_RL_M[1]))
-    print('    H0: RLc=GPc, H1: RLc<GPc. t: %.4f, p-value: %.4f' %
-          (t_cost_RL_GP[0], t_cost_RL_GP[1]))
+    # # Print results
+    # print('\n\n\nWelch\'s tests (absolute):\n')
+    # print('    H0: GPw=Mw, H1: GPw>Mw. t: %.4f, p-value: %.4f' %
+    #       (t_wealth_GP_M[0], t_wealth_GP_M[1]))
+    # print('    H0: RLw=Mw, H1: RLw>Mw. t: %.4f, p-value: %.4f' %
+    #       (t_wealth_RL_M[0], t_wealth_RL_M[1]))
+    # print('    H0: RLw=GPw, H1: RLw>GPw. t: %.4f, p-value: %.4f' %
+    #       (t_wealth_RL_GP[0], t_wealth_RL_GP[1]))
+    #
+    # print('\n    H0: GPv=Mv, H1: GPv>Mv. t: %.4f, p-value: %.4f' %
+    #       (t_value_GP_M[0], t_value_GP_M[1]))
+    # print('    H0: RLv=Mv, H1: RLv>Mv. t: %.4f, p-value: %.4f' %
+    #       (t_value_RL_M[0], t_value_RL_M[1]))
+    # print('    H0: RLv=GPv, H1: RLv>GPv. t: %.4f, p-value: %.4f' %
+    #       (t_value_RL_GP[0], t_value_RL_GP[1]))
+    #
+    # print('\n    H0: GPc=Mc, H1: GPc<Mc. t: %.4f, p-value: %.4f' %
+    #       (t_cost_GP_M[0], t_cost_GP_M[1]))
+    # print('    H0: RLc=Mc, H1: RLc<Mc. t: %.4f, p-value: %.4f' %
+    #       (t_cost_RL_M[0], t_cost_RL_M[1]))
+    # print('    H0: RLc=GPc, H1: RLc<GPc. t: %.4f, p-value: %.4f' %
+    #       (t_cost_RL_GP[0], t_cost_RL_GP[1]))
 
 
 # -----------------------------------------------------------------------------
