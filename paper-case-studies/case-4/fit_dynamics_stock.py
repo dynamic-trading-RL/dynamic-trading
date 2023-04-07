@@ -20,6 +20,7 @@ from statsmodels.tsa.ar_model import AutoReg
 
 ticker = '^GSPC'  # '^GSPC'
 end_date = '2018-10-01'
+t_ = 50
 c = 0.
 scale = 1
 scale_f = 1  # or "= scale"
@@ -74,6 +75,9 @@ calibration_parameters.to_excel(writer, sheet_name='calibration-parameters')
 writer.close()
 
 # ------------------------------------- Fit of dynamics -----------------------
+# hold-out
+df = df.iloc[:-t_].copy()
+
 
 # ------------------ RETURNS
 

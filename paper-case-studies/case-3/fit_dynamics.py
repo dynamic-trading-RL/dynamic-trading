@@ -20,6 +20,7 @@ import statsmodels.api as sm
 
 fit_stock = False
 return_is_pnl = True
+t_ = 50
 dump(fit_stock, 'data/fit_stock.joblib')
 dump(return_is_pnl, 'data/return_is_pnl.joblib')
 
