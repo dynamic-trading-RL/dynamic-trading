@@ -257,10 +257,10 @@ if __name__ == '__main__':
     # plt.annotate(results_str, xy=(0, 1), xytext=(12, -12), va='top',
     #              xycoords='axes fraction', textcoords='offset points')
     plt.legend(loc='upper right')
-    plt.savefig('figures/final-wealth.png')
     xlim = [np.quantile(wealth_M[:, -1], 0.005),
             np.quantile(wealth_M[:, -1], 0.995)]
     plt.xlim(xlim)
+    plt.savefig('figures/final-wealth.png')
 
     plt.figure()
     plt.plot(cost_M[0], color='m', label='Markowitz', alpha=0.5)

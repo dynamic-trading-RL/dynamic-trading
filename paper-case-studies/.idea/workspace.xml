@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d2ca443d-5999-4ed2-a9e2-e92307ea4d41" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/dynamic-trading.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/bound.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/bound.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/factorType.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/factorType.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/flag_qaverage.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/flag_qaverage.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/gamma.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/gamma.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/lam.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/lam.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/n_batches.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/n_batches.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/optimizer.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/optimizer.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/optimizers.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/optimizers.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/parallel_computing.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/parallel_computing.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/rescale_n_a.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/rescale_n_a.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/data/rho.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/data/rho.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/action vs q; batch=0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/action vs q; batch=0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/action vs q; batch=1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/action vs q; batch=1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/action vs q; batch=2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/action vs q; batch=2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/action vs q; batch=3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/action vs q; batch=3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/action vs q; batch=4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/action vs q; batch=4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/action vs q; batch=5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/action vs q; batch=5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/cost.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/cost.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/cum-cost-final.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/cum-cost-final.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/cum-cost.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/cum-cost.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/cum-reward-final.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/cum-reward-final.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/cum-reward.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/cum-reward.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/final-wealth.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/final-wealth.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/in-sample-cost.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/in-sample-cost.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/in-sample-shares.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/in-sample-shares.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/in-sample-value.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/in-sample-value.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/in-sample-wealth.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/in-sample-wealth.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-6.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares-6.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-shares.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-6.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-6.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades-scatter.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/out-of-sample-trades.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/reward.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/reward.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/scatter_GPvsRL.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/scatter_GPvsRL.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_0 vs q; batch=5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/state_1 vs q; batch=5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/trades-histogram.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/trades-histogram.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/value.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/value.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/figures/wealth.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/figures/wealth.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/models/q0.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/models/q0.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/models/q1.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/models/q1.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/models/q2.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/models/q2.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/models/q3.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/models/q3.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/models/q4.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/models/q4.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/models/q5.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/models/q5.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/reports/final_linear_regression_results.txt" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/reports/final_linear_regression_results.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/reports/final_linear_regression_ttest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/reports/final_linear_regression_ttest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/reports/general_statistics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/reports/general_statistics.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/reports/t_tests.csv" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/reports/t_tests.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-1/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/case-1/run.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/data/bound.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/data/bound.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/data/lam.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/data/lam.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/action vs q; batch=0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/action vs q; batch=0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/action vs q; batch=1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/action vs q; batch=1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/action vs q; batch=2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/action vs q; batch=2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/action vs q; batch=3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/action vs q; batch=3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/action vs q; batch=4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/action vs q; batch=4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/action vs q; batch=5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/action vs q; batch=5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/cost.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/cost.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/cum-cost-final.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/cum-cost-final.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/cum-cost.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/cum-cost.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/cum-reward-final.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/cum-reward-final.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/cum-reward.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/cum-reward.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/final-wealth.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/final-wealth.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/in-sample-cost.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/in-sample-cost.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/in-sample-shares.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/in-sample-shares.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/in-sample-value.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/in-sample-value.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/in-sample-wealth.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/in-sample-wealth.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-6.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares-6.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-shares.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-6.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-6.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades-scatter.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/out-of-sample-trades.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/reward.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/reward.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/scatter_GPvsRL.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/scatter_GPvsRL.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_0 vs q; batch=5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=0.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=0.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=1.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=2.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=3.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=4.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=5.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/state_1 vs q; batch=5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/trades-histogram.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/trades-histogram.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/value.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/value.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/figures/wealth.png" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/figures/wealth.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/models/q0.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/models/q0.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/models/q1.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/models/q1.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/models/q2.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/models/q2.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/models/q3.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/models/q3.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/models/q4.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/models/q4.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/models/q5.joblib" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/models/q5.joblib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/out_of_sample.py" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/out_of_sample.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/reports/final_linear_regression_results.txt" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/reports/final_linear_regression_results.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/reports/final_linear_regression_ttest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/reports/final_linear_regression_ttest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/reports/general_statistics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/reports/general_statistics.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/reports/t_tests.csv" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/reports/t_tests.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/case-3/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/case-3/run.sh" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2O92m6gGSkRSZQOHODdIqz4Pfeq" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Python.fit_dynamics">
+    <configuration name="fit_dynamics" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="paper-case-studies" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/case-1" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/case-1/fit_dynamics.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="plot_value_functions (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="paper-case-studies" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/case-3" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/case-3/plot_value_functions.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="plot_value_functions" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="paper-case-studies" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/case-1" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/case-1/plot_value_functions.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="train_RL_agent" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="paper-case-studies" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/case-1" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/case-1/train_RL_agent.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.fit_dynamics" />
+        <item itemvalue="Python.train_RL_agent" />
+        <item itemvalue="Python.plot_value_functions (1)" />
+        <item itemvalue="Python.plot_value_functions" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d2ca443d-5999-4ed2-a9e2-e92307ea4d41" name="Changes" comment="" />
+      <created>1680958636177</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1680958636177</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/case-1/train_RL_agent.py</url>
+          <line>133</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/case-1/fit_dynamics.py</url>
+          <line>96</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/case-1/fit_dynamics.py</url>
+          <line>91</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

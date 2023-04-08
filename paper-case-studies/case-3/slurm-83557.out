@@ -1,3 +1,46 @@
+Number of cores available: 576
+Number of cores used: 20
+Creating batch 1 of 6; eps=0.010000
+Fitting model 1 of 6
+    Score: 0.982
+    Average reward: -550.575
+    Average cost: 550.432
+Creating batch 2 of 6; eps=0.003333
+Fitting model 2 of 6
+    Score: 0.882
+    Average reward: 9.296
+    Average cost: 6.998
+Creating batch 3 of 6; eps=0.001111
+Fitting model 3 of 6
+    Score: 0.872
+    Average reward: 10.682
+    Average cost: 5.987
+Creating batch 4 of 6; eps=0.000370
+Fitting model 4 of 6
+    Score: 0.857
+    Average reward: 10.763
+    Average cost: 5.732
+Creating batch 5 of 6; eps=0.000123
+Fitting model 5 of 6
+    Score: 0.847
+    Average reward: 10.738
+    Average cost: 5.758
+Creating batch 6 of 6; eps=0.000041
+Fitting model 6 of 6
+    Score: 0.848
+    Average reward: 10.975
+    Average cost: 5.675
+Used optimizers:
+  shgo: 0
+  dual_annealing: 0
+  differential_evolution: 0
+  brute: 0
+  local: 0
+
+
+
+ Linear regression of X=GP vs Y=RL:
+
                             OLS Regression Results                            
 ==============================================================================
 Dep. Variable:                      y   R-squared:                       0.405
@@ -23,3 +66,14 @@ Kurtosis:                      21.553   Cond. No.                         78.0
 
 Warnings:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+
+ H0: beta=1; H1: beta!=1
+                             Test for Constraints                             
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+c0             0.7778      0.009    -23.587      0.000       0.759       0.796
+==============================================================================
+#### END
+#### END
