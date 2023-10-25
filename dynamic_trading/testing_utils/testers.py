@@ -891,6 +891,7 @@ class SimulationTester(Tester):
         """
 
         super().__init__(on_the_fly=on_the_fly, n=n)
+        self.t_test_mode = None
         self._externally_provided_simulations = externally_provided_simulations
         self.t_ = None
         self.j_ = None
