@@ -10,7 +10,7 @@ from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from statsmodels.tsa.ar_model import AutoReg
 
-from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType
+from dynamic_trading.enums.enums import RiskDriverDynamicsType, FactorDynamicsType, RiskDriverType
 from dynamic_trading.gen_utils.utils import get_available_futures_tickers
 from dynamic_trading.market_utils.financial_time_series import FinancialTimeSeries
 
@@ -154,6 +154,13 @@ class DynamicsCalibrator:
             self._execute_general_threshold_regression(tgt_key=riskDriverDynamicsType, var_type='risk-driver',
                                                        scale=scale, c=c)
 
+        elif riskDriverDynamicsType == RiskDriverDynamicsType.gBm:
+
+            if self.financialTimeSeries.riskDriverType is not RiskDriverType.Return:
+                raise TypeError(f'Cannot fit {RiskDriverDynamicsType.gBm} on {self.financialTimeSeries.riskDriverType}')
+
+            self._execute_gBm_fit(tgt_key=riskDriverDynamicsType, var_type='risk-driver', scale=scale)
+
         else:
             raise NameError(f'Invalid riskDriverDynamicsType: {riskDriverDynamicsType.value}')
 
@@ -245,6 +252,28 @@ class DynamicsCalibrator:
         self.all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_autocorr'] =\
             [np.abs(all_epsi).autocorr(lag) for lag in range(20)]
         self.all_dynamics_resid_dict[var_type][tgt_key] = all_epsi
+
+    def _execute_gBm_fit(self, tgt_key, var_type: str, scale: float):
+
+        if var_type != 'risk-driver':
+            raise NameError(f'var_type = {var_type} should be risk-driver')
+        if tgt_key != RiskDriverDynamicsType.gBm:
+            raise NameError(f'tgt_key = {tgt_key} should be {RiskDriverDynamicsType.gBm}')
+
+        self.all_dynamics_param_dict[var_type][tgt_key] = {}
+
+        ticker = self.financialTimeSeries.ticker
+        time_series = self.financialTimeSeries.time_series[ticker]
+        epsi = time_series.diff()/time_series
+        mu = epsi.mean()
+        sig = epsi.std()
+
+        self.all_dynamics_param_dict[var_type][tgt_key]['mu'] = mu
+        self.all_dynamics_param_dict[var_type][tgt_key]['sig'] = sig
+
+        self.all_dynamics_resid_dict[var_type][tgt_key] = epsi
+        self.all_dynamics_param_dict[var_type][tgt_key]['abs_epsi_autocorr'] =\
+            [np.abs(epsi).autocorr(lag) for lag in range(20)]
 
     def _execute_ols(self, df_reg: pd.DataFrame, ind: pd.Index, scale: float, var_type: str):
 
@@ -435,11 +464,14 @@ class DynamicsCalibrator:
         df_riskDriverType.to_excel(writer, sheet_name='riskDriverType', index=False)
 
         if var_type == 'risk-driver':
-            df_start_price = pd.DataFrame(data=[self.financialTimeSeries.info.loc['start_price'][0]],
+            df_start_price = pd.DataFrame(data=[self.financialTimeSeries.info.loc['start_price', 'info']],
                                           columns=['start_price'])
             df_start_price.to_excel(writer, sheet_name='start_price', index=False)
 
         for dynamicsType, param_dict in self.all_dynamics_param_dict[var_type].items():
+
+            if dynamicsType is RiskDriverDynamicsType.gBm:
+                a = 1
 
             try:
                 # parameters
@@ -458,8 +490,8 @@ class DynamicsCalibrator:
                     with open(filename, 'w+') as fh:
                         fh.write(model.summary().as_text())
 
-            except:
-                print(f'Could not write report for {var_type}, {dynamicsType}')
+            except Exception as e:
+                print(f'Could not write report for {var_type}, {dynamicsType};\n    error: {e}')
 
         writer.close()
 

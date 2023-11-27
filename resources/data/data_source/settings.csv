@@ -31,7 +31,7 @@ predict_pnl_for_reward,Yes
 randomActionType,RandomUniform
 random_initial_state,Yes
 riskDriverDynamicsType,Linear
-riskDriverType,PnL
+riskDriverType,Return
 start_date,
 state_average_past_pnl,No
 state_factor,Yes

@@ -9,6 +9,7 @@ class RiskDriverDynamicsType(Enum):
 
     Linear = 'Linear'  #: A linear model.
     NonLinear = 'NonLinear'  #: A non-linear threshold model.
+    gBm = 'gBm'
 
 
 class FactorDynamicsType(Enum):

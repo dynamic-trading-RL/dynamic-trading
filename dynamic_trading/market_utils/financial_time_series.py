@@ -63,9 +63,9 @@ class FinancialTimeSeries:
 
         # if window is None, then it is taken from financial_time_series_setting.csv
         self._set_settings_from_file(window)
-        self._set_asset_time_series(start_date=self.info.loc['start_date'][0],
-                                    end_date=self.info.loc['end_date'][0],
-                                    in_sample_proportion=float(self.info.loc['in_sample_proportion'][0]))
+        self._set_asset_time_series(start_date=self.info.loc['start_date', 'value'],
+                                    end_date=self.info.loc['end_date', 'value'],
+                                    in_sample_proportion=float(self.info.loc['in_sample_proportion', 'value']))
         self._set_risk_driver_time_series()
         self._set_factor_time_series()
         self.time_series.dropna(inplace=True)
@@ -106,9 +106,9 @@ class FinancialTimeSeries:
         if self._forcePnL:
             self.riskDriverType = RiskDriverType.PnL
         else:
-            self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType'][0])
-        self.factorComputationType = FactorComputationType(self.info.loc['factorComputationType'][0])
-        self.window = int(self.info.loc['window'][0])
+            self.riskDriverType = RiskDriverType(self.info.loc['riskDriverType', 'value'])
+        self.factorComputationType = FactorComputationType(self.info.loc['factorComputationType', 'value'])
+        self.window = int(self.info.loc['window', 'value'])
         self.factorTransformationType = FactorTransformationType(self.info.loc['factorTransformationType'].item())
 
     def _set_asset_time_series(self, start_date: str, end_date: str, in_sample_proportion: float):

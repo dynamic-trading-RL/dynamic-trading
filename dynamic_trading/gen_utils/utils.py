@@ -34,7 +34,7 @@ def read_ticker() -> str:
 
     filename = os.path.dirname(os.path.dirname(os.path.dirname(__file__))) + '/resources/data/data_source/settings.csv'
     df_trad_params = pd.read_csv(filename, index_col=0)
-    ticker = str(df_trad_params.loc['ticker'][0])
+    ticker = str(df_trad_params.loc['ticker', 'value'])
 
     return ticker
 
